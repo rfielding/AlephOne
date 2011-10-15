@@ -1,0 +1,489 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 46;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		49B39079144914DC008C9F6E /* UIKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 49B39078144914DC008C9F6E /* UIKit.framework */; };
+		49B3907B144914DC008C9F6E /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 49B3907A144914DC008C9F6E /* Foundation.framework */; };
+		49B3907D144914DC008C9F6E /* CoreGraphics.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 49B3907C144914DC008C9F6E /* CoreGraphics.framework */; };
+		49B3907F144914DC008C9F6E /* QuartzCore.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 49B3907E144914DC008C9F6E /* QuartzCore.framework */; };
+		49B39081144914DC008C9F6E /* OpenGLES.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 49B39080144914DC008C9F6E /* OpenGLES.framework */; };
+		49B39087144914DC008C9F6E /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 49B39085144914DC008C9F6E /* InfoPlist.strings */; };
+		49B3908A144914DC008C9F6E /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = 49B39089144914DC008C9F6E /* main.m */; };
+		49B3908D144914DC008C9F6E /* AlephOneAppDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = 49B3908C144914DC008C9F6E /* AlephOneAppDelegate.m */; };
+		49B39090144914DC008C9F6E /* MainWindow.xib in Resources */ = {isa = PBXBuildFile; fileRef = 49B3908E144914DC008C9F6E /* MainWindow.xib */; };
+		49B39092144914DC008C9F6E /* Shader.fsh in Resources */ = {isa = PBXBuildFile; fileRef = 49B39091144914DC008C9F6E /* Shader.fsh */; };
+		49B39094144914DC008C9F6E /* Shader.vsh in Resources */ = {isa = PBXBuildFile; fileRef = 49B39093144914DC008C9F6E /* Shader.vsh */; };
+		49B39097144914DC008C9F6E /* EAGLView.m in Sources */ = {isa = PBXBuildFile; fileRef = 49B39096144914DC008C9F6E /* EAGLView.m */; };
+		49B3909A144914DC008C9F6E /* AlephOneViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 49B39099144914DC008C9F6E /* AlephOneViewController.m */; };
+		49B3909D144914DC008C9F6E /* AlephOneViewController.xib in Resources */ = {isa = PBXBuildFile; fileRef = 49B3909B144914DC008C9F6E /* AlephOneViewController.xib */; };
+		49B390A4144914DC008C9F6E /* UIKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 49B39078144914DC008C9F6E /* UIKit.framework */; };
+		49B390A5144914DC008C9F6E /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 49B3907A144914DC008C9F6E /* Foundation.framework */; };
+		49B390A6144914DC008C9F6E /* CoreGraphics.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 49B3907C144914DC008C9F6E /* CoreGraphics.framework */; };
+		49B390AE144914DC008C9F6E /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 49B390AC144914DC008C9F6E /* InfoPlist.strings */; };
+		49B390B1144914DC008C9F6E /* AlephOneTests.h in Resources */ = {isa = PBXBuildFile; fileRef = 49B390B0144914DC008C9F6E /* AlephOneTests.h */; };
+		49B390B3144914DC008C9F6E /* AlephOneTests.m in Sources */ = {isa = PBXBuildFile; fileRef = 49B390B2144914DC008C9F6E /* AlephOneTests.m */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		49B390A7144914DC008C9F6E /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 49B3906B144914DB008C9F6E /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 49B39073144914DC008C9F6E;
+			remoteInfo = AlephOne;
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXFileReference section */
+		49B39074144914DC008C9F6E /* AlephOne.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = AlephOne.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		49B39078144914DC008C9F6E /* UIKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = UIKit.framework; path = System/Library/Frameworks/UIKit.framework; sourceTree = SDKROOT; };
+		49B3907A144914DC008C9F6E /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = System/Library/Frameworks/Foundation.framework; sourceTree = SDKROOT; };
+		49B3907C144914DC008C9F6E /* CoreGraphics.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreGraphics.framework; path = System/Library/Frameworks/CoreGraphics.framework; sourceTree = SDKROOT; };
+		49B3907E144914DC008C9F6E /* QuartzCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = QuartzCore.framework; path = System/Library/Frameworks/QuartzCore.framework; sourceTree = SDKROOT; };
+		49B39080144914DC008C9F6E /* OpenGLES.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = OpenGLES.framework; path = System/Library/Frameworks/OpenGLES.framework; sourceTree = SDKROOT; };
+		49B39084144914DC008C9F6E /* AlephOne-Info.plist */ = {isa = PBXFileReference; path = "AlephOne-Info.plist"; sourceTree = "<group>"; };
+		49B39086144914DC008C9F6E /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = en.lproj/InfoPlist.strings; sourceTree = "<group>"; };
+		49B39088144914DC008C9F6E /* AlephOne-Prefix.pch */ = {isa = PBXFileReference; path = "AlephOne-Prefix.pch"; sourceTree = "<group>"; };
+		49B39089144914DC008C9F6E /* main.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = main.m; sourceTree = "<group>"; };
+		49B3908B144914DC008C9F6E /* AlephOneAppDelegate.h */ = {isa = PBXFileReference; path = AlephOneAppDelegate.h; sourceTree = "<group>"; };
+		49B3908C144914DC008C9F6E /* AlephOneAppDelegate.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = AlephOneAppDelegate.m; sourceTree = "<group>"; };
+		49B3908F144914DC008C9F6E /* en */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = en; path = en.lproj/MainWindow.xib; sourceTree = "<group>"; };
+		49B39091144914DC008C9F6E /* Shader.fsh */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.glsl; name = Shader.fsh; path = Shaders/Shader.fsh; sourceTree = "<group>"; };
+		49B39093144914DC008C9F6E /* Shader.vsh */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.glsl; name = Shader.vsh; path = Shaders/Shader.vsh; sourceTree = "<group>"; };
+		49B39095144914DC008C9F6E /* EAGLView.h */ = {isa = PBXFileReference; path = EAGLView.h; sourceTree = "<group>"; };
+		49B39096144914DC008C9F6E /* EAGLView.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = EAGLView.m; sourceTree = "<group>"; };
+		49B39098144914DC008C9F6E /* AlephOneViewController.h */ = {isa = PBXFileReference; path = AlephOneViewController.h; sourceTree = "<group>"; };
+		49B39099144914DC008C9F6E /* AlephOneViewController.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = AlephOneViewController.m; sourceTree = "<group>"; };
+		49B3909C144914DC008C9F6E /* en */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = en; path = en.lproj/AlephOneViewController.xib; sourceTree = "<group>"; };
+		49B390A3144914DC008C9F6E /* AlephOneTests.octest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = AlephOneTests.octest; sourceTree = BUILT_PRODUCTS_DIR; };
+		49B390AB144914DC008C9F6E /* AlephOneTests-Info.plist */ = {isa = PBXFileReference; path = "AlephOneTests-Info.plist"; sourceTree = "<group>"; };
+		49B390AD144914DC008C9F6E /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = en.lproj/InfoPlist.strings; sourceTree = "<group>"; };
+		49B390AF144914DC008C9F6E /* AlephOneTests-Prefix.pch */ = {isa = PBXFileReference; path = "AlephOneTests-Prefix.pch"; sourceTree = "<group>"; };
+		49B390B0144914DC008C9F6E /* AlephOneTests.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = AlephOneTests.h; sourceTree = "<group>"; };
+		49B390B2144914DC008C9F6E /* AlephOneTests.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = AlephOneTests.m; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		49B39071144914DC008C9F6E /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				49B39079144914DC008C9F6E /* UIKit.framework in Frameworks */,
+				49B3907B144914DC008C9F6E /* Foundation.framework in Frameworks */,
+				49B3907D144914DC008C9F6E /* CoreGraphics.framework in Frameworks */,
+				49B3907F144914DC008C9F6E /* QuartzCore.framework in Frameworks */,
+				49B39081144914DC008C9F6E /* OpenGLES.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		49B3909F144914DC008C9F6E /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				49B390A4144914DC008C9F6E /* UIKit.framework in Frameworks */,
+				49B390A5144914DC008C9F6E /* Foundation.framework in Frameworks */,
+				49B390A6144914DC008C9F6E /* CoreGraphics.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		49B39069144914DB008C9F6E = {
+			isa = PBXGroup;
+			children = (
+				49B39082144914DC008C9F6E /* AlephOne */,
+				49B390A9144914DC008C9F6E /* AlephOneTests */,
+				49B39077144914DC008C9F6E /* Frameworks */,
+				49B39075144914DC008C9F6E /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		49B39075144914DC008C9F6E /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				49B39074144914DC008C9F6E /* AlephOne.app */,
+				49B390A3144914DC008C9F6E /* AlephOneTests.octest */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		49B39077144914DC008C9F6E /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				49B39078144914DC008C9F6E /* UIKit.framework */,
+				49B3907A144914DC008C9F6E /* Foundation.framework */,
+				49B3907C144914DC008C9F6E /* CoreGraphics.framework */,
+				49B3907E144914DC008C9F6E /* QuartzCore.framework */,
+				49B39080144914DC008C9F6E /* OpenGLES.framework */,
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
+		49B39082144914DC008C9F6E /* AlephOne */ = {
+			isa = PBXGroup;
+			children = (
+				49B3908B144914DC008C9F6E /* AlephOneAppDelegate.h */,
+				49B3908C144914DC008C9F6E /* AlephOneAppDelegate.m */,
+				49B3908E144914DC008C9F6E /* MainWindow.xib */,
+				49B39091144914DC008C9F6E /* Shader.fsh */,
+				49B39093144914DC008C9F6E /* Shader.vsh */,
+				49B39095144914DC008C9F6E /* EAGLView.h */,
+				49B39096144914DC008C9F6E /* EAGLView.m */,
+				49B39098144914DC008C9F6E /* AlephOneViewController.h */,
+				49B39099144914DC008C9F6E /* AlephOneViewController.m */,
+				49B3909B144914DC008C9F6E /* AlephOneViewController.xib */,
+				49B39083144914DC008C9F6E /* Supporting Files */,
+			);
+			path = AlephOne;
+			sourceTree = "<group>";
+		};
+		49B39083144914DC008C9F6E /* Supporting Files */ = {
+			isa = PBXGroup;
+			children = (
+				49B39084144914DC008C9F6E /* AlephOne-Info.plist */,
+				49B39085144914DC008C9F6E /* InfoPlist.strings */,
+				49B39088144914DC008C9F6E /* AlephOne-Prefix.pch */,
+				49B39089144914DC008C9F6E /* main.m */,
+			);
+			name = "Supporting Files";
+			sourceTree = "<group>";
+		};
+		49B390A9144914DC008C9F6E /* AlephOneTests */ = {
+			isa = PBXGroup;
+			children = (
+				49B390B0144914DC008C9F6E /* AlephOneTests.h */,
+				49B390B2144914DC008C9F6E /* AlephOneTests.m */,
+				49B390AA144914DC008C9F6E /* Supporting Files */,
+			);
+			path = AlephOneTests;
+			sourceTree = "<group>";
+		};
+		49B390AA144914DC008C9F6E /* Supporting Files */ = {
+			isa = PBXGroup;
+			children = (
+				49B390AB144914DC008C9F6E /* AlephOneTests-Info.plist */,
+				49B390AC144914DC008C9F6E /* InfoPlist.strings */,
+				49B390AF144914DC008C9F6E /* AlephOneTests-Prefix.pch */,
+			);
+			name = "Supporting Files";
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		49B39073144914DC008C9F6E /* AlephOne */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 49B390B6144914DC008C9F6E /* Build configuration list for PBXNativeTarget "AlephOne" */;
+			buildPhases = (
+				49B39070144914DC008C9F6E /* Sources */,
+				49B39071144914DC008C9F6E /* Frameworks */,
+				49B39072144914DC008C9F6E /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = AlephOne;
+			productName = AlephOne;
+			productReference = 49B39074144914DC008C9F6E /* AlephOne.app */;
+			productType = "com.apple.product-type.application";
+		};
+		49B390A2144914DC008C9F6E /* AlephOneTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 49B390B9144914DC008C9F6E /* Build configuration list for PBXNativeTarget "AlephOneTests" */;
+			buildPhases = (
+				49B3909E144914DC008C9F6E /* Sources */,
+				49B3909F144914DC008C9F6E /* Frameworks */,
+				49B390A0144914DC008C9F6E /* Resources */,
+				49B390A1144914DC008C9F6E /* ShellScript */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				49B390A8144914DC008C9F6E /* PBXTargetDependency */,
+			);
+			name = AlephOneTests;
+			productName = AlephOneTests;
+			productReference = 49B390A3144914DC008C9F6E /* AlephOneTests.octest */;
+			productType = "com.apple.product-type.bundle";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		49B3906B144914DB008C9F6E /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				ORGANIZATIONNAME = "Check Point Software";
+			};
+			buildConfigurationList = 49B3906E144914DB008C9F6E /* Build configuration list for PBXProject "AlephOne" */;
+			compatibilityVersion = "Xcode 3.2";
+			developmentRegion = English;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+			);
+			mainGroup = 49B39069144914DB008C9F6E;
+			productRefGroup = 49B39075144914DC008C9F6E /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				49B39073144914DC008C9F6E /* AlephOne */,
+				49B390A2144914DC008C9F6E /* AlephOneTests */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		49B39072144914DC008C9F6E /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				49B39087144914DC008C9F6E /* InfoPlist.strings in Resources */,
+				49B39090144914DC008C9F6E /* MainWindow.xib in Resources */,
+				49B39092144914DC008C9F6E /* Shader.fsh in Resources */,
+				49B39094144914DC008C9F6E /* Shader.vsh in Resources */,
+				49B3909D144914DC008C9F6E /* AlephOneViewController.xib in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		49B390A0144914DC008C9F6E /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				49B390AE144914DC008C9F6E /* InfoPlist.strings in Resources */,
+				49B390B1144914DC008C9F6E /* AlephOneTests.h in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXShellScriptBuildPhase section */
+		49B390A1144914DC008C9F6E /* ShellScript */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputPaths = (
+			);
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "# Run the unit tests in this test bundle.\n\"${SYSTEM_DEVELOPER_DIR}/Tools/RunUnitTests\"\n";
+		};
+/* End PBXShellScriptBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		49B39070144914DC008C9F6E /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				49B3908A144914DC008C9F6E /* main.m in Sources */,
+				49B3908D144914DC008C9F6E /* AlephOneAppDelegate.m in Sources */,
+				49B39097144914DC008C9F6E /* EAGLView.m in Sources */,
+				49B3909A144914DC008C9F6E /* AlephOneViewController.m in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		49B3909E144914DC008C9F6E /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				49B390B3144914DC008C9F6E /* AlephOneTests.m in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		49B390A8144914DC008C9F6E /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 49B39073144914DC008C9F6E /* AlephOne */;
+			targetProxy = 49B390A7144914DC008C9F6E /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
+/* Begin PBXVariantGroup section */
+		49B39085144914DC008C9F6E /* InfoPlist.strings */ = {
+			isa = PBXVariantGroup;
+			children = (
+				49B39086144914DC008C9F6E /* en */,
+			);
+			name = InfoPlist.strings;
+			sourceTree = "<group>";
+		};
+		49B3908E144914DC008C9F6E /* MainWindow.xib */ = {
+			isa = PBXVariantGroup;
+			children = (
+				49B3908F144914DC008C9F6E /* en */,
+			);
+			name = MainWindow.xib;
+			sourceTree = "<group>";
+		};
+		49B3909B144914DC008C9F6E /* AlephOneViewController.xib */ = {
+			isa = PBXVariantGroup;
+			children = (
+				49B3909C144914DC008C9F6E /* en */,
+			);
+			name = AlephOneViewController.xib;
+			sourceTree = "<group>";
+		};
+		49B390AC144914DC008C9F6E /* InfoPlist.strings */ = {
+			isa = PBXVariantGroup;
+			children = (
+				49B390AD144914DC008C9F6E /* en */,
+			);
+			name = InfoPlist.strings;
+			sourceTree = "<group>";
+		};
+/* End PBXVariantGroup section */
+
+/* Begin XCBuildConfiguration section */
+		49B390B4144914DC008C9F6E /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ARCHS = "$(ARCHS_UNIVERSAL_IPHONE_OS)";
+				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
+				GCC_C_LANGUAGE_STANDARD = gnu99;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = DEBUG;
+				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
+				GCC_VERSION = com.apple.compilers.llvmgcc42;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 4.3;
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = 2;
+			};
+			name = Debug;
+		};
+		49B390B5144914DC008C9F6E /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ARCHS = "$(ARCHS_UNIVERSAL_IPHONE_OS)";
+				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
+				GCC_C_LANGUAGE_STANDARD = gnu99;
+				GCC_VERSION = com.apple.compilers.llvmgcc42;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 4.3;
+				OTHER_CFLAGS = "-DNS_BLOCK_ASSERTIONS=1";
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = 2;
+			};
+			name = Release;
+		};
+		49B390B7144914DC008C9F6E /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				COPY_PHASE_STRIP = NO;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_PRECOMPILE_PREFIX_HEADER = YES;
+				GCC_PREFIX_HEADER = "AlephOne/AlephOne-Prefix.pch";
+				"GCC_THUMB_SUPPORT[arch=armv6]" = "";
+				INFOPLIST_FILE = "AlephOne/AlephOne-Info.plist";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				WRAPPER_EXTENSION = app;
+			};
+			name = Debug;
+		};
+		49B390B8144914DC008C9F6E /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				COPY_PHASE_STRIP = YES;
+				GCC_PRECOMPILE_PREFIX_HEADER = YES;
+				GCC_PREFIX_HEADER = "AlephOne/AlephOne-Prefix.pch";
+				"GCC_THUMB_SUPPORT[arch=armv6]" = "";
+				INFOPLIST_FILE = "AlephOne/AlephOne-Info.plist";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				VALIDATE_PRODUCT = YES;
+				WRAPPER_EXTENSION = app;
+			};
+			name = Release;
+		};
+		49B390BA144914DC008C9F6E /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ARCHS = "$(ARCHS_STANDARD_32_BIT)";
+				BUNDLE_LOADER = "$(BUILT_PRODUCTS_DIR)/AlephOne.app/AlephOne";
+				FRAMEWORK_SEARCH_PATHS = (
+					"$(SDKROOT)/Developer/Library/Frameworks",
+					"$(DEVELOPER_LIBRARY_DIR)/Frameworks",
+				);
+				GCC_PRECOMPILE_PREFIX_HEADER = YES;
+				GCC_PREFIX_HEADER = "AlephOneTests/AlephOneTests-Prefix.pch";
+				INFOPLIST_FILE = "AlephOneTests/AlephOneTests-Info.plist";
+				OTHER_LDFLAGS = (
+					"-framework",
+					SenTestingKit,
+				);
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				TEST_HOST = "$(BUNDLE_LOADER)";
+				WRAPPER_EXTENSION = octest;
+			};
+			name = Debug;
+		};
+		49B390BB144914DC008C9F6E /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ARCHS = "$(ARCHS_STANDARD_32_BIT)";
+				BUNDLE_LOADER = "$(BUILT_PRODUCTS_DIR)/AlephOne.app/AlephOne";
+				FRAMEWORK_SEARCH_PATHS = (
+					"$(SDKROOT)/Developer/Library/Frameworks",
+					"$(DEVELOPER_LIBRARY_DIR)/Frameworks",
+				);
+				GCC_PRECOMPILE_PREFIX_HEADER = YES;
+				GCC_PREFIX_HEADER = "AlephOneTests/AlephOneTests-Prefix.pch";
+				INFOPLIST_FILE = "AlephOneTests/AlephOneTests-Info.plist";
+				OTHER_LDFLAGS = (
+					"-framework",
+					SenTestingKit,
+				);
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				TEST_HOST = "$(BUNDLE_LOADER)";
+				WRAPPER_EXTENSION = octest;
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		49B3906E144914DB008C9F6E /* Build configuration list for PBXProject "AlephOne" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				49B390B4144914DC008C9F6E /* Debug */,
+				49B390B5144914DC008C9F6E /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		49B390B6144914DC008C9F6E /* Build configuration list for PBXNativeTarget "AlephOne" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				49B390B7144914DC008C9F6E /* Debug */,
+				49B390B8144914DC008C9F6E /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+		};
+		49B390B9144914DC008C9F6E /* Build configuration list for PBXNativeTarget "AlephOneTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				49B390BA144914DC008C9F6E /* Debug */,
+				49B390BB144914DC008C9F6E /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = 49B3906B144914DB008C9F6E /* Project object */;
+}
