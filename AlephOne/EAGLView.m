@@ -9,6 +9,15 @@
 #import <QuartzCore/QuartzCore.h>
 
 #import "EAGLView.h"
+#import <stdio.h>
+
+
+#import "Fretless.h"
+#import "CoreMIDIRenderer.h"
+
+static struct Fretless_context* fretlessp = NULL;
+
+
 
 @interface EAGLView (PrivateMethods)
 - (void)createFramebuffer;
@@ -38,7 +47,12 @@
                                         kEAGLColorFormatRGBA8, kEAGLDrawablePropertyColorFormat,
                                         nil];
     }
-    
+    [self setMultipleTouchEnabled:TRUE];
+    fretlessp = Fretless_init(midiPutch,midiFlush,malloc,midiFail,midiPassed,printf);
+    Fretless_setMidiHintChannelBendSemis(fretlessp, 2);
+    Fretless_setMidiHintChannelSpan(fretlessp, 8);
+    midiInit(fretlessp);
+    Fretless_boot(fretlessp);    
     return self;
 }
 
@@ -135,6 +149,92 @@
 {
     // The framebuffer will be re-created at the beginning of the next setFramebuffer method call.
     [self deleteFramebuffer];
+}
+
+- (void)touchesBegan:(NSSet *)touches withEvent:(UIEvent *)event {
+    NSArray* touchArray = [touches allObjects];
+    int touchCount = [touches count];
+    for(int t=0; t < touchCount; t++)
+    {
+        UITouch* touch = [touchArray objectAtIndex:t];
+        UITouchPhase phase = [touch phase];
+        if(phase == UITouchPhaseBegan)
+        {
+            int finger = Fretless_util_mapFinger(fretlessp, touch);
+            int string = ((int)(3.0 * [touch locationInView:self].x / framebufferWidth));
+            float fret = (5.0 * [touch locationInView:self].y / framebufferHeight);
+            float note = fret + string*5 + 42;
+            int polygroup = string;
+            float velocity = 1.0;
+            int legato = 0;
+            Fretless_down(fretlessp,finger,note,polygroup,velocity,legato); 
+        }
+    }
+    Fretless_flush(fretlessp);
+}
+
+- (void)tick
+{
+//    Fretless_tick(fretlessp);
+}
+
+- (void)touchesMoved:(NSSet *)touches withEvent:(UIEvent *)event {
+    NSArray* touchArray = [touches allObjects];
+    int touchCount = [touches count];
+    for(int t=0; t < touchCount; t++)
+    {
+        UITouch* touch = [touchArray objectAtIndex:t];
+        UITouchPhase phase = [touch phase];
+        if(phase == UITouchPhaseMoved)
+        {
+            int finger = Fretless_util_mapFinger(fretlessp, touch);
+            int string = ((int)(3.0 * [touch locationInView:self].x / framebufferWidth));
+            float fret = (5.0 * [touch locationInView:self].y / framebufferHeight);
+            float note = fret + string*5 + 42;
+            Fretless_move(fretlessp,finger,note);
+            //float note = 33.0;
+            //int polygroup = finger;
+            //float velocity = 1.0;
+            //int legato = 1;
+            //Fretless_down(fretlessp,finger,note,polygroup,velocity,legato); 
+        }
+    }
+    Fretless_flush(fretlessp);
+}
+- (void)touchesEnded:(NSSet *)touches withEvent:(UIEvent *)event
+{
+    NSArray* touchArray = [touches allObjects];
+    int touchCount = [touchArray count];
+    for(int t=0; t < touchCount; t++)
+    {
+        UITouch* touch = [touchArray objectAtIndex:t];
+        UITouchPhase phase = [touch phase];
+        if(phase==UITouchPhaseEnded)
+        {
+            int finger = Fretless_util_mapFinger(fretlessp, touch);
+            Fretless_up(fretlessp, finger);
+            Fretless_util_unmapFinger(fretlessp,touch);
+        }
+    }
+    Fretless_flush(fretlessp);
+}
+    
+- (void)touchesCancelled:(NSSet *)touches withEvent:(UIEvent *)event
+{
+    NSArray* touchArray = [touches allObjects];
+    int touchCount = [touchArray count];
+    for(int t=0; t < touchCount; t++)
+    {
+        UITouch* touch = [touchArray objectAtIndex:t];
+        UITouchPhase phase = [touch phase];
+        if(phase==UITouchPhaseCancelled)
+        {
+            int finger = Fretless_util_mapFinger(fretlessp, touch);
+            Fretless_up(fretlessp, finger);
+            Fretless_util_unmapFinger(fretlessp,touch);
+        }
+    }
+    Fretless_flush(fretlessp);
 }
 
 @end

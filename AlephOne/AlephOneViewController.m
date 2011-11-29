@@ -163,6 +163,7 @@ enum {
 - (void)drawFrame
 {
     [(EAGLView *)self.view setFramebuffer];
+    [(EAGLView *)self.view tick];
     
     // Replace the implementation of this method to do your own custom drawing.
     static const GLfloat squareVertices[] = {

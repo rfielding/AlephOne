@@ -7,6 +7,8 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		496862831481EFD900460B4B /* CoreMIDI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 496862821481EFD900460B4B /* CoreMIDI.framework */; };
+		496862861481FB7600460B4B /* CoreMIDIRenderer.m in Sources */ = {isa = PBXBuildFile; fileRef = 496862851481FB7600460B4B /* CoreMIDIRenderer.m */; };
 		49B39079144914DC008C9F6E /* UIKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 49B39078144914DC008C9F6E /* UIKit.framework */; };
 		49B3907B144914DC008C9F6E /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 49B3907A144914DC008C9F6E /* Foundation.framework */; };
 		49B3907D144914DC008C9F6E /* CoreGraphics.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 49B3907C144914DC008C9F6E /* CoreGraphics.framework */; };
@@ -27,6 +29,8 @@
 		49B390AE144914DC008C9F6E /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 49B390AC144914DC008C9F6E /* InfoPlist.strings */; };
 		49B390B1144914DC008C9F6E /* AlephOneTests.h in Resources */ = {isa = PBXBuildFile; fileRef = 49B390B0144914DC008C9F6E /* AlephOneTests.h */; };
 		49B390B3144914DC008C9F6E /* AlephOneTests.m in Sources */ = {isa = PBXBuildFile; fileRef = 49B390B2144914DC008C9F6E /* AlephOneTests.m */; };
+		49B390BF144915CB008C9F6E /* Fretless.c in Sources */ = {isa = PBXBuildFile; fileRef = 49B390BD144915CB008C9F6E /* Fretless.c */; };
+		49B390C0144915CB008C9F6E /* Fretless.c in Sources */ = {isa = PBXBuildFile; fileRef = 49B390BD144915CB008C9F6E /* Fretless.c */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -40,32 +44,37 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		496862821481EFD900460B4B /* CoreMIDI.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; path = CoreMIDI.framework; sourceTree = "<group>"; };
+		496862841481FB7600460B4B /* CoreMIDIRenderer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CoreMIDIRenderer.h; sourceTree = "<group>"; };
+		496862851481FB7600460B4B /* CoreMIDIRenderer.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = CoreMIDIRenderer.m; sourceTree = "<group>"; };
 		49B39074144914DC008C9F6E /* AlephOne.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = AlephOne.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		49B39078144914DC008C9F6E /* UIKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = UIKit.framework; path = System/Library/Frameworks/UIKit.framework; sourceTree = SDKROOT; };
 		49B3907A144914DC008C9F6E /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = System/Library/Frameworks/Foundation.framework; sourceTree = SDKROOT; };
 		49B3907C144914DC008C9F6E /* CoreGraphics.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreGraphics.framework; path = System/Library/Frameworks/CoreGraphics.framework; sourceTree = SDKROOT; };
 		49B3907E144914DC008C9F6E /* QuartzCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = QuartzCore.framework; path = System/Library/Frameworks/QuartzCore.framework; sourceTree = SDKROOT; };
 		49B39080144914DC008C9F6E /* OpenGLES.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = OpenGLES.framework; path = System/Library/Frameworks/OpenGLES.framework; sourceTree = SDKROOT; };
-		49B39084144914DC008C9F6E /* AlephOne-Info.plist */ = {isa = PBXFileReference; path = "AlephOne-Info.plist"; sourceTree = "<group>"; };
+		49B39084144914DC008C9F6E /* AlephOne-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "AlephOne-Info.plist"; sourceTree = "<group>"; };
 		49B39086144914DC008C9F6E /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = en.lproj/InfoPlist.strings; sourceTree = "<group>"; };
-		49B39088144914DC008C9F6E /* AlephOne-Prefix.pch */ = {isa = PBXFileReference; path = "AlephOne-Prefix.pch"; sourceTree = "<group>"; };
+		49B39088144914DC008C9F6E /* AlephOne-Prefix.pch */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "AlephOne-Prefix.pch"; sourceTree = "<group>"; };
 		49B39089144914DC008C9F6E /* main.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = main.m; sourceTree = "<group>"; };
-		49B3908B144914DC008C9F6E /* AlephOneAppDelegate.h */ = {isa = PBXFileReference; path = AlephOneAppDelegate.h; sourceTree = "<group>"; };
+		49B3908B144914DC008C9F6E /* AlephOneAppDelegate.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = AlephOneAppDelegate.h; sourceTree = "<group>"; };
 		49B3908C144914DC008C9F6E /* AlephOneAppDelegate.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = AlephOneAppDelegate.m; sourceTree = "<group>"; };
 		49B3908F144914DC008C9F6E /* en */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = en; path = en.lproj/MainWindow.xib; sourceTree = "<group>"; };
 		49B39091144914DC008C9F6E /* Shader.fsh */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.glsl; name = Shader.fsh; path = Shaders/Shader.fsh; sourceTree = "<group>"; };
 		49B39093144914DC008C9F6E /* Shader.vsh */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.glsl; name = Shader.vsh; path = Shaders/Shader.vsh; sourceTree = "<group>"; };
-		49B39095144914DC008C9F6E /* EAGLView.h */ = {isa = PBXFileReference; path = EAGLView.h; sourceTree = "<group>"; };
+		49B39095144914DC008C9F6E /* EAGLView.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = EAGLView.h; sourceTree = "<group>"; };
 		49B39096144914DC008C9F6E /* EAGLView.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = EAGLView.m; sourceTree = "<group>"; };
-		49B39098144914DC008C9F6E /* AlephOneViewController.h */ = {isa = PBXFileReference; path = AlephOneViewController.h; sourceTree = "<group>"; };
+		49B39098144914DC008C9F6E /* AlephOneViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = AlephOneViewController.h; sourceTree = "<group>"; };
 		49B39099144914DC008C9F6E /* AlephOneViewController.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = AlephOneViewController.m; sourceTree = "<group>"; };
 		49B3909C144914DC008C9F6E /* en */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = en; path = en.lproj/AlephOneViewController.xib; sourceTree = "<group>"; };
 		49B390A3144914DC008C9F6E /* AlephOneTests.octest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = AlephOneTests.octest; sourceTree = BUILT_PRODUCTS_DIR; };
-		49B390AB144914DC008C9F6E /* AlephOneTests-Info.plist */ = {isa = PBXFileReference; path = "AlephOneTests-Info.plist"; sourceTree = "<group>"; };
+		49B390AB144914DC008C9F6E /* AlephOneTests-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "AlephOneTests-Info.plist"; sourceTree = "<group>"; };
 		49B390AD144914DC008C9F6E /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = en.lproj/InfoPlist.strings; sourceTree = "<group>"; };
-		49B390AF144914DC008C9F6E /* AlephOneTests-Prefix.pch */ = {isa = PBXFileReference; path = "AlephOneTests-Prefix.pch"; sourceTree = "<group>"; };
+		49B390AF144914DC008C9F6E /* AlephOneTests-Prefix.pch */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "AlephOneTests-Prefix.pch"; sourceTree = "<group>"; };
 		49B390B0144914DC008C9F6E /* AlephOneTests.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = AlephOneTests.h; sourceTree = "<group>"; };
 		49B390B2144914DC008C9F6E /* AlephOneTests.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = AlephOneTests.m; sourceTree = "<group>"; };
+		49B390BD144915CB008C9F6E /* Fretless.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = Fretless.c; sourceTree = "<group>"; };
+		49B390BE144915CB008C9F6E /* Fretless.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Fretless.h; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -78,6 +87,7 @@
 				49B3907D144914DC008C9F6E /* CoreGraphics.framework in Frameworks */,
 				49B3907F144914DC008C9F6E /* QuartzCore.framework in Frameworks */,
 				49B39081144914DC008C9F6E /* OpenGLES.framework in Frameworks */,
+				496862831481EFD900460B4B /* CoreMIDI.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -116,6 +126,7 @@
 		49B39077144914DC008C9F6E /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				496862821481EFD900460B4B /* CoreMIDI.framework */,
 				49B39078144914DC008C9F6E /* UIKit.framework */,
 				49B3907A144914DC008C9F6E /* Foundation.framework */,
 				49B3907C144914DC008C9F6E /* CoreGraphics.framework */,
@@ -128,6 +139,7 @@
 		49B39082144914DC008C9F6E /* AlephOne */ = {
 			isa = PBXGroup;
 			children = (
+				49B390BC14491549008C9F6E /* Fretless */,
 				49B3908B144914DC008C9F6E /* AlephOneAppDelegate.h */,
 				49B3908C144914DC008C9F6E /* AlephOneAppDelegate.m */,
 				49B3908E144914DC008C9F6E /* MainWindow.xib */,
@@ -139,6 +151,8 @@
 				49B39099144914DC008C9F6E /* AlephOneViewController.m */,
 				49B3909B144914DC008C9F6E /* AlephOneViewController.xib */,
 				49B39083144914DC008C9F6E /* Supporting Files */,
+				496862841481FB7600460B4B /* CoreMIDIRenderer.h */,
+				496862851481FB7600460B4B /* CoreMIDIRenderer.m */,
 			);
 			path = AlephOne;
 			sourceTree = "<group>";
@@ -172,6 +186,15 @@
 				49B390AF144914DC008C9F6E /* AlephOneTests-Prefix.pch */,
 			);
 			name = "Supporting Files";
+			sourceTree = "<group>";
+		};
+		49B390BC14491549008C9F6E /* Fretless */ = {
+			isa = PBXGroup;
+			children = (
+				49B390BD144915CB008C9F6E /* Fretless.c */,
+				49B390BE144915CB008C9F6E /* Fretless.h */,
+			);
+			name = Fretless;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -288,6 +311,8 @@
 				49B3908D144914DC008C9F6E /* AlephOneAppDelegate.m in Sources */,
 				49B39097144914DC008C9F6E /* EAGLView.m in Sources */,
 				49B3909A144914DC008C9F6E /* AlephOneViewController.m in Sources */,
+				49B390BF144915CB008C9F6E /* Fretless.c in Sources */,
+				496862861481FB7600460B4B /* CoreMIDIRenderer.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -296,6 +321,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				49B390B3144914DC008C9F6E /* AlephOneTests.m in Sources */,
+				49B390C0144915CB008C9F6E /* Fretless.c in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -359,7 +385,7 @@
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 4.3;
 				SDKROOT = iphoneos;
-				TARGETED_DEVICE_FAMILY = 2;
+				TARGETED_DEVICE_FAMILY = "1,2";
 			};
 			name = Debug;
 		};
@@ -375,7 +401,7 @@
 				IPHONEOS_DEPLOYMENT_TARGET = 4.3;
 				OTHER_CFLAGS = "-DNS_BLOCK_ASSERTIONS=1";
 				SDKROOT = iphoneos;
-				TARGETED_DEVICE_FAMILY = 2;
+				TARGETED_DEVICE_FAMILY = "1,2";
 			};
 			name = Release;
 		};
@@ -384,12 +410,21 @@
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				COPY_PHASE_STRIP = NO;
+				FRAMEWORK_SEARCH_PATHS = (
+					"$(inherited)",
+					"\"$(SRCROOT)\"",
+				);
 				GCC_DYNAMIC_NO_PIC = NO;
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = "AlephOne/AlephOne-Prefix.pch";
 				"GCC_THUMB_SUPPORT[arch=armv6]" = "";
 				INFOPLIST_FILE = "AlephOne/AlephOne-Info.plist";
+				LIBRARY_SEARCH_PATHS = (
+					"$(inherited)",
+					"\"$(SRCROOT)\"",
+				);
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				TARGETED_DEVICE_FAMILY = "1,2";
 				WRAPPER_EXTENSION = app;
 			};
 			name = Debug;
@@ -399,11 +434,20 @@
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				COPY_PHASE_STRIP = YES;
+				FRAMEWORK_SEARCH_PATHS = (
+					"$(inherited)",
+					"\"$(SRCROOT)\"",
+				);
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = "AlephOne/AlephOne-Prefix.pch";
 				"GCC_THUMB_SUPPORT[arch=armv6]" = "";
 				INFOPLIST_FILE = "AlephOne/AlephOne-Info.plist";
+				LIBRARY_SEARCH_PATHS = (
+					"$(inherited)",
+					"\"$(SRCROOT)\"",
+				);
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				TARGETED_DEVICE_FAMILY = "1,2";
 				VALIDATE_PRODUCT = YES;
 				WRAPPER_EXTENSION = app;
 			};
@@ -474,6 +518,7 @@
 				49B390B8144914DC008C9F6E /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 		49B390B9144914DC008C9F6E /* Build configuration list for PBXNativeTarget "AlephOneTests" */ = {
 			isa = XCConfigurationList;
@@ -482,6 +527,7 @@
 				49B390BB144914DC008C9F6E /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
 	};

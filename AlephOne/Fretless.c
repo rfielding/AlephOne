@@ -1,0 +1,800 @@
+//
+//  Fretless.c
+//  AlephOne
+//
+//  Created by Robert Fielding on 10/14/11.
+//
+// This should remain a *pure* C library with no references to external libraries
+
+/*
+   Expected Uses:
+       Once touches have been turned into integer IDs (TODO: include as a utility function),
+       applications that need to turn continuous touch locations into pitches into Continuum-like
+       MIDI should be trivial.
+ 
+       Fretless should solve the hard-core of the problem involved in getting from simple touch handling
+       in a platform specific way to writing MIDI bytes out to the network.  Fretless instrument MIDI messaging
+       is deeply non-trivial, which is why this library is required.  Furthermore, the fact that it
+       is indeed MIDI underneath should not matter.  The API could just as well be emitting a straightforward
+       OSC rendering of the gestures.
+ 
+       Tuning and scales are outside the scope of this layer; entirely outside of our scope.  Tuning should
+       be a layer over top of this.  Even for an internal engine, we should be going through this layer, and simply
+       embed an actual MIDI protocol synth.  This ensures that things are done exactly one way, and standardizes how
+       we can select and embed a default engine to ship with internally.
+ 
+       We also need to have no dependencies at all if we expect this to become standardized.  iOS, Android, Lua VMs, 
+       hardware controllers, etc should be able to easily embed this.  So only standard C without dependencies is a
+       good idea for this module.
+ 
+       It is critical that this part of the instrument be proven correct, so it's essential that it isn't designed in
+       such a way that applications constantly touch this code; resetting the time that this exact version was tested
+       every time it has been changed.  There are many assertions in this code, and they should not come out unless
+       they can be proven to prevent us from meeting timing constraints.
+ 
+       Assertions are done via calls to the fail method.
+ 
+   Behavior:
+ 
+     1) We expect the listening synth to have multi-timbral behavior, while expecting that each channel is set up
+        to have similar or identical patch setup.  Alternately, the synth could be in an "Omni" mode that correctly
+        handles mult-timbral behavior with one timbre.
+     2) To degrade gracefully, the hints can be setup to run on 1 channel or fewer channels than the maximum polyphony.
+        In these cases, the messaging actually has to be different.  Note On/Off messages can come out in a different
+        order based on note+channel conflicts.
+     3) Note retrigger on excessive bend must be handled quietly as an internal detail that the client doesn't know about.
+        This is the critical feature of this MIDI setup that allows the client to ignore the fact that MIDI is what actually
+        happens behind the scenes.
+     4) The bend rate is a setting that allows the rate that bends are set to be limited.  The API is deterministic,
+        but when it's being called, the calling API can invoke tick() at a constant rate.  Bends will only be sent on
+        then channel if it has passed the rate.  In this way, the caller doesn't have to take care to rate limit
+        invokes to move explicitly; just to invoke tick() at a constant rate.  The user interface just sends the bends
+        at the actual rate that things move (so it's up to the internals of the API to band-limit things, not the caller
+        to be more clever).
+ */
+
+//#include <stdio.h>
+
+#include "Fretless.h"
+
+#define TRUE 1
+#define FALSE 0
+#define NULL ((void*)0)
+#define NOBODY -1
+
+/**
+ Fingers specify which polyphony group they live in.  This controls the polyphony and legato behavior.
+ */
+struct Fretless_polyState
+{
+    int currentFingerInPolyGroup;
+};
+
+/**
+ This maps to actual MIDI channels.  Channels are handled internal to this API as a purely private matter
+ that the caller knows nothing about.  (Other than sending hints about the known constraints of the output MIDI synth.)
+ */
+struct Fretless_channelState
+{
+    int lastBend;
+    int currentFingerInChannel;
+    int useCount;
+};
+
+/**
+ This is the core of the state.  The goal is to combine poly,legato, widebend (note ties and retriggers), channel cycling
+ in such a way that a standard multi-timbral MIDI synth can do a pretty good pitch-perfect rendition of the sound.  But we
+ add NRPNs to fill in the gaps so that we can get 100% perfect gesture fidelity on the synths that we have some control over.
+ 
+ Note the next/prev items for fingers versus poly groups and channels.
+ We want to have a leader in both poly groups and channels, so we maintain a linked list.
+ 
+ PolyGroups effectively always assign the newest created note as the leader, and need to remove fingers from the group
+ when a finger goes up (not necessarily constrained to any particular order).
+ 
+ Channels assign the newest finger as the leader as well, and also need to remove fingers arbitrarily from the list when
+ they come up.
+ */
+struct Fretless_fingerState
+{
+    int isOn;
+    float samplePhase;
+    int channel;
+    int note;
+    int bend;
+    int velocity;
+    int polyGroup;
+    int nextFingerInPolyGroup;
+    int prevFingerInPolyGroup;
+    int nextFingerInChannel;
+    int prevFingerInChannel;
+};
+
+#define FINGERMAX 16
+#define CHANNELMAX 16
+#define POLYMAX 16
+#define NOTEMAX 128
+#define MIDI_ON 0x90
+#define MIDI_BEND 0xE0
+#define BENDCENTER 8192
+
+
+#define FINGERCHECK(ctxp,finger) \
+if(finger < 0 || finger >= FINGERMAX) \
+{ \
+    ctxp->fail("finger out of range"); \
+} 
+
+#define POLYCHECK(ctxp,polyGroup) \
+if(polyGroup < 0 || polyGroup >= POLYMAX) \
+{ \
+    ctxp->fail("poly group out of range"); \
+}
+
+#define FNOTECHECK(ctxp,fnote) \
+if(fnote < -0.5 || fnote >= 127.5) \
+{ \
+    ctxp->fail("fnote"); \
+}
+
+/**
+ This entire library needs to be re-entrant since broadcasting to different locations 
+ may mean that there is more than one MIDI rendition in use at the same time.
+ */
+struct Fretless_context
+{
+    struct Fretless_fingerState fingers[FINGERMAX];
+    struct Fretless_channelState channels[CHANNELMAX];
+    struct Fretless_polyState polys[POLYMAX];
+    //Cycle through channels from here
+    int lastAllocatedChannel;
+    //Metadata for fingers
+    int fingersDownCount;
+    //For channel/note deconflicting
+    int noteChannelDownCount[NOTEMAX][CHANNELMAX];
+    int noteChannelDownRawBalance[NOTEMAX][CHANNELMAX];
+    //Control channel cycling
+    int  channelBase;
+    int  channelSpan;
+    int  channelBendSemis;
+    int  supressBends;
+    
+    //Where MIDI bytes go
+    void (*midiPutch)(char);    
+    void (*midiFlush)();
+    //Where we write fail messages. 
+    int (*fail)(const char*,...);
+    void* (*fretlessAlloc)(unsigned long size);
+    int (*logger)(const char*,...);
+    void (*passed)();
+    void* utilFingerAlloced[FINGERMAX];
+};
+
+/**
+   Get a context to start using the API.  We inject dependencies so that 
+   there are no compile or run time libraries that are required to run against.
+   This is the plan for extreme portability, and creating this module in such a way
+   that it can be frozen for a very long time once it has been fully vetted.
+ */
+struct Fretless_context* Fretless_init(
+                                        void (*midiPutch)(char), 
+                                        void (*midiFlush)(),
+                                        void* (*fretlessAlloc)(unsigned long),
+                                        int (*fail)(const char*,...),
+                                        void (*passed)(),
+                                        int (*logger)(const char*,...)
+                                        )
+{
+    struct Fretless_context* ctxp = fretlessAlloc(sizeof(struct Fretless_context));
+    //Set some sane defaults for what boot will not set (user controlled)
+    ctxp->channelSpan=1;
+    ctxp->channelBase=0;
+    ctxp->channelBendSemis=2;
+    ctxp->supressBends=FALSE;
+    //Set what the user explicitly passed in here
+    ctxp->fail = fail;
+    ctxp->midiPutch = midiPutch;
+    ctxp->midiFlush = midiFlush;
+    ctxp->fretlessAlloc = fretlessAlloc;
+    ctxp->logger = logger;
+    ctxp->passed = passed;
+    return ctxp;
+}
+
+void Fretless_reset_FingerState(struct Fretless_fingerState* fsPtr)
+{
+    fsPtr->isOn = FALSE;
+    fsPtr->samplePhase = 0;
+    fsPtr->channel = 0;
+    fsPtr->note = 0;
+    fsPtr->velocity = 0;
+    fsPtr->bend = BENDCENTER;
+    fsPtr->nextFingerInPolyGroup = NOBODY;
+    fsPtr->prevFingerInPolyGroup = NOBODY;
+    fsPtr->nextFingerInChannel = NOBODY;
+    fsPtr->prevFingerInChannel = NOBODY;
+}
+
+void Fretless_setMidiHintSupressBends(struct Fretless_context* ctxp, int supressBends)
+{
+    ctxp->supressBends = supressBends;
+}
+
+void Fretless_setMidiHintChannelBase(struct Fretless_context* ctxp, int base)
+{
+    if(base < 0 || base >= CHANNELMAX)
+    {
+        ctxp->fail("base > 0 || base >= CHANNELMAX\n");
+    }
+    ctxp->channelBase = base;
+}
+
+void Fretless_setMidiHintChannelSpan(struct Fretless_context* ctxp, int span)
+{
+    if(span < 1 || span > CHANNELMAX)
+    {
+        ctxp->fail("span < 0 || span > CHANNELMAX\n");
+    }
+    ctxp->channelSpan = span;
+}
+
+void Fretless_setMidiHintChannelBendSemis(struct Fretless_context* ctxp, int semitones)
+{
+    if(semitones < 1 || semitones > 24)
+    {
+        ctxp->fail("span < 1 || span > 24 -- MIDI spec limits to 24\n");
+    }
+    ctxp->channelBendSemis = semitones;
+}
+
+
+/**
+ Must call this before anything else is callable
+ This *can* be called at any time immediately after flush to quick reboot this subsystem.
+ 
+ These should have been called first:
+ 
+    Fretless_setMidiHintChannelBase
+    Fretless_setMidiHintChannelSpan
+    Fretless_setMidiHingBendSemis
+ 
+ This function can be called at any time thereafter, generally when it is known that all fingers
+ are up.  This can give us a silent reboot that can recover after an assert fail with no
+ audible problems.
+ */
+void Fretless_boot(struct Fretless_context* ctxp)
+{
+    /**
+     Reset everything except hints and external callbacks.
+     This can be done to attempt recovery at a safe time 
+     when an assertion has failed.  The main idea is that we try to have
+     absolutely perfect code, but if something still goes wrong, then we
+     try to go back to the initial state of the state machine when we know
+     that all fingers are up.
+     */
+    for(int c=0; c<CHANNELMAX; c++)
+    {
+        ctxp->channels[c].lastBend = BENDCENTER;
+        ctxp->channels[c].useCount = 0;
+        ctxp->channels[c].currentFingerInChannel = NOBODY;
+        for(int n=0; n<NOTEMAX; n++)
+        {
+            ctxp->noteChannelDownCount[n][c] = 0;
+            ctxp->noteChannelDownRawBalance[n][c] = 0;
+        }
+    }
+    for(int f=0; f<FINGERMAX; f++)
+    {
+        Fretless_reset_FingerState(&ctxp->fingers[f]);
+        ctxp->utilFingerAlloced[f] = NULL;
+    }
+    for(int p=0; p<POLYMAX; p++)
+    {
+        ctxp->polys[p].currentFingerInPolyGroup = NOBODY;
+    }
+    ctxp->fingersDownCount = 0;
+    ctxp->lastAllocatedChannel = 0;
+    
+    //Ensure that channels are in some consistent state
+    if(ctxp->channelSpan == 0)ctxp->fail("Fretless_state.channelSpan == 0\n");
+    if(ctxp->channelBase < 0)ctxp->fail("Fretless_state.channelBase < 0\n");
+    if(ctxp->channelBase >= CHANNELMAX)ctxp->fail("Fretless_state.channelBase >= CHANNELMAX\n");
+    if(ctxp->channelSpan + ctxp->channelBase >= CHANNELMAX)
+    {
+        ctxp->fail("Fretless_state.channelSpan + Fretless_state.channelBase >= CHANNELMAX\n");
+    }
+}
+
+static int Fretless_limitVal(int low,int val,int high)
+{
+    if(val < low)return low;
+    if(val > high)return high;
+    return val;
+}
+
+static void Fretless_fnoteToNoteBendPair(struct Fretless_context* ctxp, float fnote,int* notep,int* bendp)
+{
+    //Find the closest 12ET note
+    *notep = (int)(fnote+0.5);
+    //Compute the bend in terms of -1.0 to 1.0 range
+    float floatBend = (fnote - *notep)*2;
+    *bendp = (BENDCENTER + floatBend*BENDCENTER/ctxp->channelBendSemis);
+}
+
+static void Fretless_fnoteBendFromExisting(struct Fretless_context* ctxp, float fnote,int* notep,int* bendp,
+                                           struct Fretless_fingerState* fsPtr)
+{
+    //Use existing note
+    int note = fsPtr->note;
+    //Compute the bend in terms of -1.0 to 1.0 range from there
+    float floatBend = (fnote - note);
+    *bendp = (BENDCENTER + floatBend*BENDCENTER/ctxp->channelBendSemis);
+    
+    //If we exceeded the bend width, then generate a new note pair
+    if(*bendp < 0 || *bendp >= 2*BENDCENTER)
+    {
+        Fretless_fnoteToNoteBendPair(ctxp, fnote, notep, bendp);
+    }
+    else
+    {
+        *notep = note;
+    }
+    //Caller can check to see if the note changed
+}
+
+static void Fretless_numTo7BitNums(int n,int* lop,int* hip)
+{
+    *lop = (    n  & 0x7f);
+    *hip = ((n>>7) & 0x7f);
+}
+
+/**
+ A non-exclusive alloc, that allocs in the least used channel that is in the span
+ */
+static int Fretless_allocChannel(struct Fretless_context* ctxp, int finger)
+{
+    //Look for an open exclusive slot on the channel that's the least in use.
+    //Starting just after the last channel that was allocated to ensure maximum
+    //release time for channel reuse
+    //
+    // 0 <= Fretless_state.channels[channel].useCount < inf
+    for(int lowUsedCount=0; TRUE; lowUsedCount++)
+    {
+        for(int s=0; s<ctxp->channelSpan; s++)
+        {
+            //Always start just after the last allocated channel to maximize the time before channel is re-taken
+            int span = ctxp->channelSpan;
+            int base = ctxp->channelBase;
+            int last = ctxp->lastAllocatedChannel;
+            int candidate = last+1+s;
+            int channel = (candidate-base)%span + base;
+            //useCount should NEVER to below zero
+            if(ctxp->channels[channel].useCount < 0)
+            {
+                ctxp->fail("Fretless_state.channels[channel].useCount < 0 on alloc\n");
+                return 0;
+            }
+            if(ctxp->channels[channel].useCount == lowUsedCount)
+            {
+                ctxp->channels[channel].useCount++;
+                //Insert this finger into the channel's linked list of fingers that use it,
+                //and make it the current finger in the channel
+                int currentFingerInChannel = ctxp->channels[channel].currentFingerInChannel;
+                if(currentFingerInChannel != NOBODY)
+                {
+                    if(ctxp->fingers[currentFingerInChannel].nextFingerInChannel != NOBODY)
+                    {
+                        ctxp->fail("ctxp->fingers[currentFingerInChannel].nextFingerInChannel != NOBODY when allocating\n");
+                    }
+                    //point currentFingerInChannel and finger at each other
+                    ctxp->fingers[currentFingerInChannel].nextFingerInChannel = finger;
+                    ctxp->fingers[finger].prevFingerInChannel = currentFingerInChannel;
+                }
+                //Update the channel to make finger the leader
+                ctxp->channels[channel].currentFingerInChannel = finger;
+                //Ensure that the next alloc stays as far away from this channel as possible on next alloc
+                ctxp->lastAllocatedChannel = channel;
+                return channel;
+            }
+        }        
+    }
+    ctxp->fail("Fretless_allocChannel reached unreachable state\n");
+    return 0;
+}
+
+static void Fretless_freeChannel(struct Fretless_context* ctxp, int finger)
+{
+    //Reduce the use count on this channel
+    int channel = ctxp->fingers[finger].channel;
+    ctxp->channels[channel].useCount--;
+    if(ctxp->channels[channel].useCount < 0)
+    {
+        ctxp->fail("Fretless_state.channels[%d].useCount < 0 on free\n",channel);        
+    }
+    //Pull outselves out of the list
+    int prevFinger = ctxp->fingers[finger].prevFingerInChannel;
+    int nextFinger = ctxp->fingers[finger].nextFingerInChannel;
+    //Point around us
+    if(prevFinger != NOBODY)
+    {
+        ctxp->fingers[prevFinger].nextFingerInChannel = nextFinger;
+    }
+    //Pick the nextFinger over prevFinger for leadership
+    if(nextFinger == NOBODY)
+    {
+        ctxp->channels[channel].currentFingerInChannel = prevFinger;  
+    }
+    else
+    {
+        ctxp->fingers[nextFinger].prevFingerInChannel = prevFinger;
+        ctxp->channels[channel].currentFingerInChannel = nextFinger;
+    }
+    ctxp->fingers[finger].prevFingerInChannel = NOBODY;
+    ctxp->fingers[finger].nextFingerInChannel = NOBODY;
+}
+
+void Fretless_noteTie(struct Fretless_context* ctxp,struct Fretless_fingerState* fsPtr)
+{
+    int lsb;
+    int msb;
+    Fretless_numTo7BitNums(1223,&lsb,&msb);
+    int channel = fsPtr->channel;
+    int note = fsPtr->note;
+    ctxp->midiPutch(0xB0 + channel);
+    ctxp->midiPutch(0x63);
+    ctxp->midiPutch(msb);
+    ctxp->midiPutch(0xB0 + channel);
+    ctxp->midiPutch(0x62);
+    ctxp->midiPutch(lsb);
+    ctxp->midiPutch(0xB0 + channel);
+    ctxp->midiPutch(0x06);
+    ctxp->midiPutch(note);
+    ctxp->midiPutch(0xB0 + channel);
+    ctxp->midiPutch(0x63);
+    ctxp->midiPutch(0x7f);
+    ctxp->midiPutch(0xB0 + channel);
+    ctxp->midiPutch(0x62);
+    ctxp->midiPutch(0x7f);
+}
+
+void Fretless_setCurrentBend(struct Fretless_context* ctxp, int finger)
+{
+    struct Fretless_fingerState* fsPtr = &ctxp->fingers[finger];
+    if(ctxp->channels[fsPtr->channel].lastBend != fsPtr->bend && 
+       //ctxp->channels[fsPtr->channel].currentFingerInChannel == finger &&
+       ctxp->supressBends == FALSE)
+    {
+        ctxp->channels[fsPtr->channel].lastBend = fsPtr->bend;
+        ctxp->midiPutch(MIDI_BEND + fsPtr->channel);
+        int lo;
+        int hi;
+        Fretless_numTo7BitNums(fsPtr->bend, &lo, &hi);
+        ctxp->midiPutch(lo);
+        ctxp->midiPutch(hi);   
+    }      
+}
+
+//Must call this (per finger) before others are callable
+void Fretless_down(struct Fretless_context* ctxp, int finger,float fnote,int polyGroup,float velocity,int legato)
+{
+    FINGERCHECK(ctxp,finger)
+    POLYCHECK(ctxp,polyGroup)
+    FNOTECHECK(ctxp,fnote)
+    struct Fretless_fingerState* fsPtr = &ctxp->fingers[finger];
+    if(fsPtr->isOn == TRUE)
+    {
+        ctxp->fail("Fretless_down && fsPtr->isOn == TRUE\n");
+    }
+    fsPtr->isOn = TRUE;
+    fsPtr->channel = Fretless_allocChannel(ctxp,finger);
+    fsPtr->velocity = Fretless_limitVal(1,velocity*127,127); //Don't allow a send of zero here for balance purposes
+    fsPtr->polyGroup = polyGroup;
+    Fretless_fnoteToNoteBendPair(ctxp,fnote, &fsPtr->note, &fsPtr->bend);
+    ctxp->fingersDownCount++;
+    ctxp->noteChannelDownCount[fsPtr->note][fsPtr->channel]++;
+    //Only send note off before on if there is more than one note residing here
+    if(ctxp->noteChannelDownCount[fsPtr->note][fsPtr->channel]>1)
+    {
+        ctxp->midiPutch(MIDI_ON + fsPtr->channel);
+        ctxp->midiPutch(fsPtr->note);
+        ctxp->midiPutch(0);
+        ctxp->noteChannelDownRawBalance[fsPtr->note][fsPtr->channel]--;
+    }
+    
+    //See if we just took over in our poly group
+    int fingerTurningOff = NOBODY;
+    int currentFingerInPolyGroup = ctxp->polys[polyGroup].currentFingerInPolyGroup; 
+    if(currentFingerInPolyGroup != NOBODY)
+    {
+        ctxp->fingers[currentFingerInPolyGroup].nextFingerInPolyGroup = finger;  
+        ctxp->fingers[finger].prevFingerInPolyGroup = currentFingerInPolyGroup;
+        fingerTurningOff = currentFingerInPolyGroup;
+    }
+    ctxp->polys[polyGroup].currentFingerInPolyGroup = finger;
+    //Since we know what finger is going off, we can do the NRPN!
+    
+    Fretless_setCurrentBend(ctxp, finger);
+    
+    if(fingerTurningOff != NOBODY)
+    {    
+        struct Fretless_fingerState* turningOffPtr = &ctxp->fingers[fingerTurningOff];        
+        if(turningOffPtr->isOn == FALSE)
+        {
+            ctxp->fail("turningOffPtr->isOn == FALSE\n");
+        }
+        Fretless_noteTie(ctxp,turningOffPtr);
+        ctxp->midiPutch(MIDI_ON + turningOffPtr->channel);
+        ctxp->midiPutch(turningOffPtr->note);
+        ctxp->midiPutch(0);
+        ctxp->noteChannelDownRawBalance[turningOffPtr->note][turningOffPtr->channel]--;
+    }
+    ctxp->midiPutch(MIDI_ON + fsPtr->channel);
+    ctxp->midiPutch(fsPtr->note);
+    ctxp->midiPutch(fsPtr->velocity);
+    ctxp->noteChannelDownRawBalance[fsPtr->note][fsPtr->channel]++;
+}
+
+//Callable for down or move, before flush
+void Fretless_express(struct Fretless_context* ctxp, int finger,int key,int val)
+{
+    FINGERCHECK(ctxp,finger)    
+}
+
+
+
+float Fretless_move(struct Fretless_context* ctxp, int finger,float fnote)
+{
+    FINGERCHECK(ctxp,finger)
+    FNOTECHECK(ctxp,fnote)
+    
+    //Determine the bend that's wanted
+    struct Fretless_fingerState* fsPtr = &ctxp->fingers[finger];
+    if(fsPtr->isOn == FALSE)
+    {
+        ctxp->fail("Fretless_down && fsPtr->isOn == FALSE\n");
+    }
+    int newNote;
+    int newBend;
+    Fretless_fnoteBendFromExisting(ctxp,fnote, &newNote, &newBend,fsPtr);
+    //If it's just a bend of the current note, then do that
+    if(newNote == fsPtr->note)
+    {
+        fsPtr->bend = newBend;
+        Fretless_setCurrentBend(ctxp,finger);
+    }    
+    else
+    {
+        //If we exceeded bend range, and it picked a new note, retrigger with a note tie
+        Fretless_noteTie(ctxp,fsPtr);
+        float oldVelocity = fsPtr->velocity/127.0;
+        int oldPolyGroup = fsPtr->polyGroup;
+        Fretless_up(ctxp,finger);
+        Fretless_down(ctxp,finger,fnote,oldPolyGroup,oldVelocity,TRUE);
+    }
+    return fnote;
+}
+
+//Free up the finger
+void Fretless_up(struct Fretless_context* ctxp, int finger)
+{
+    FINGERCHECK(ctxp,finger)
+    
+    struct Fretless_fingerState* fsPtr = &ctxp->fingers[finger];
+    if(fsPtr->isOn == FALSE)
+    {
+        ctxp->fail("Fretless_up && fsPtr->isOn == FALSE\n");
+    }
+    
+    //Unlink ourselves from the poly group chain and figure out who gets turned on
+    //Pull outselves out of the list
+    int prevFinger = ctxp->fingers[finger].prevFingerInPolyGroup;
+    int nextFinger = ctxp->fingers[finger].nextFingerInPolyGroup;
+    int previousLeadFinger = ctxp->polys[fsPtr->polyGroup].currentFingerInPolyGroup;
+    
+    //Point around us
+    if(prevFinger != NOBODY)
+    {
+        ctxp->logger("prevFinger != NOBODY");
+        ctxp->fingers[prevFinger].nextFingerInPolyGroup = nextFinger;
+    }
+    //Pick the nextFinger over prevFinger for leadership
+    if(nextFinger == NOBODY)
+    {
+        ctxp->logger("nextFinger == NOBODY");
+        ctxp->polys[fsPtr->polyGroup].currentFingerInPolyGroup = prevFinger;        
+    }
+    else
+    {
+        ctxp->logger("nextFinger != NOBODY");
+        ctxp->fingers[nextFinger].prevFingerInPolyGroup = prevFinger;
+        ctxp->polys[fsPtr->polyGroup].currentFingerInPolyGroup = nextFinger;
+    }
+    fsPtr->prevFingerInPolyGroup = NOBODY;
+    fsPtr->nextFingerInPolyGroup = NOBODY;
+    int fingerToTurnOn = ctxp->polys[fsPtr->polyGroup].currentFingerInPolyGroup;
+    int willLegato = fingerToTurnOn != NOBODY && fingerToTurnOn != previousLeadFinger && previousLeadFinger != NOBODY;
+    //Now that we know what to turn on after turning this off, we can do NRPN!
+    
+    //Only send the note off if this is the last one on this note/channel combo
+    ctxp->noteChannelDownCount[fsPtr->note][fsPtr->channel]--;
+    if(ctxp->noteChannelDownCount[fsPtr->note][fsPtr->channel] == 0 && fingerToTurnOn != previousLeadFinger)
+    {
+        if(willLegato)
+        {
+            Fretless_noteTie(ctxp, fsPtr);
+        }
+        ctxp->midiPutch(MIDI_ON + fsPtr->channel);
+        ctxp->midiPutch(fsPtr->note);
+        ctxp->midiPutch(0);
+        ctxp->noteChannelDownRawBalance[fsPtr->note][fsPtr->channel]--;
+    }
+    if(willLegato)
+    {
+        struct Fretless_fingerState* turningOnPtr = &ctxp->fingers[fingerToTurnOn];        
+        if(turningOnPtr->isOn == FALSE)
+        {
+            ctxp->fail("turningOnPtr->isOn == FALSE\n");
+        }
+        ctxp->midiPutch(MIDI_ON + turningOnPtr->channel);
+        ctxp->midiPutch(turningOnPtr->note);
+        ctxp->midiPutch(turningOnPtr->velocity);
+        ctxp->noteChannelDownRawBalance[turningOnPtr->note][turningOnPtr->channel]++;
+    }
+    
+    if(ctxp->noteChannelDownCount[fsPtr->note][fsPtr->channel]<0)
+    {
+        ctxp->fail("Fretless_state.noteChannelDownCount[%d][%d]<0\n",fsPtr->note,fsPtr->channel);
+    }
+    
+    ctxp->fingersDownCount--;
+    if(ctxp->fingersDownCount<0)
+    {
+        ctxp->fail("Fretless_state.fingersDownCount<0\n");
+    }
+    
+    fsPtr->isOn = FALSE;
+    Fretless_freeChannel(ctxp,finger);
+    
+    
+    if(ctxp->fingersDownCount <= 0)
+    {
+        Fretless_selfTest(ctxp);
+    }
+}
+
+
+//sequence finish.  we can send it now
+void Fretless_flush(struct Fretless_context* ctxp)
+{
+    ctxp->midiFlush();
+}
+
+//Look for consistency.  We have checks just for when all fingers are known up.
+//We could run this on idle to detect problems.
+void Fretless_selfTest(struct Fretless_context* ctxp)
+{
+    int passed = TRUE;
+    if(ctxp->fingersDownCount == 0)
+    {
+        for(int c=0; c<CHANNELMAX; c++)
+        {
+            int useCount = ctxp->channels[c].useCount;
+            if(useCount != 0)
+            {
+                ctxp->fail("Fretless_selfTest() Fretless_state.fingersDownCount==0 && useCount != 0\n");
+                passed = FALSE;
+            }
+            for(int n=0; n<NOTEMAX; n++)
+            {
+                if(ctxp->noteChannelDownCount[n][c] != 0)
+                {
+                    ctxp->fail("Fretless_state.noteChannelDownCount[0x%d][0x%d] != 0\n",n,c);
+                    passed = FALSE;
+                }
+                
+                if(ctxp->noteChannelDownRawBalance[n][c] != 0)
+                {
+                    ctxp->fail("Fretless_state.noteChannelDownRawBalance[0x%2x][0x%2x] == %d\n",n,c, ctxp->noteChannelDownRawBalance[n][c]);
+                    passed = FALSE;
+                }
+                 
+            }
+            if(ctxp->channels[c].currentFingerInChannel != NOBODY)
+            {
+                ctxp->fail("ctxp->channels[0x%2x].currentFingerInChannel != NOBODY\n",c);
+                passed = FALSE;
+            }
+        }
+        for(int p=0; p<POLYMAX; p++)
+        {
+            if(ctxp->polys[p].currentFingerInPolyGroup != NOBODY)
+            {
+                ctxp->fail("poly group useCount is wrong\n");
+                passed = FALSE;
+            }
+        }
+        for(int f=0; f<FINGERMAX; f++)
+        {
+            if(ctxp->fingers[f].isOn)
+            {
+                ctxp->fail("Fretless_selfTest() Fretless_state.fingers[%d].isOn\n",f);
+                passed = FALSE;
+            }
+            if(ctxp->fingers[f].nextFingerInChannel != NOBODY)
+            {
+                ctxp->fail("ctxp->fingers[%d].nextFingerInChannel != NOBODY\n",f);
+                passed = FALSE;
+            }
+            if(ctxp->fingers[f].prevFingerInChannel != NOBODY)
+            {
+                ctxp->fail("ctxp->fingers[%d].prevFingerInChannel != NOBODY\n",f);
+                passed = FALSE;
+            }
+        }
+    }
+    if(ctxp->fingersDownCount < 0)
+    {
+        ctxp->fail("less than zero fingers count!\n");
+        passed = FALSE;
+    }
+    //Let the owner know that we passed self tests
+    if(passed)
+    {
+        ctxp->passed();
+    }
+    else
+    {
+        //Force a recovery and quiet reboot
+        for(int n=0; n<NOTEMAX; n++)
+        {
+            //Some stuff doesn't respond to all notes off.  Use brute force!
+            for(int c=0; c<CHANNELMAX; c++)
+            {
+                //Turn it off!
+                ctxp->midiPutch(MIDI_ON+c);
+                ctxp->midiPutch(n);
+                ctxp->midiPutch(0);                                    
+            }
+            Fretless_flush(ctxp);
+        }
+        //recover
+        Fretless_boot(ctxp);
+    }
+}
+
+int Fretless_util_mapFinger(struct Fretless_context* ctxp, void* ptr)
+{
+    //return an id if we already allocated one for this pointer
+    for(int f=0; f<FINGERMAX; f++)
+    {
+        if(ctxp->utilFingerAlloced[f] == ptr)
+        {
+            return f;
+        }
+    }
+    //otherwise, map into a location and return that
+    for(int f=0; f<FINGERMAX; f++)
+    {
+        if(ctxp->utilFingerAlloced[f] == NULL)
+        {
+            ctxp->utilFingerAlloced[f] = ptr;
+            return f;
+        }
+    }
+    ctxp->fail("Fretless_util_mapFinger ran out of slots\n");
+    return NOBODY;
+}
+
+void Fretless_util_unmapFinger(struct Fretless_context* ctxp, void* ptr)
+{
+    for(int f=0; f<FINGERMAX; f++)
+    {
+        if(ctxp->utilFingerAlloced[f] == ptr)
+        {
+            ctxp->utilFingerAlloced[f] = NULL;
+            return;
+        }
+    }    
+    //ctxp->fail("Fretless_util_unmapFinger tried to unmap an unmapped pointer\n");
+}
+

@@ -11,7 +11,6 @@
 
 @interface AlephOneTests : SenTestCase {
 @private
-    
 }
 
 @end
