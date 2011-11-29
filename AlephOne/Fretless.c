@@ -98,6 +98,7 @@ struct Fretless_channelState
 struct Fretless_fingerState
 {
     int isOn;
+    int isSupressed;
     float samplePhase;
     int channel;
     int note;
@@ -213,6 +214,7 @@ void Fretless_reset_FingerState(struct Fretless_fingerState* fsPtr)
     fsPtr->prevFingerInPolyGroup = NOBODY;
     fsPtr->nextFingerInChannel = NOBODY;
     fsPtr->prevFingerInChannel = NOBODY;
+    fsPtr->isSupressed = FALSE;
 }
 
 void Fretless_setMidiHintSupressBends(struct Fretless_context* ctxp, int supressBends)
@@ -461,7 +463,7 @@ void Fretless_setCurrentBend(struct Fretless_context* ctxp, int finger)
 {
     struct Fretless_fingerState* fsPtr = &ctxp->fingers[finger];
     if(ctxp->channels[fsPtr->channel].lastBend != fsPtr->bend && 
-       //ctxp->channels[fsPtr->channel].currentFingerInChannel == finger &&
+       ctxp->channels[fsPtr->channel].currentFingerInChannel == finger &&
        ctxp->supressBends == FALSE)
     {
         ctxp->channels[fsPtr->channel].lastBend = fsPtr->bend;
@@ -474,6 +476,58 @@ void Fretless_setCurrentBend(struct Fretless_context* ctxp, int finger)
     }      
 }
 
+int Fretless_link(struct Fretless_context* ctxp,int finger)
+{
+    int polyGroup = ctxp->fingers[finger].polyGroup;
+    int fingerToTurnOff = ctxp->polys[polyGroup].currentFingerInPolyGroup;
+    if(fingerToTurnOff != NOBODY)
+    {
+        ctxp->fingers[fingerToTurnOff].isSupressed = TRUE;
+        ctxp->fingers[fingerToTurnOff].nextFingerInPolyGroup = finger;
+        ctxp->fingers[finger].prevFingerInPolyGroup = fingerToTurnOff;
+    }
+    ctxp->fingers[finger].polyGroup = polyGroup;
+    ctxp->polys[polyGroup].currentFingerInPolyGroup = finger;
+    return fingerToTurnOff;
+}
+
+/**
+ Remove current finger from the linked list for this polyphony group.
+ If we removed the current finger, then turn on the previous finger.
+ */
+int Fretless_unlink(struct Fretless_context* ctxp,int finger)
+{
+    int polyGroup = ctxp->fingers[finger].polyGroup;
+    int currentFinger = ctxp->polys[polyGroup].currentFingerInPolyGroup;
+    int prevFinger = ctxp->fingers[finger].prevFingerInPolyGroup;
+    int nextFinger = ctxp->fingers[finger].nextFingerInPolyGroup;
+    int fingerToTurnOn = NOBODY;
+    
+    //Remove ourselves from the list first
+    if(prevFinger != NOBODY)
+    {
+        ctxp->fingers[prevFinger].nextFingerInPolyGroup = nextFinger;
+    }
+    if(nextFinger != NOBODY)
+    {
+        ctxp->fingers[nextFinger].prevFingerInPolyGroup = prevFinger;
+    }    
+    if(finger == currentFinger)
+    {
+        ctxp->polys[polyGroup].currentFingerInPolyGroup = prevFinger;
+        fingerToTurnOn = prevFinger;
+        if(fingerToTurnOn != NOBODY)
+        {
+            ctxp->fingers[fingerToTurnOn].isSupressed = FALSE;            
+        }
+    }
+    
+    ctxp->fingers[finger].prevFingerInPolyGroup = NOBODY;
+    ctxp->fingers[finger].nextFingerInPolyGroup = NOBODY;
+    ctxp->fingers[finger].polyGroup = NOBODY;
+    return fingerToTurnOn;
+}
+
 //Must call this (per finger) before others are callable
 void Fretless_down(struct Fretless_context* ctxp, int finger,float fnote,int polyGroup,float velocity,int legato)
 {
@@ -481,15 +535,19 @@ void Fretless_down(struct Fretless_context* ctxp, int finger,float fnote,int pol
     POLYCHECK(ctxp,polyGroup)
     FNOTECHECK(ctxp,fnote)
     struct Fretless_fingerState* fsPtr = &ctxp->fingers[finger];
+    
     if(fsPtr->isOn == TRUE)
     {
         ctxp->fail("Fretless_down && fsPtr->isOn == TRUE\n");
     }
     fsPtr->isOn = TRUE;
+    
     fsPtr->channel = Fretless_allocChannel(ctxp,finger);
     fsPtr->velocity = Fretless_limitVal(1,velocity*127,127); //Don't allow a send of zero here for balance purposes
     fsPtr->polyGroup = polyGroup;
+    
     Fretless_fnoteToNoteBendPair(ctxp,fnote, &fsPtr->note, &fsPtr->bend);
+    
     ctxp->fingersDownCount++;
     ctxp->noteChannelDownCount[fsPtr->note][fsPtr->channel]++;
     //Only send note off before on if there is more than one note residing here
@@ -502,16 +560,7 @@ void Fretless_down(struct Fretless_context* ctxp, int finger,float fnote,int pol
     }
     
     //See if we just took over in our poly group
-    int fingerTurningOff = NOBODY;
-    int currentFingerInPolyGroup = ctxp->polys[polyGroup].currentFingerInPolyGroup; 
-    if(currentFingerInPolyGroup != NOBODY)
-    {
-        ctxp->fingers[currentFingerInPolyGroup].nextFingerInPolyGroup = finger;  
-        ctxp->fingers[finger].prevFingerInPolyGroup = currentFingerInPolyGroup;
-        fingerTurningOff = currentFingerInPolyGroup;
-    }
-    ctxp->polys[polyGroup].currentFingerInPolyGroup = finger;
-    //Since we know what finger is going off, we can do the NRPN!
+    int fingerTurningOff = Fretless_link(ctxp,finger);
     
     Fretless_setCurrentBend(ctxp, finger);
     
@@ -520,7 +569,11 @@ void Fretless_down(struct Fretless_context* ctxp, int finger,float fnote,int pol
         struct Fretless_fingerState* turningOffPtr = &ctxp->fingers[fingerTurningOff];        
         if(turningOffPtr->isOn == FALSE)
         {
-            ctxp->fail("turningOffPtr->isOn == FALSE\n");
+            ctxp->fail("turningOffPtr->isOn should be on\n");
+        }
+        if(turningOffPtr->isSupressed == FALSE)
+        {
+            ctxp->fail("turningOffPtr->isSupressed should be supressed\n");
         }
         Fretless_noteTie(ctxp,turningOffPtr);
         ctxp->midiPutch(MIDI_ON + turningOffPtr->channel);
@@ -534,45 +587,7 @@ void Fretless_down(struct Fretless_context* ctxp, int finger,float fnote,int pol
     ctxp->noteChannelDownRawBalance[fsPtr->note][fsPtr->channel]++;
 }
 
-//Callable for down or move, before flush
-void Fretless_express(struct Fretless_context* ctxp, int finger,int key,int val)
-{
-    FINGERCHECK(ctxp,finger)    
-}
 
-
-
-float Fretless_move(struct Fretless_context* ctxp, int finger,float fnote)
-{
-    FINGERCHECK(ctxp,finger)
-    FNOTECHECK(ctxp,fnote)
-    
-    //Determine the bend that's wanted
-    struct Fretless_fingerState* fsPtr = &ctxp->fingers[finger];
-    if(fsPtr->isOn == FALSE)
-    {
-        ctxp->fail("Fretless_down && fsPtr->isOn == FALSE\n");
-    }
-    int newNote;
-    int newBend;
-    Fretless_fnoteBendFromExisting(ctxp,fnote, &newNote, &newBend,fsPtr);
-    //If it's just a bend of the current note, then do that
-    if(newNote == fsPtr->note)
-    {
-        fsPtr->bend = newBend;
-        Fretless_setCurrentBend(ctxp,finger);
-    }    
-    else
-    {
-        //If we exceeded bend range, and it picked a new note, retrigger with a note tie
-        Fretless_noteTie(ctxp,fsPtr);
-        float oldVelocity = fsPtr->velocity/127.0;
-        int oldPolyGroup = fsPtr->polyGroup;
-        Fretless_up(ctxp,finger);
-        Fretless_down(ctxp,finger,fnote,oldPolyGroup,oldVelocity,TRUE);
-    }
-    return fnote;
-}
 
 //Free up the finger
 void Fretless_up(struct Fretless_context* ctxp, int finger)
@@ -585,56 +600,37 @@ void Fretless_up(struct Fretless_context* ctxp, int finger)
         ctxp->fail("Fretless_up && fsPtr->isOn == FALSE\n");
     }
     
-    //Unlink ourselves from the poly group chain and figure out who gets turned on
-    //Pull outselves out of the list
-    int prevFinger = ctxp->fingers[finger].prevFingerInPolyGroup;
-    int nextFinger = ctxp->fingers[finger].nextFingerInPolyGroup;
-    int previousLeadFinger = ctxp->polys[fsPtr->polyGroup].currentFingerInPolyGroup;
-    
-    //Point around us
-    if(prevFinger != NOBODY)
-    {
-        ctxp->logger("prevFinger != NOBODY");
-        ctxp->fingers[prevFinger].nextFingerInPolyGroup = nextFinger;
-    }
-    //Pick the nextFinger over prevFinger for leadership
-    if(nextFinger == NOBODY)
-    {
-        ctxp->logger("nextFinger == NOBODY");
-        ctxp->polys[fsPtr->polyGroup].currentFingerInPolyGroup = prevFinger;        
-    }
-    else
-    {
-        ctxp->logger("nextFinger != NOBODY");
-        ctxp->fingers[nextFinger].prevFingerInPolyGroup = prevFinger;
-        ctxp->polys[fsPtr->polyGroup].currentFingerInPolyGroup = nextFinger;
-    }
-    fsPtr->prevFingerInPolyGroup = NOBODY;
-    fsPtr->nextFingerInPolyGroup = NOBODY;
-    int fingerToTurnOn = ctxp->polys[fsPtr->polyGroup].currentFingerInPolyGroup;
-    int willLegato = fingerToTurnOn != NOBODY && fingerToTurnOn != previousLeadFinger && previousLeadFinger != NOBODY;
-    //Now that we know what to turn on after turning this off, we can do NRPN!
-    
-    //Only send the note off if this is the last one on this note/channel combo
+    int fingerToTurnOn = Fretless_unlink(ctxp, finger);
+            
+    //Temporarily disable the note if we are overbooking channels
     ctxp->noteChannelDownCount[fsPtr->note][fsPtr->channel]--;
-    if(ctxp->noteChannelDownCount[fsPtr->note][fsPtr->channel] == 0 && fingerToTurnOn != previousLeadFinger)
+    if(ctxp->noteChannelDownCount[fsPtr->note][fsPtr->channel] == 0)
     {
-        if(willLegato)
+        if(fingerToTurnOn != NOBODY && fsPtr->isSupressed==FALSE)
         {
             Fretless_noteTie(ctxp, fsPtr);
         }
-        ctxp->midiPutch(MIDI_ON + fsPtr->channel);
-        ctxp->midiPutch(fsPtr->note);
-        ctxp->midiPutch(0);
-        ctxp->noteChannelDownRawBalance[fsPtr->note][fsPtr->channel]--;
+        if(fsPtr->isSupressed==FALSE)
+        {
+            ctxp->midiPutch(MIDI_ON + fsPtr->channel);
+            ctxp->midiPutch(fsPtr->note);
+            ctxp->midiPutch(0);
+            ctxp->noteChannelDownRawBalance[fsPtr->note][fsPtr->channel]--;            
+        }
     }
-    if(willLegato)
+    //If we uncovered a note by picking up current note on poly group...
+    if(fingerToTurnOn != NOBODY)
     {
         struct Fretless_fingerState* turningOnPtr = &ctxp->fingers[fingerToTurnOn];        
         if(turningOnPtr->isOn == FALSE)
         {
-            ctxp->fail("turningOnPtr->isOn == FALSE\n");
+            ctxp->fail("turningOnPtr->isOn should be on\n");
         }
+        if(turningOnPtr->isSupressed == TRUE)
+        {
+            ctxp->fail("turningOffPtr->isSupressed should not be supressed\n");
+        }
+        Fretless_setCurrentBend(ctxp,fingerToTurnOn);
         ctxp->midiPutch(MIDI_ON + turningOnPtr->channel);
         ctxp->midiPutch(turningOnPtr->note);
         ctxp->midiPutch(turningOnPtr->velocity);
@@ -654,6 +650,7 @@ void Fretless_up(struct Fretless_context* ctxp, int finger)
     
     fsPtr->isOn = FALSE;
     Fretless_freeChannel(ctxp,finger);
+    Fretless_reset_FingerState(fsPtr);
     
     
     if(ctxp->fingersDownCount <= 0)
@@ -662,6 +659,43 @@ void Fretless_up(struct Fretless_context* ctxp, int finger)
     }
 }
 
+//Callable for down or move, before flush
+void Fretless_express(struct Fretless_context* ctxp, int finger,int key,int val)
+{
+    FINGERCHECK(ctxp,finger)    
+}
+
+float Fretless_move(struct Fretless_context* ctxp, int finger,float fnote)
+{
+    FINGERCHECK(ctxp,finger)
+    FNOTECHECK(ctxp,fnote)
+    
+    //Determine the bend that's wanted
+    struct Fretless_fingerState* fsPtr = &ctxp->fingers[finger];
+    if(fsPtr->isOn == FALSE)
+    {
+        ctxp->fail("Fretless_down && fsPtr->isOn == FALSE\n");
+    }
+    int newNote;
+    int newBend;
+    Fretless_fnoteBendFromExisting(ctxp,fnote, &newNote, &newBend,fsPtr);
+    //If it's just a bend of the current note, then do that
+    if(newNote == fsPtr->note)
+    {
+        fsPtr->bend = newBend;
+        Fretless_setCurrentBend(ctxp,finger);            
+    }    
+    else
+    {
+        float oldVelocity = fsPtr->velocity/127.0;
+        int oldPolyGroup = fsPtr->polyGroup;
+        //If we exceeded bend range, and it picked a new note, retrigger with a note tie
+        Fretless_noteTie(ctxp,fsPtr);
+        Fretless_up(ctxp,finger);
+        Fretless_down(ctxp,finger,fnote,oldPolyGroup,oldVelocity,TRUE);
+    }
+    return fnote;
+}
 
 //sequence finish.  we can send it now
 void Fretless_flush(struct Fretless_context* ctxp)
@@ -744,6 +778,7 @@ void Fretless_selfTest(struct Fretless_context* ctxp)
     }
     else
     {
+        /*
         //Force a recovery and quiet reboot
         for(int n=0; n<NOTEMAX; n++)
         {
@@ -759,6 +794,7 @@ void Fretless_selfTest(struct Fretless_context* ctxp)
         }
         //recover
         Fretless_boot(ctxp);
+         */
     }
 }
 
@@ -795,6 +831,6 @@ void Fretless_util_unmapFinger(struct Fretless_context* ctxp, void* ptr)
             return;
         }
     }    
-    //ctxp->fail("Fretless_util_unmapFinger tried to unmap an unmapped pointer\n");
+    ctxp->fail("Fretless_util_unmapFinger tried to unmap an unmapped pointer\n");
 }
 
