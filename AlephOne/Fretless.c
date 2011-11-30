@@ -416,24 +416,25 @@ static void Fretless_freeChannel(struct Fretless_context* ctxp, int finger)
     //Pull outselves out of the list
     int prevFinger = ctxp->fingers[finger].prevFingerInChannel;
     int nextFinger = ctxp->fingers[finger].nextFingerInChannel;
-    //Point around us
+    int currentFinger = ctxp->channels[channel].currentFingerInChannel;
+    
+    //Point around us and select the leader (newest finger)
     if(prevFinger != NOBODY)
     {
         ctxp->fingers[prevFinger].nextFingerInChannel = nextFinger;
     }
-    //Pick the nextFinger over prevFinger for leadership
-    if(nextFinger == NOBODY)
-    {
-        ctxp->channels[channel].currentFingerInChannel = prevFinger;  
-    }
-    else
+    if(nextFinger != NOBODY)
     {
         ctxp->fingers[nextFinger].prevFingerInChannel = prevFinger;
-        ctxp->channels[channel].currentFingerInChannel = nextFinger;
-    }
+    }    
     ctxp->fingers[finger].prevFingerInChannel = NOBODY;
     ctxp->fingers[finger].nextFingerInChannel = NOBODY;
+    if(currentFinger == finger)
+    {
+        ctxp->channels[channel].currentFingerInChannel = prevFinger;
+    }
 }
+
 
 void Fretless_noteTie(struct Fretless_context* ctxp,struct Fretless_fingerState* fsPtr)
 {
@@ -550,13 +551,17 @@ void Fretless_down(struct Fretless_context* ctxp, int finger,float fnote,int pol
     
     ctxp->fingersDownCount++;
     ctxp->noteChannelDownCount[fsPtr->note][fsPtr->channel]++;
+    
     //Only send note off before on if there is more than one note residing here
-    if(ctxp->noteChannelDownCount[fsPtr->note][fsPtr->channel]>1)
+    if(fsPtr->isSupressed == FALSE)
     {
-        ctxp->midiPutch(MIDI_ON + fsPtr->channel);
-        ctxp->midiPutch(fsPtr->note);
-        ctxp->midiPutch(0);
-        ctxp->noteChannelDownRawBalance[fsPtr->note][fsPtr->channel]--;
+        if(ctxp->noteChannelDownCount[fsPtr->note][fsPtr->channel]>1)
+        {
+            ctxp->midiPutch(MIDI_ON + fsPtr->channel);
+            ctxp->midiPutch(fsPtr->note);
+            ctxp->midiPutch(0);
+            ctxp->noteChannelDownRawBalance[fsPtr->note][fsPtr->channel]--;            
+        }        
     }
     
     //See if we just took over in our poly group
@@ -600,24 +605,27 @@ void Fretless_up(struct Fretless_context* ctxp, int finger)
         ctxp->fail("Fretless_up && fsPtr->isOn == FALSE\n");
     }
     
+    int fingerWasSupressed = fsPtr->isSupressed;
     int fingerToTurnOn = Fretless_unlink(ctxp, finger);
             
     //Temporarily disable the note if we are overbooking channels
     ctxp->noteChannelDownCount[fsPtr->note][fsPtr->channel]--;
-    if(ctxp->noteChannelDownCount[fsPtr->note][fsPtr->channel] == 0)
+    
+    if(fingerWasSupressed==FALSE)
     {
-        if(fingerToTurnOn != NOBODY && fsPtr->isSupressed==FALSE)
+        if(ctxp->noteChannelDownCount[fsPtr->note][fsPtr->channel] == 0)
         {
-            Fretless_noteTie(ctxp, fsPtr);
-        }
-        if(fsPtr->isSupressed==FALSE)
-        {
+            if(fingerToTurnOn != NOBODY)
+            {
+                Fretless_noteTie(ctxp, fsPtr);
+            }
             ctxp->midiPutch(MIDI_ON + fsPtr->channel);
             ctxp->midiPutch(fsPtr->note);
             ctxp->midiPutch(0);
             ctxp->noteChannelDownRawBalance[fsPtr->note][fsPtr->channel]--;            
-        }
-    }
+        }        
+    }    
+    
     //If we uncovered a note by picking up current note on poly group...
     if(fingerToTurnOn != NOBODY)
     {

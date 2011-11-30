@@ -17,6 +17,50 @@
 
 static struct Fretless_context* fretlessp = NULL;
 
+//Quick oct rounding hack
+
+float pickPitch(int finger,int isMoving,float x,float y,int* stringP)
+{
+    static int   lastFingerDown = -1;
+    static float lastNoteDown = 0;
+    static int   octDiff = 48;
+    
+    *stringP = (3.0 * x);
+    float fret = (5.0 * y);
+    float thisPitch = (fret + (*stringP)*5 + octDiff);  
+    
+    if( !isMoving )
+    {
+        lastFingerDown = finger;
+    }
+    if(finger == lastFingerDown)
+    {
+        float diff = (thisPitch - lastNoteDown);
+        if(diff > 6.5)
+        {
+            thisPitch -= 12;
+            octDiff -= 12;
+        }
+        if(diff <= -6.5)
+        {
+            thisPitch += 12;
+            octDiff += 12;
+        }
+        while(thisPitch < -0.5)
+        {
+            thisPitch += 12;
+            octDiff += 12;
+        }
+        while(thisPitch >= 127.5)
+        {
+            thisPitch -= 12;
+            octDiff -= 12;
+        }
+        lastNoteDown = thisPitch;
+    }
+    return thisPitch;
+}
+
 
 
 @interface EAGLView (PrivateMethods)
@@ -161,9 +205,14 @@ static struct Fretless_context* fretlessp = NULL;
         if(phase == UITouchPhaseBegan)
         {
             int finger = Fretless_util_mapFinger(fretlessp, touch);
-            int string = ((int)(3.0 * [touch locationInView:self].x / framebufferWidth));
-            float fret = (5.0 * [touch locationInView:self].y / framebufferHeight);
-            float note = fret + string*5 + 32;
+
+            int string;
+            float note = pickPitch(
+                                   finger, 0,
+                                   [touch locationInView:self].x/framebufferWidth,
+                                   [touch locationInView:self].y/framebufferHeight,
+                                   &string
+                                   );
             int polygroup = string;
             float velocity = 1.0;
             int legato = 0;
@@ -188,15 +237,13 @@ static struct Fretless_context* fretlessp = NULL;
         if(phase == UITouchPhaseMoved)
         {
             int finger = Fretless_util_mapFinger(fretlessp, touch);
-            int string = ((int)(3.0 * [touch locationInView:self].x / framebufferWidth));
-            float fret = (5.0 * [touch locationInView:self].y / framebufferHeight);
-            float note = fret + string*5 + 32;
+            int string;
+            float note = pickPitch(finger, 1,
+                                   [touch locationInView:self].x/framebufferWidth,
+                                   [touch locationInView:self].y/framebufferHeight,
+                                   &string
+                                   );
             Fretless_move(fretlessp,finger,note);
-            //float note = 33.0;
-            //int polygroup = finger;
-            //float velocity = 1.0;
-            //int legato = 1;
-            //Fretless_down(fretlessp,finger,note,polygroup,velocity,legato); 
         }
     }
     Fretless_flush(fretlessp);
