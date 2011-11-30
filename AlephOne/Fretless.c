@@ -736,8 +736,17 @@ void Fretless_selfTest(struct Fretless_context* ctxp)
                 
                 if(ctxp->noteChannelDownRawBalance[n][c] != 0)
                 {
-                    ctxp->fail("Fretless_state.noteChannelDownRawBalance[0x%2x][0x%2x] == %d\n",n,c, ctxp->noteChannelDownRawBalance[n][c]);
-                    passed = FALSE;
+                    if(ctxp->noteChannelDownRawBalance[n][c] < 0)
+                    {
+                        int foundVal = ctxp->noteChannelDownRawBalance[n][c];
+                        ctxp->noteChannelDownRawBalance[n][c] = 0;    
+                        ctxp->logger("ctxp->noteChannelDownRawBalance[%2x][%2x] == %2x",n,c,foundVal);
+                    }
+                    else
+                    {
+                        ctxp->fail("Fretless_state.noteChannelDownRawBalance[0x%2x][0x%2x] == %d\n",n,c, ctxp->noteChannelDownRawBalance[n][c]);
+                        passed = FALSE;                        
+                    }
                 }
                  
             }
