@@ -123,19 +123,19 @@ struct Fretless_fingerState
 #define FINGERCHECK(ctxp,finger) \
 if(finger < 0 || finger >= FINGERMAX) \
 { \
-    ctxp->fail("finger out of range"); \
+    ctxp->fail("finger out of range %d",finger); \
 } 
 
 #define POLYCHECK(ctxp,polyGroup) \
 if(polyGroup < 0 || polyGroup >= POLYMAX) \
 { \
-    ctxp->fail("poly group out of range"); \
+    ctxp->fail("poly group out of range %d",polyGroup); \
 }
 
 #define FNOTECHECK(ctxp,fnote) \
 if(fnote < -0.5 || fnote >= 127.5) \
 { \
-    ctxp->fail("fnote"); \
+    ctxp->fail("fnote %d",fnote); \
 }
 
 /**

@@ -24,15 +24,24 @@ float pickPitch(int finger,int isMoving,float x,float y,int* stringP)
     static int   lastFingerDown = -1;
     static float lastNoteDown = 0;
     static int   octDiff = 48;
+    static int   octDiffOurs = -1;
+    static int   octDiffByFinger[16];
+    
+    if( isMoving )
+    {
+        octDiffOurs = octDiffByFinger[finger];
+    }
+    else
+    {
+        lastFingerDown = finger;
+        octDiffOurs = octDiff;
+        octDiffByFinger[finger] = octDiff;
+    }
     
     *stringP = (3.0 * x);
     float fret = (5.0 * y);
-    float thisPitch = (fret + (*stringP)*5 + octDiff);  
+    float thisPitch = (fret + (*stringP)*5 + octDiffOurs);  
     
-    if( !isMoving )
-    {
-        lastFingerDown = finger;
-    }
     if(finger == lastFingerDown)
     {
         float diff = (thisPitch - lastNoteDown);
@@ -57,6 +66,10 @@ float pickPitch(int finger,int isMoving,float x,float y,int* stringP)
             octDiff -= 12;
         }
         lastNoteDown = thisPitch;
+    }
+    if( !isMoving )
+    {
+        octDiffByFinger[finger] = octDiff;        
     }
     return thisPitch;
 }
