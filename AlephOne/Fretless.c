@@ -561,6 +561,10 @@ void Fretless_down(struct Fretless_context* ctxp, int finger,float fnote,int pol
             ctxp->midiPutch(fsPtr->note);
             ctxp->midiPutch(0);
             ctxp->noteChannelDownRawBalance[fsPtr->note][fsPtr->channel]--;            
+            if( ctxp->noteChannelDownRawBalance[fsPtr->note][fsPtr->channel] < 0 )
+            {
+                ctxp->logger( "Fretless_down turningOff unsupressed went negative for %2x %2x %d\n",fsPtr->note,fsPtr->channel,fsPtr->isSupressed);
+            }
         }        
     }
     
@@ -585,6 +589,10 @@ void Fretless_down(struct Fretless_context* ctxp, int finger,float fnote,int pol
         ctxp->midiPutch(turningOffPtr->note);
         ctxp->midiPutch(0);
         ctxp->noteChannelDownRawBalance[turningOffPtr->note][turningOffPtr->channel]--;
+        if( ctxp->noteChannelDownRawBalance[turningOffPtr->note][turningOffPtr->channel] < 0 )
+        {
+            ctxp->logger( "Fretless_down turningOff went negative for %2x %2x %d\n",turningOffPtr->note,turningOffPtr->channel,turningOffPtr->isSupressed);
+        }
     }
     ctxp->midiPutch(MIDI_ON + fsPtr->channel);
     ctxp->midiPutch(fsPtr->note);
@@ -623,6 +631,10 @@ void Fretless_up(struct Fretless_context* ctxp, int finger)
             ctxp->midiPutch(fsPtr->note);
             ctxp->midiPutch(0);
             ctxp->noteChannelDownRawBalance[fsPtr->note][fsPtr->channel]--;            
+            if( ctxp->noteChannelDownRawBalance[fsPtr->note][fsPtr->channel] < 0 )
+            {
+                ctxp->logger( "Fretless_up turningOff unsupressed went negative for %2x %2x\n",fsPtr->note,fsPtr->channel);
+            }
         }        
     }    
     
@@ -740,7 +752,7 @@ void Fretless_selfTest(struct Fretless_context* ctxp)
                     {
                         int foundVal = ctxp->noteChannelDownRawBalance[n][c];
                         ctxp->noteChannelDownRawBalance[n][c] = 0;    
-                        ctxp->logger("ctxp->noteChannelDownRawBalance[%2x][%2x] == %2x",n,c,foundVal);
+                        ctxp->logger("ctxp->noteChannelDownRawBalance[%2x][%2x] == %d",n,c,foundVal);
                     }
                     else
                     {
