@@ -94,7 +94,7 @@ float pickPitch(int finger,int isMoving,float x,float y,int* stringP)
     [self setMultipleTouchEnabled:TRUE];
     fretlessp = Fretless_init(midiPutch,midiFlush,malloc,midiFail,midiPassed,printf);
     Fretless_setMidiHintChannelBendSemis(fretlessp, 2);
-    Fretless_setMidiHintChannelSpan(fretlessp, 1);
+    Fretless_setMidiHintChannelSpan(fretlessp, 4);
     midiInit(fretlessp);
     Fretless_boot(fretlessp);    
     return self;
