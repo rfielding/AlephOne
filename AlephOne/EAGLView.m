@@ -49,28 +49,29 @@ float pickPitch(int finger,int isMoving,float x,float y,int* stringP)
         {
             thisPitch -= 12;
             octDiff -= 12;
+            octDiffOurs -= 12;
         }
         if(diff <= -6.5)
         {
             thisPitch += 12;
             octDiff += 12;
+            octDiffOurs += 12;
         }
         while(thisPitch < -0.5)
         {
             thisPitch += 12;
             octDiff += 12;
+            octDiffOurs += 12;
         }
         while(thisPitch >= 127.5)
         {
             thisPitch -= 12;
             octDiff -= 12;
+            octDiffOurs -= 12;
         }
         lastNoteDown = thisPitch;
     }
-    if( !isMoving )
-    {
-        octDiffByFinger[finger] = octDiff;        
-    }
+    octDiffByFinger[finger] = octDiffOurs;        
     return thisPitch;
 }
 
