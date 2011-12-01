@@ -49,7 +49,7 @@ float pickPitch(int finger,int isMoving,float x,float y,int* stringP,float* expr
     
     *stringP = (3.0 * x);
     *exprP = (3.0*x) - *stringP;
-    float fret = (5.0 * y);
+    float fret = (5.0 * y) - 0.5;
     float thisPitch = (fret + (*stringP)*5 + octDiffOurs);  
     
     if(finger == lastFingerDown)
@@ -242,8 +242,8 @@ float pickPitch(int finger,int isMoving,float x,float y,int* stringP,float* expr
             int polygroup = string;
             float velocity = 1.0;
             int legato = 0;
-            float noteHi = note + (expr)*0.1;
-            float noteLo = note - (expr)*0.1;
+            float noteHi = note + (expr*expr)*0.25;
+            float noteLo = note - (expr*expr)*0.25;
             Fretless_down(fretlessp,finger, noteLo,polygroup,velocity,legato); 
             Fretless_down(fretlessp,finger2,noteHi,polygroup+8,velocity,legato); 
         }
@@ -275,8 +275,8 @@ float pickPitch(int finger,int isMoving,float x,float y,int* stringP,float* expr
                                    &string,
                                    &expr
                                    );
-            float noteHi = note + (expr)*0.1;
-            float noteLo = note - (expr)*0.1;
+            float noteHi = note + (expr*expr)*0.25;
+            float noteLo = note - (expr*expr)*0.25;
             Fretless_move(fretlessp,finger,noteLo);
             Fretless_move(fretlessp,finger2,noteHi);
         }
