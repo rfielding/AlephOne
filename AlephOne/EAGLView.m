@@ -35,6 +35,7 @@ float pickPitch(int finger,int isMoving,float x,float y,int* stringP,float* expr
     static int   octDiff = 48;
     static int   octDiffOurs = -1;
     static int   octDiffByFinger[16];
+    float tuning = 12*log2f(4.0/3); //Just fourths (rather than simply diatonic fourth)
     
     if( isMoving )
     {
@@ -49,7 +50,7 @@ float pickPitch(int finger,int isMoving,float x,float y,int* stringP,float* expr
     
     *stringP = (3.0 * x);
     *exprP = (3.0*x) - *stringP;
-    float fret = (5.0 * y) - 0.5;
+    float fret = (tuning * y) - 0.5;
     float thisPitch = (fret + (*stringP)*5 + octDiffOurs);  
     
     if(finger == lastFingerDown)
