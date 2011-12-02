@@ -13,78 +13,12 @@
 
 
 #import "Fretless.h"
+#import "PitchHandler.h"
 #import "CoreMIDIRenderer.h"
+#import "TouchMapping.h"
 
 static struct Fretless_context* fretlessp = NULL;
 
-int Fretless_util_mapFinger2(struct Fretless_context* ctxp, void* touch)
-{
-    return Fretless_util_mapFinger(ctxp, (void*)((int)touch ^ 0xFFFFFFFF));
-}
-
-void Fretless_util_unmapFinger2(struct Fretless_context* ctxp, void* touch)
-{
-    Fretless_util_unmapFinger(ctxp, (void*)((int)touch ^ 0xFFFFFFFF));
-}
-
-//Quick oct rounding hack
-float pickPitch(int finger,int isMoving,float x,float y,int* stringP,float* exprP)
-{
-    static int   lastFingerDown = -1;
-    static float lastNoteDown = 0;
-    static int   octDiff = 48;
-    static int   octDiffOurs = -1;
-    static int   octDiffByFinger[16];
-    float tuning = 12*log2f(4.0/3); //Just fourths (rather than simply diatonic fourth)
-    
-    if( isMoving )
-    {
-        octDiffOurs = octDiffByFinger[finger];
-    }
-    else
-    {
-        lastFingerDown = finger;
-        octDiffOurs = octDiff;
-        octDiffByFinger[finger] = octDiff;
-    }
-    
-    *stringP = (3.0 * x);
-    *exprP = (3.0*x) - *stringP;
-    float fret = (tuning * y) - 0.5;
-    float thisPitch = (fret + (*stringP)*5 + octDiffOurs);  
-    
-    if(finger == lastFingerDown)
-    {
-        float diff = (thisPitch - lastNoteDown);
-        if(diff > 6.5)
-        {
-            thisPitch -= 12;
-            octDiff -= 12;
-            octDiffOurs -= 12;
-        }
-        if(diff <= -6.5)
-        {
-            thisPitch += 12;
-            octDiff += 12;
-            octDiffOurs += 12;
-        }
-        while(thisPitch < -0.5)
-        {
-            thisPitch += 12;
-            octDiff += 12;
-            octDiffOurs += 12;
-        }
-        while(thisPitch >= 127.5)
-        {
-            thisPitch -= 12;
-            octDiff -= 12;
-            octDiffOurs -= 12;
-        }
-        lastNoteDown = thisPitch;
-    }
-    octDiffByFinger[finger] = octDiffOurs;        
-    return thisPitch;
-}
 
 
 
@@ -229,11 +163,11 @@ float pickPitch(int finger,int isMoving,float x,float y,int* stringP,float* expr
         UITouchPhase phase = [touch phase];
         if(phase == UITouchPhaseBegan)
         {
-            int finger  = Fretless_util_mapFinger(fretlessp, touch);
-            int finger2 = Fretless_util_mapFinger2(fretlessp, touch);
+            int finger  = TouchMapping_mapFinger(fretlessp, touch);
+            int finger2 = TouchMapping_mapFinger2(fretlessp, touch);
             int string;
             float expr;
-            float note = pickPitch(
+            float note = PitchHandler_pickPitch(
                                    finger, 0,
                                    [touch locationInView:self].x/framebufferWidth,
                                    [touch locationInView:self].y/framebufferHeight,
@@ -266,11 +200,11 @@ float pickPitch(int finger,int isMoving,float x,float y,int* stringP,float* expr
         UITouchPhase phase = [touch phase];
         if(phase == UITouchPhaseMoved)
         {
-            int finger  = Fretless_util_mapFinger(fretlessp, touch);
-            int finger2 = Fretless_util_mapFinger2(fretlessp, touch);
+            int finger  = TouchMapping_mapFinger(fretlessp, touch);
+            int finger2 = TouchMapping_mapFinger2(fretlessp, touch);
             int string;
             float expr;
-            float note = pickPitch(finger, 1,
+            float note = PitchHandler_pickPitch(finger, 1,
                                    [touch locationInView:self].x/framebufferWidth,
                                    [touch locationInView:self].y/framebufferHeight,
                                    &string,
@@ -294,12 +228,12 @@ float pickPitch(int finger,int isMoving,float x,float y,int* stringP,float* expr
         UITouchPhase phase = [touch phase];
         if(phase==UITouchPhaseEnded)
         {
-            int finger  = Fretless_util_mapFinger(fretlessp, touch);
-            int finger2 = Fretless_util_mapFinger2(fretlessp, touch);
+            int finger  = TouchMapping_mapFinger(fretlessp, touch);
+            int finger2 = TouchMapping_mapFinger2(fretlessp, touch);
             Fretless_up(fretlessp, finger);
             Fretless_up(fretlessp, finger2);
-            Fretless_util_unmapFinger(fretlessp,touch);
-            Fretless_util_unmapFinger2(fretlessp,touch);
+            TouchMapping_unmapFinger(fretlessp,touch);
+            TouchMapping_unmapFinger2(fretlessp,touch);
         }
     }
     Fretless_flush(fretlessp);
@@ -315,12 +249,12 @@ float pickPitch(int finger,int isMoving,float x,float y,int* stringP,float* expr
         UITouchPhase phase = [touch phase];
         if(phase==UITouchPhaseCancelled)
         {
-            int finger  = Fretless_util_mapFinger(fretlessp, touch);
-            int finger2 = Fretless_util_mapFinger2(fretlessp, touch);
+            int finger  = TouchMapping_mapFinger(fretlessp, touch);
+            int finger2 = TouchMapping_mapFinger2(fretlessp, touch);
             Fretless_up(fretlessp, finger);
             Fretless_up(fretlessp, finger2);
-            Fretless_util_unmapFinger(fretlessp,touch);
-            Fretless_util_unmapFinger2(fretlessp,touch);
+            TouchMapping_unmapFinger(fretlessp,touch);
+            TouchMapping_unmapFinger2(fretlessp,touch);
         }
     }
     Fretless_flush(fretlessp);

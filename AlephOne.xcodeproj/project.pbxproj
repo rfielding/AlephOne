@@ -31,6 +31,8 @@
 		49B390B3144914DC008C9F6E /* AlephOneTests.m in Sources */ = {isa = PBXBuildFile; fileRef = 49B390B2144914DC008C9F6E /* AlephOneTests.m */; };
 		49B390BF144915CB008C9F6E /* Fretless.c in Sources */ = {isa = PBXBuildFile; fileRef = 49B390BD144915CB008C9F6E /* Fretless.c */; };
 		49B390C0144915CB008C9F6E /* Fretless.c in Sources */ = {isa = PBXBuildFile; fileRef = 49B390BD144915CB008C9F6E /* Fretless.c */; };
+		49CB084014888CA3003DEA9D /* PitchHandler.c in Sources */ = {isa = PBXBuildFile; fileRef = 49CB083E14888CA3003DEA9D /* PitchHandler.c */; };
+		49CB084414888E55003DEA9D /* TouchMapping.c in Sources */ = {isa = PBXBuildFile; fileRef = 49CB084214888E55003DEA9D /* TouchMapping.c */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -75,6 +77,10 @@
 		49B390B2144914DC008C9F6E /* AlephOneTests.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = AlephOneTests.m; sourceTree = "<group>"; };
 		49B390BD144915CB008C9F6E /* Fretless.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = Fretless.c; sourceTree = "<group>"; };
 		49B390BE144915CB008C9F6E /* Fretless.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Fretless.h; sourceTree = "<group>"; };
+		49CB083E14888CA3003DEA9D /* PitchHandler.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = PitchHandler.c; sourceTree = "<group>"; };
+		49CB083F14888CA3003DEA9D /* PitchHandler.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PitchHandler.h; sourceTree = "<group>"; };
+		49CB084214888E55003DEA9D /* TouchMapping.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = TouchMapping.c; sourceTree = "<group>"; };
+		49CB084314888E55003DEA9D /* TouchMapping.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TouchMapping.h; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -193,6 +199,10 @@
 			children = (
 				49B390BD144915CB008C9F6E /* Fretless.c */,
 				49B390BE144915CB008C9F6E /* Fretless.h */,
+				49CB083E14888CA3003DEA9D /* PitchHandler.c */,
+				49CB083F14888CA3003DEA9D /* PitchHandler.h */,
+				49CB084214888E55003DEA9D /* TouchMapping.c */,
+				49CB084314888E55003DEA9D /* TouchMapping.h */,
 			);
 			name = Fretless;
 			sourceTree = "<group>";
@@ -313,6 +323,8 @@
 				49B3909A144914DC008C9F6E /* AlephOneViewController.m in Sources */,
 				49B390BF144915CB008C9F6E /* Fretless.c in Sources */,
 				496862861481FB7600460B4B /* CoreMIDIRenderer.m in Sources */,
+				49CB084014888CA3003DEA9D /* PitchHandler.c in Sources */,
+				49CB084414888E55003DEA9D /* TouchMapping.c in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
