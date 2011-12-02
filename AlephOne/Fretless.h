@@ -39,7 +39,6 @@ void Fretless_up(struct Fretless_context* ctxp, int finger);
 //sequence finish.  we can send it now
 void Fretless_flush(struct Fretless_context* ctxp);
 
-void Fretless_selfTest(struct Fretless_context* ctxp);
 
 //Finger up pointer
 void Fretless_util_unmapFinger(struct Fretless_context* ctxp, void* ptr);

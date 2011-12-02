@@ -80,8 +80,6 @@ float PitchHandler_pickPitchRaw(int finger,float x,float y,int* stringP,float* e
 //Quick oct rounding hack
 float PitchHandler_pickPitch(int finger,int isMoving,float thisPitch,float* beginPitchP, float* endPitchP)
 {
- 
-    
     static int   lastFingerDown = NOBODY;
     static float lastNoteDown = 0;
     static int   noteDiffOurs = 0;

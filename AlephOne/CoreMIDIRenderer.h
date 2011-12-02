@@ -6,8 +6,7 @@
 //  Copyright 2011 Check Point Software. All rights reserved.
 //
 
-#import <Foundation/Foundation.h>
-#import "Fretless.h"
+struct Fretless_context;
 
 void CoreMIDIRenderer_midiInit(struct Fretless_context* fretlessp);
 void CoreMIDIRenderer_midiPutch(char c);

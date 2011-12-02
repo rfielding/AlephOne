@@ -53,6 +53,9 @@
         invokes to move explicitly; just to invoke tick() at a constant rate.  The user interface just sends the bends
         at the actual rate that things move (so it's up to the internals of the API to band-limit things, not the caller
         to be more clever).
+ 
+     The point of the assertions is not so much just to check the correctness of this code, but to give
+     good diagnostics when something does go wrong, especially when what went wrong was the way that the caller invoked us.
  */
 
 //#include <stdio.h>
@@ -146,6 +149,7 @@ if(fnote < -0.5 || fnote >= 127.5) \
     ctxp->fail("fnote %d",fnote); \
 }
 
+
 /**
  This entire library needs to be re-entrant since broadcasting to different locations 
  may mean that there is more than one MIDI rendition in use at the same time.
@@ -178,6 +182,8 @@ struct Fretless_context
     int (*logger)(const char*,...);
     void (*passed)();
 };
+
+void Fretless_selfTest(struct Fretless_context* ctxp);
 
 /**
    Get a context to start using the API.  We inject dependencies so that 
@@ -814,7 +820,7 @@ void Fretless_selfTest(struct Fretless_context* ctxp)
     }
     else
     {
-        /*
+        
         //Force a recovery and quiet reboot
         for(int n=0; n<NOTEMAX; n++)
         {
@@ -830,7 +836,6 @@ void Fretless_selfTest(struct Fretless_context* ctxp)
         }
         //recover
         Fretless_boot(ctxp);
-         */
     }
 }
 

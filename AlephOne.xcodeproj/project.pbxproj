@@ -34,6 +34,7 @@
 		49CB084014888CA3003DEA9D /* PitchHandler.c in Sources */ = {isa = PBXBuildFile; fileRef = 49CB083E14888CA3003DEA9D /* PitchHandler.c */; };
 		49CB084414888E55003DEA9D /* TouchMapping.c in Sources */ = {isa = PBXBuildFile; fileRef = 49CB084214888E55003DEA9D /* TouchMapping.c */; };
 		49CB084714889D4C003DEA9D /* ControlRegistry.c in Sources */ = {isa = PBXBuildFile; fileRef = 49CB084514889D4B003DEA9D /* ControlRegistry.c */; };
+		49CB084A1488C11A003DEA9D /* GenericTouchHandling.c in Sources */ = {isa = PBXBuildFile; fileRef = 49CB08481488C119003DEA9D /* GenericTouchHandling.c */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -84,6 +85,8 @@
 		49CB084314888E55003DEA9D /* TouchMapping.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TouchMapping.h; sourceTree = "<group>"; };
 		49CB084514889D4B003DEA9D /* ControlRegistry.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = ControlRegistry.c; sourceTree = "<group>"; };
 		49CB084614889D4C003DEA9D /* ControlRegistry.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ControlRegistry.h; sourceTree = "<group>"; };
+		49CB08481488C119003DEA9D /* GenericTouchHandling.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = GenericTouchHandling.c; sourceTree = "<group>"; };
+		49CB08491488C11A003DEA9D /* GenericTouchHandling.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = GenericTouchHandling.h; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -162,6 +165,8 @@
 				49B39083144914DC008C9F6E /* Supporting Files */,
 				496862841481FB7600460B4B /* CoreMIDIRenderer.h */,
 				496862851481FB7600460B4B /* CoreMIDIRenderer.m */,
+				49CB08481488C119003DEA9D /* GenericTouchHandling.c */,
+				49CB08491488C11A003DEA9D /* GenericTouchHandling.h */,
 			);
 			path = AlephOne;
 			sourceTree = "<group>";
@@ -331,6 +336,7 @@
 				49CB084014888CA3003DEA9D /* PitchHandler.c in Sources */,
 				49CB084414888E55003DEA9D /* TouchMapping.c in Sources */,
 				49CB084714889D4C003DEA9D /* ControlRegistry.c in Sources */,
+				49CB084A1488C11A003DEA9D /* GenericTouchHandling.c in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

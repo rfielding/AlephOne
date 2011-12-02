@@ -9,93 +9,7 @@
 #import <QuartzCore/QuartzCore.h>
 
 #import "EAGLView.h"
-#import <stdio.h>
-
-
-#import "Fretless.h"
-#import "PitchHandler.h"
-#import "CoreMIDIRenderer.h"
-#import "TouchMapping.h"
-
-static struct Fretless_context* fretlessp = NULL;
-
-void touchesInit()
-{
-    fretlessp = Fretless_init(CoreMIDIRenderer_midiPutch,CoreMIDIRenderer_midiFlush,malloc,CoreMIDIRenderer_midiFail,CoreMIDIRenderer_midiPassed,printf);
-    CoreMIDIRenderer_midiInit(fretlessp);
-    Fretless_boot(fretlessp);     
-}
-
-void touchesUp(void* touch)
-{
-    int finger  = TouchMapping_mapFinger(fretlessp, touch);
-    if(finger < 0)
-    {
-        CoreMIDIRenderer_midiFail("touch did not map to a finger1");   
-    }
-    int finger2 = TouchMapping_mapFinger2(fretlessp, touch);
-    if(finger < 0)
-    {
-        CoreMIDIRenderer_midiFail("touch did not map to a finger2");   
-    }
-    Fretless_up(fretlessp, finger);
-    Fretless_up(fretlessp, finger2);
-    TouchMapping_unmapFinger(fretlessp,touch);
-    TouchMapping_unmapFinger2(fretlessp,touch);    
-}
-
-void touchesDown(
-                 void* touch,
-                 int isMoving,
-                 float x,
-                 float y
-                 )
-{
-    int finger1;
-    int finger2;
-    float noteHi;
-    float noteLo;
-    int polygroup;
-    float expr;
-    finger1  = TouchMapping_mapFinger(fretlessp, touch);
-    if(finger1 < 0)
-    {
-        CoreMIDIRenderer_midiFail("touch did not map to a finger1");   
-    }    
-    finger2  = TouchMapping_mapFinger2(fretlessp, touch);
-    if(finger2 < 0)
-    {
-        CoreMIDIRenderer_midiFail("touch did not map to a finger2");   
-    }    
-    float noteRaw = PitchHandler_pickPitchRaw(
-                                              finger1,
-                                              x,
-                                              y,
-                                              &polygroup,
-                                              &expr
-                                              );
-    float beginNote;
-    float endNote;
-    float note = PitchHandler_pickPitch(finger1,isMoving,noteRaw,&beginNote,&endNote);
-    noteHi = note + (expr*expr)*0.2;
-    noteLo = note - (expr*expr)*0.2;    
-    if(isMoving)
-    {
-        Fretless_move(fretlessp,finger1,noteLo);
-        Fretless_express(fretlessp, finger1, 0, expr);
-        Fretless_move(fretlessp,finger2,noteHi);
-        Fretless_express(fretlessp, finger2, 0, expr);        
-    }
-    else
-    {
-        float velocity = 1.0;
-        int legato = 0;
-        Fretless_down(fretlessp,finger1, noteLo,polygroup,velocity,legato); 
-        Fretless_express(fretlessp, finger1, 0, expr);
-        Fretless_down(fretlessp,finger2,noteHi,polygroup+8,velocity,legato); 
-        Fretless_express(fretlessp, finger2, 0, expr);        
-    }
-}
+#import "GenericTouchHandling.h"
 
 
 @interface EAGLView (PrivateMethods)
@@ -127,7 +41,7 @@ void touchesDown(
                                         nil];
     }
     [self setMultipleTouchEnabled:TRUE];
-    touchesInit();
+    GenericTouchHandling_touchesInit();
     return self;
 }
 
@@ -241,7 +155,7 @@ void touchesDown(
         UITouchPhase phase = [touch phase];
         if(phase == UITouchPhaseBegan)
         {            
-            touchesDown(
+            GenericTouchHandling_touchesDown(
                 touch,
                 phase == UITouchPhaseMoved,
                 [touch locationInView:self].x/framebufferWidth,
@@ -249,7 +163,7 @@ void touchesDown(
             );
         }
     }
-    Fretless_flush(fretlessp);
+    GenericTouchHandling_touchesFlush();
 }
 
 - (void)touchesMoved:(NSSet *)touches withEvent:(UIEvent *)event {
@@ -261,7 +175,7 @@ void touchesDown(
         UITouchPhase phase = [touch phase];
         if(phase == UITouchPhaseMoved)
         {
-            touchesDown(
+            GenericTouchHandling_touchesDown(
                 touch,
                 phase == UITouchPhaseMoved,
                 [touch locationInView:self].x/framebufferWidth,
@@ -269,7 +183,7 @@ void touchesDown(
             );
         }
     }
-    Fretless_flush(fretlessp);
+    GenericTouchHandling_touchesFlush();
 }
 
 
@@ -284,10 +198,10 @@ void touchesDown(
         UITouchPhase phase = [touch phase];
         if(phase==UITouchPhaseEnded)
         {
-            touchesUp(touch);
+            GenericTouchHandling_touchesUp(touch);
         }
     }
-    Fretless_flush(fretlessp);
+    GenericTouchHandling_touchesFlush();
 }
     
 - (void)touchesCancelled:(NSSet *)touches withEvent:(UIEvent *)event
@@ -300,10 +214,10 @@ void touchesDown(
         UITouchPhase phase = [touch phase];
         if(phase==UITouchPhaseCancelled)
         {
-            touchesUp(touch);
+            GenericTouchHandling_touchesUp(touch);
         }
     }
-    Fretless_flush(fretlessp);
+    GenericTouchHandling_touchesFlush();
 }
 
 @end

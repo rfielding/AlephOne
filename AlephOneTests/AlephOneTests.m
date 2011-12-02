@@ -79,7 +79,6 @@ void midiPassed()
     Fretless_up(ctxp,secondFinger);
     Fretless_up(ctxp,middleFinger);
     Fretless_flush(ctxp);
-    Fretless_selfTest(ctxp);
     
 }
 
@@ -173,7 +172,6 @@ void midiPassed()
     Fretless_up(ctxp,secondFinger);
     Fretless_up(ctxp,thirdFinger);
     Fretless_flush(ctxp);
-    Fretless_selfTest(ctxp);    
 }
 
 -(void)testInterleavePolyDifferent
@@ -218,8 +216,5 @@ void midiPassed()
     Fretless_flush(ctxp);
     Fretless_up(ctxp,secondFinger);
     Fretless_flush(ctxp);
-     
-    
-    Fretless_selfTest(ctxp);    
 }
 @end

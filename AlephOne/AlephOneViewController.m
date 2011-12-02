@@ -40,11 +40,11 @@ enum {
 
 - (void)awakeFromNib
 {
-    EAGLContext *aContext = [[EAGLContext alloc] initWithAPI:kEAGLRenderingAPIOpenGLES2];
+    EAGLContext *aContext;// = [[EAGLContext alloc] initWithAPI:kEAGLRenderingAPIOpenGLES2];
     
-    if (!aContext) {
+    //if (!aContext) {
         aContext = [[EAGLContext alloc] initWithAPI:kEAGLRenderingAPIOpenGLES1];
-    }
+    //}
     
     if (!aContext)
         NSLog(@"Failed to create ES context");
@@ -57,8 +57,8 @@ enum {
     [(EAGLView *)self.view setContext:context];
     [(EAGLView *)self.view setFramebuffer];
     
-    if ([context API] == kEAGLRenderingAPIOpenGLES2)
-        [self loadShaders];
+    //if ([context API] == kEAGLRenderingAPIOpenGLES2)
+    //    [self loadShaders];
     
     animating = FALSE;
     animationFrameInterval = 1;
