@@ -19,7 +19,83 @@
 
 static struct Fretless_context* fretlessp = NULL;
 
+void touchesInit()
+{
+    fretlessp = Fretless_init(CoreMIDIRenderer_midiPutch,CoreMIDIRenderer_midiFlush,malloc,CoreMIDIRenderer_midiFail,CoreMIDIRenderer_midiPassed,printf);
+    CoreMIDIRenderer_midiInit(fretlessp);
+    Fretless_boot(fretlessp);     
+}
 
+void touchesUp(void* touch)
+{
+    int finger  = TouchMapping_mapFinger(fretlessp, touch);
+    if(finger < 0)
+    {
+        CoreMIDIRenderer_midiFail("touch did not map to a finger1");   
+    }
+    int finger2 = TouchMapping_mapFinger2(fretlessp, touch);
+    if(finger < 0)
+    {
+        CoreMIDIRenderer_midiFail("touch did not map to a finger2");   
+    }
+    Fretless_up(fretlessp, finger);
+    Fretless_up(fretlessp, finger2);
+    TouchMapping_unmapFinger(fretlessp,touch);
+    TouchMapping_unmapFinger2(fretlessp,touch);    
+}
+
+void touchesDown(
+                 void* touch,
+                 int isMoving,
+                 float x,
+                 float y
+                 )
+{
+    int finger1;
+    int finger2;
+    float noteHi;
+    float noteLo;
+    int polygroup;
+    float expr;
+    finger1  = TouchMapping_mapFinger(fretlessp, touch);
+    if(finger1 < 0)
+    {
+        CoreMIDIRenderer_midiFail("touch did not map to a finger1");   
+    }    
+    finger2  = TouchMapping_mapFinger2(fretlessp, touch);
+    if(finger2 < 0)
+    {
+        CoreMIDIRenderer_midiFail("touch did not map to a finger2");   
+    }    
+    float noteRaw = PitchHandler_pickPitchRaw(
+                                              finger1,
+                                              x,
+                                              y,
+                                              &polygroup,
+                                              &expr
+                                              );
+    float beginNote;
+    float endNote;
+    float note = PitchHandler_pickPitch(finger1,isMoving,noteRaw,&beginNote,&endNote);
+    noteHi = note + (expr*expr)*0.2;
+    noteLo = note - (expr*expr)*0.2;    
+    if(isMoving)
+    {
+        Fretless_move(fretlessp,finger1,noteLo);
+        Fretless_express(fretlessp, finger1, 0, expr);
+        Fretless_move(fretlessp,finger2,noteHi);
+        Fretless_express(fretlessp, finger2, 0, expr);        
+    }
+    else
+    {
+        float velocity = 1.0;
+        int legato = 0;
+        Fretless_down(fretlessp,finger1, noteLo,polygroup,velocity,legato); 
+        Fretless_express(fretlessp, finger1, 0, expr);
+        Fretless_down(fretlessp,finger2,noteHi,polygroup+8,velocity,legato); 
+        Fretless_express(fretlessp, finger2, 0, expr);        
+    }
+}
 
 
 @interface EAGLView (PrivateMethods)
@@ -51,11 +127,7 @@ static struct Fretless_context* fretlessp = NULL;
                                         nil];
     }
     [self setMultipleTouchEnabled:TRUE];
-    fretlessp = Fretless_init(midiPutch,midiFlush,malloc,midiFail,midiPassed,printf);
-    Fretless_setMidiHintChannelBendSemis(fretlessp, 2);
-    Fretless_setMidiHintChannelSpan(fretlessp, 4);
-    midiInit(fretlessp);
-    Fretless_boot(fretlessp);    
+    touchesInit();
     return self;
 }
 
@@ -154,6 +226,12 @@ static struct Fretless_context* fretlessp = NULL;
     [self deleteFramebuffer];
 }
 
+- (void)tick
+{
+    //    Fretless_tick(fretlessp);
+}
+
+
 - (void)touchesBegan:(NSSet *)touches withEvent:(UIEvent *)event {
     NSArray* touchArray = [touches allObjects];
     int touchCount = [touches count];
@@ -162,33 +240,16 @@ static struct Fretless_context* fretlessp = NULL;
         UITouch* touch = [touchArray objectAtIndex:t];
         UITouchPhase phase = [touch phase];
         if(phase == UITouchPhaseBegan)
-        {
-            int finger  = TouchMapping_mapFinger(fretlessp, touch);
-            int finger2 = TouchMapping_mapFinger2(fretlessp, touch);
-            int string;
-            float expr;
-            float note = PitchHandler_pickPitch(
-                                   finger, 0,
-                                   [touch locationInView:self].x/framebufferWidth,
-                                   [touch locationInView:self].y/framebufferHeight,
-                                   &string,
-                                   &expr
-                                   );
-            int polygroup = string;
-            float velocity = 1.0;
-            int legato = 0;
-            float noteHi = note + (expr*expr)*0.25;
-            float noteLo = note - (expr*expr)*0.25;
-            Fretless_down(fretlessp,finger, noteLo,polygroup,velocity,legato); 
-            Fretless_down(fretlessp,finger2,noteHi,polygroup+8,velocity,legato); 
+        {            
+            touchesDown(
+                touch,
+                phase == UITouchPhaseMoved,
+                [touch locationInView:self].x/framebufferWidth,
+                [touch locationInView:self].y/framebufferHeight
+            );
         }
     }
     Fretless_flush(fretlessp);
-}
-
-- (void)tick
-{
-//    Fretless_tick(fretlessp);
 }
 
 - (void)touchesMoved:(NSSet *)touches withEvent:(UIEvent *)event {
@@ -200,24 +261,19 @@ static struct Fretless_context* fretlessp = NULL;
         UITouchPhase phase = [touch phase];
         if(phase == UITouchPhaseMoved)
         {
-            int finger  = TouchMapping_mapFinger(fretlessp, touch);
-            int finger2 = TouchMapping_mapFinger2(fretlessp, touch);
-            int string;
-            float expr;
-            float note = PitchHandler_pickPitch(finger, 1,
-                                   [touch locationInView:self].x/framebufferWidth,
-                                   [touch locationInView:self].y/framebufferHeight,
-                                   &string,
-                                   &expr
-                                   );
-            float noteHi = note + (expr*expr)*0.25;
-            float noteLo = note - (expr*expr)*0.25;
-            Fretless_move(fretlessp,finger,noteLo);
-            Fretless_move(fretlessp,finger2,noteHi);
+            touchesDown(
+                touch,
+                phase == UITouchPhaseMoved,
+                [touch locationInView:self].x/framebufferWidth,
+                [touch locationInView:self].y/framebufferHeight
+            );
         }
     }
     Fretless_flush(fretlessp);
 }
+
+
+
 - (void)touchesEnded:(NSSet *)touches withEvent:(UIEvent *)event
 {
     NSArray* touchArray = [touches allObjects];
@@ -228,12 +284,7 @@ static struct Fretless_context* fretlessp = NULL;
         UITouchPhase phase = [touch phase];
         if(phase==UITouchPhaseEnded)
         {
-            int finger  = TouchMapping_mapFinger(fretlessp, touch);
-            int finger2 = TouchMapping_mapFinger2(fretlessp, touch);
-            Fretless_up(fretlessp, finger);
-            Fretless_up(fretlessp, finger2);
-            TouchMapping_unmapFinger(fretlessp,touch);
-            TouchMapping_unmapFinger2(fretlessp,touch);
+            touchesUp(touch);
         }
     }
     Fretless_flush(fretlessp);
@@ -249,12 +300,7 @@ static struct Fretless_context* fretlessp = NULL;
         UITouchPhase phase = [touch phase];
         if(phase==UITouchPhaseCancelled)
         {
-            int finger  = TouchMapping_mapFinger(fretlessp, touch);
-            int finger2 = TouchMapping_mapFinger2(fretlessp, touch);
-            Fretless_up(fretlessp, finger);
-            Fretless_up(fretlessp, finger2);
-            TouchMapping_unmapFinger(fretlessp,touch);
-            TouchMapping_unmapFinger2(fretlessp,touch);
+            touchesUp(touch);
         }
     }
     Fretless_flush(fretlessp);

@@ -9,8 +9,8 @@
 #import <Foundation/Foundation.h>
 #import "Fretless.h"
 
-void midiInit(struct Fretless_context* fretlessp);
-void midiPutch(char c);
-void midiFlush();
-int midiFail(const char* msg,...);
-void midiPassed();
+void CoreMIDIRenderer_midiInit(struct Fretless_context* fretlessp);
+void CoreMIDIRenderer_midiPutch(char c);
+void CoreMIDIRenderer_midiFlush();
+int CoreMIDIRenderer_midiFail(const char* msg,...);
+void CoreMIDIRenderer_midiPassed();

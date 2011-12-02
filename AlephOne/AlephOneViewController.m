@@ -166,6 +166,7 @@ enum {
     [(EAGLView *)self.view tick];
     
     // Replace the implementation of this method to do your own custom drawing.
+    /*
     static const GLfloat squareVertices[] = {
         -0.5f, -0.33f,
         0.5f, -0.33f,
@@ -181,10 +182,11 @@ enum {
     };
     
     static float transY = 0.0f;
+    */
     
     glClearColor(0.5f, 0.5f, 0.5f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT);
-    
+    /*
     if ([context API] == kEAGLRenderingAPIOpenGLES2) {
         // Use shader program.
         glUseProgram(program);
@@ -222,7 +224,7 @@ enum {
     }
     
     glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
-    
+    */
     [(EAGLView *)self.view presentFramebuffer];
 }
 

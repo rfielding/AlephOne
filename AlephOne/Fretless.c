@@ -5,6 +5,8 @@
 //  Created by Robert Fielding on 10/14/11.
 //
 // This should remain a *pure* C library with no references to external libraries
+// This file is special in this regard.  The higher we go up in layers, the less problematic it is
+// to have dependencies.
 
 /*
    Expected Uses:
@@ -61,7 +63,8 @@
 #define FALSE 0
 #define NULL ((void*)0)
 #define NOBODY -1
-
+#define CTXSTATE_INIT 0
+#define CTXSTATE_BOOTED 1
 /**
  Fingers specify which polyphony group they live in.  This controls the polyphony and legato behavior.
  */
@@ -119,6 +122,11 @@ struct Fretless_fingerState
 #define MIDI_BEND 0xE0
 #define BENDCENTER 8192
 
+#define STATECHECK(ctxp) \
+if(ctxp->ctxState != CTXSTATE_BOOTED) \
+{ \
+    ctxp->fail("context is not booted yet"); \
+}
 
 #define FINGERCHECK(ctxp,finger) \
 if(finger < 0 || finger >= FINGERMAX) \
@@ -147,6 +155,7 @@ struct Fretless_context
     struct Fretless_fingerState fingers[FINGERMAX];
     struct Fretless_channelState channels[CHANNELMAX];
     struct Fretless_polyState polys[POLYMAX];
+    int ctxState;
     //Cycle through channels from here
     int lastAllocatedChannel;
     //Metadata for fingers
@@ -187,7 +196,8 @@ struct Fretless_context* Fretless_init(
 {
     struct Fretless_context* ctxp = fretlessAlloc(sizeof(struct Fretless_context));
     //Set some sane defaults for what boot will not set (user controlled)
-    ctxp->channelSpan=1;
+    ctxp->ctxState=CTXSTATE_INIT;
+    ctxp->channelSpan=8;
     ctxp->channelBase=0;
     ctxp->channelBendSemis=2;
     ctxp->supressBends=FALSE;
@@ -303,6 +313,7 @@ void Fretless_boot(struct Fretless_context* ctxp)
     {
         ctxp->fail("Fretless_state.channelSpan + Fretless_state.channelBase >= CHANNELMAX\n");
     }
+    ctxp->ctxState=CTXSTATE_BOOTED;
 }
 
 static int Fretless_limitVal(int low,int val,int high)
@@ -530,11 +541,11 @@ int Fretless_unlink(struct Fretless_context* ctxp,int finger)
 //Must call this (per finger) before others are callable
 void Fretless_down(struct Fretless_context* ctxp, int finger,float fnote,int polyGroup,float velocity,int legato)
 {
+    STATECHECK(ctxp)
     FINGERCHECK(ctxp,finger)
     POLYCHECK(ctxp,polyGroup)
     FNOTECHECK(ctxp,fnote)
     struct Fretless_fingerState* fsPtr = &ctxp->fingers[finger];
-    
     if(fsPtr->isOn == TRUE)
     {
         ctxp->fail("Fretless_down && fsPtr->isOn == TRUE\n");
@@ -654,13 +665,14 @@ void Fretless_up(struct Fretless_context* ctxp, int finger)
     
     if(ctxp->noteChannelDownCount[fsPtr->note][fsPtr->channel]<0)
     {
-        ctxp->fail("Fretless_state.noteChannelDownCount[%d][%d]<0\n",fsPtr->note,fsPtr->channel);
+        ctxp->fail("Fretless_state.noteChannelDownCount[%d][%d]== %d\n",
+                   fsPtr->note,fsPtr->channel,ctxp->noteChannelDownCount[fsPtr->note][fsPtr->channel]);
     }
     
     ctxp->fingersDownCount--;
     if(ctxp->fingersDownCount<0)
     {
-        ctxp->fail("Fretless_state.fingersDownCount<0\n");
+        ctxp->fail("Fretless_state.fingersDownCount == %d\n",ctxp->fingersDownCount);
     }
     
     fsPtr->isOn = FALSE;

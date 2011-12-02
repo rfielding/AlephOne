@@ -59,3 +59,8 @@ void TouchMapping_unmapFinger2(struct Fretless_context* ctxp, void* touch)
 {
     TouchMapping_unmapFinger(ctxp, (void*)((int)touch ^ 0xFFFFFFFF));
 }
+
+
+
+
+

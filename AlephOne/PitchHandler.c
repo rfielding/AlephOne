@@ -9,37 +9,104 @@
 #include "PitchHandler.h"
 #include <math.h>
 
-//Quick oct rounding hack
-float PitchHandler_pickPitch(int finger,int isMoving,float x,float y,int* stringP,float* exprP)
+#define FINGERMAX 16
+#define NOBODY -1
+static float tuneInterval = 5; ////12*log2f(4.0/3) is Just intonation btw
+static float tuneSpeed = 0.1;
+static float rowCount = 3;
+static float colCount = 5;
+static int   noteDiff = 48;
+
+float PitchHandler_getTuneInterval()
 {
-    static int   lastFingerDown = -1;
+    return tuneInterval;
+}
+
+void PitchHandler_setTuneInterval(float tuning)
+{
+    tuneInterval = tuning;
+}
+
+float PitchHandler_getTuneSpeed()
+{
+    return tuneSpeed;
+}
+
+void PitchHandler_setTuneSpeed(float tuneSpeedArg)
+{
+    tuneSpeed = tuneSpeedArg;
+}
+
+float PitchHandler_getRowCount()
+{
+    return rowCount;
+}
+
+void PitchHandler_setRowCount(float rowCountArg)
+{
+    rowCount = rowCountArg;
+}
+        
+float PitchHandler_getColCount()
+{
+    return colCount;
+}
+
+void PitchHandler_setColCount(float colCountArg)
+{
+    colCount = colCountArg;
+}
+
+float PitchHandler_getNoteDiff()
+{
+    return noteDiff;
+}
+
+void PitchHandler_setNoteDiff(float noteDiffArg)
+{
+    noteDiff = noteDiffArg;
+}
+
+
+float PitchHandler_pickPitchRaw(int finger,float x,float y,int* stringP,float* exprP)
+{
+    *stringP = (rowCount * x);
+    *exprP = (rowCount*x) - *stringP;
+    float fret = colCount*y;
+    float thisPitch = (fret + (*stringP)*tuneInterval); 
+    return thisPitch;
+}
+
+//Quick oct rounding hack
+float PitchHandler_pickPitch(int finger,int isMoving,float thisPitch,float* beginPitchP, float* endPitchP)
+{
+ 
+    
+    static int   lastFingerDown = NOBODY;
     static float lastNoteDown = 0;
-    static int   octDiff = 48;
-    static int   octDiffOurs = -1;
-    static int   octDiffByFinger[16];
-    static float   yDiffByFinger[16];
-    float tuning = 12*log2f(4.0/3); //Just fourths (rather than simply diatonic fourth)
+    static int   noteDiffOurs = 0;
+    static int   noteDiffByFinger[FINGERMAX];
+    static float   yDiffByFinger[FINGERMAX];
     
     if( isMoving )
     {
-        octDiffOurs = octDiffByFinger[finger];
+        noteDiffOurs = noteDiffByFinger[finger];
     }
     else
     {
         lastFingerDown = finger;
-        octDiffOurs = octDiff;
-        octDiffByFinger[finger] = octDiff;
+        noteDiffOurs = noteDiff;
+        noteDiffByFinger[finger] = noteDiff;
     }
+
+    thisPitch += noteDiffOurs;
+    *beginPitchP = thisPitch;
+    *endPitchP = (int)thisPitch;
     
-    *stringP = (3.0 * x);
-    *exprP = (3.0*x) - *stringP;
-    float fret = 5*y;
-    float thisPitch = (fret + (*stringP)*tuning + octDiffOurs);  
-    float targetPitch = (int)thisPitch;
-    float targetDrift = (targetPitch - thisPitch);
+    float targetDrift = (*endPitchP - thisPitch);
     if( isMoving )
     {
-        yDiffByFinger[finger] = 0.9f * yDiffByFinger[finger] + 0.1f * targetDrift;                
+        yDiffByFinger[finger] = (1 - tuneSpeed) * yDiffByFinger[finger] + tuneSpeed * targetDrift;                
     }
     else
     {
@@ -53,30 +120,30 @@ float PitchHandler_pickPitch(int finger,int isMoving,float x,float y,int* string
         if(diff > 6.5)
         {
             thisPitch -= 12;
-            octDiff -= 12;
-            octDiffOurs -= 12;
+            noteDiff -= 12;
+            noteDiffOurs -= 12;
         }
         if(diff <= -6.5)
         {
             thisPitch += 12;
-            octDiff += 12;
-            octDiffOurs += 12;
+            noteDiff += 12;
+            noteDiffOurs += 12;
         }
         while(thisPitch < -0.5)
         {
             thisPitch += 12;
-            octDiff += 12;
-            octDiffOurs += 12;
+            noteDiff += 12;
+            noteDiffOurs += 12;
         }
         while(thisPitch >= 127.5)
         {
             thisPitch -= 12;
-            octDiff -= 12;
-            octDiffOurs -= 12;
+            noteDiff -= 12;
+            noteDiffOurs -= 12;
         }
         lastNoteDown = thisPitch;
     }
-    octDiffByFinger[finger] = octDiffOurs;        
+    noteDiffByFinger[finger] = noteDiffOurs;        
     return thisPitch;
 }
 

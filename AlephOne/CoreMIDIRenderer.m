@@ -22,12 +22,12 @@ static struct Fretless_context* fretlessp = NULL;
 static int logFromLastPassed=0;
 static Byte logBuffer[MIDIBUFFERSIZE];
 
-static void midiStateChangedHander(const MIDINotification *message, void *refCon)
+static void CoreMIDIRenderer_midiStateChangedHander(const MIDINotification *message, void *refCon)
 {
     NSLog(@"midiState changed\n");
 }
 
-void midiInit(struct Fretless_context* ctxp)
+void CoreMIDIRenderer_midiInit(struct Fretless_context* ctxp)
 {
     if(midiOutPort)return;
     for(int i=0;i<MIDIBUFFERSIZE;i++)
@@ -39,7 +39,7 @@ void midiInit(struct Fretless_context* ctxp)
     midiBufferCount = 0;
     OSStatus status = 0;
     
-    status = MIDIClientCreate(CFSTR("AlephOne client"),midiStateChangedHander,NULL,&midiClient);
+    status = MIDIClientCreate(CFSTR("AlephOne client"),CoreMIDIRenderer_midiStateChangedHander,NULL,&midiClient);
     if(midiClient != NULL && status == 0)
     {
         status = MIDIOutputPortCreate(midiClient,CFSTR("AlephOne out port"),&midiOutPort);
@@ -59,7 +59,7 @@ void midiInit(struct Fretless_context* ctxp)
     [MIDINetworkSession defaultSession].enabled = TRUE;
 }
 
-void midiPutch(char c)
+void CoreMIDIRenderer_midiPutch(char c)
 {
     //overflows possible!
     midiBuffer[midiBufferCount] = c;
@@ -70,7 +70,7 @@ void midiPutch(char c)
     logFromLastPassed++;
 }
 
-void midiFlush()
+void CoreMIDIRenderer_midiFlush()
 {
     if(midiBufferCount > 0)
     {
@@ -100,13 +100,13 @@ void midiFlush()
     midiBufferCount = 0;    
 }
 
-void midiPassed()
+void CoreMIDIRenderer_midiPassed()
 {
     //Restart log (should happen every time fingers come up!)
     logFromLastPassed = 0;
 }
 
-int midiFail(const char* msg,...)
+int CoreMIDIRenderer_midiFail(const char* msg,...)
 {
     va_list argp;
     va_start(argp,msg);
