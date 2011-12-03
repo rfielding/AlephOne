@@ -26,8 +26,8 @@ enum {
     NUM_ATTRIBUTES
 };
 
-static GLfloat gridVertices[1024];
-static GLfloat gridColors[1024];
+static GLfloat gridVertices[4096];
+static GLfloat gridColors[4096];
 static int gridVerticesCount=0;
 
 void esgl1SetupCamera()
@@ -53,23 +53,47 @@ void esgl1SetupCamera()
 void esgl1DrawBackground()
 {
     static const GLfloat squareVertices[] = {
-        0.0f, 0.0f,
-        1.0f, 0.0f,
-        0.0f,  1.0f,
-        1.0f,  1.0f,
+        0.0f, 0.0f, 0.0f,
+        1.0f, 0.0f, 0.0f,
+        0.0f,  1.0f, 0.0f,
+        1.0f,  1.0f, 0.0f,
     };
     
     static const GLubyte squareColors[] = {
         0, 0,   0, 255,
         255,   0, 0, 255,
-        0,     255,   0,   255,
-        0,   0, 255, 255,
+        0,     0,  255,   255,
+        255,   0, 255, 255,
     };    
-    glVertexPointer(2, GL_FLOAT, 0, squareVertices);
+    glVertexPointer(3, GL_FLOAT, 0, squareVertices);
     glEnableClientState(GL_VERTEX_ARRAY);
     glColorPointer(4, GL_UNSIGNED_BYTE, 0, squareColors);
     glEnableClientState(GL_COLOR_ARRAY);
     glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+}
+
+void vertexAdd(float x,float y,float z,float cr,float cg,float cb, float ca)
+{
+    gridVertices[3*gridVerticesCount + 0] = x;
+    gridVertices[3*gridVerticesCount + 1] = y;
+    gridVertices[3*gridVerticesCount + 2] = z;
+    gridColors[4*gridVerticesCount + 0] = cr;
+    gridColors[4*gridVerticesCount + 1] = cg;
+    gridColors[4*gridVerticesCount + 2] = cb;
+    gridColors[4*gridVerticesCount + 3] = ca;
+    gridVerticesCount++;        
+}
+
+void makeGridTriangle(float* gridRawVertices, char* gridRawColors, int g, float xscale, float yscale, float r, float c)
+{
+    gridVertices[3*gridVerticesCount + 0] = gridRawVertices[3*g + 0] * xscale + c*xscale;
+    gridVertices[3*gridVerticesCount + 1] = gridRawVertices[3*g + 1] * yscale + r*yscale;
+    gridVertices[3*gridVerticesCount + 2] = gridRawVertices[3*g + 2];
+    gridColors[4*gridVerticesCount + 0] = gridRawColors[4*g + 0];
+    gridColors[4*gridVerticesCount + 1] = gridRawColors[4*g + 1];
+    gridColors[4*gridVerticesCount + 2] = gridRawColors[4*g + 2];
+    gridColors[4*gridVerticesCount + 3] = gridRawColors[4*g + 3];
+    gridVerticesCount++;    
 }
 
 void esgl1SetupGrid()
@@ -84,67 +108,41 @@ void esgl1SetupGrid()
         0.5f, 0.8f, 0.3f,
         0.0f, 1.0f, 0.0f,
         1.0f, 1.0f, 0.0f,
-        0.5f, 0.8f, 0.3f,
         1.0f, 0.5f, 0.0f,
         0.5f, 0.2f, 0.3f,
         1.0f, 0.0f, 0.0f,
-        
-        1.0f, 0.0f, 0.0f,
-        1.5f, 0.2f, 0.3f,
-        1.0f, 0.5f, 0.0f,
-        1.5f, 0.8f, 0.3f,
-        1.0f, 1.0f, 0.0f,
-        2.0f, 1.0f, 0.0f,
-        1.5f, 0.8f, 0.3f,
-        2.0f, 0.5f, 0.0f,
-        1.5f, 0.2f, 0.3f,
-        2.0f, 0.0f, 0.0f
-    };
-    static const GLfloat gridRawColors[] = {
-        0.0f, 0.0f, 0.0f, 
-        1.0f, 0.0f, 0.0f, 
-        0.0f, 0.0f, 0.0f, 
-        1.0f, 0.0f, 0.0f, 
-        0.0f, 0.0f, 0.0f, 
-        0.0f, 0.0f, 0.0f, 
-        1.0f, 0.0f, 0.0f, 
-        0.0f, 0.0f, 0.0f, 
-        1.0f, 0.0f, 0.0f, 
-        0.0f, 0.0f, 0.0f, 
-        
-        0.0f, 0.0f, 0.0f, 
-        1.0f, 0.0f, 0.0f, 
-        0.0f, 0.0f, 0.0f, 
-        1.0f, 0.0f, 0.0f, 
-        0.0f, 0.0f, 0.0f, 
-        0.0f, 0.0f, 0.0f, 
-        1.0f, 0.0f, 0.0f, 
-        0.0f, 0.0f, 0.0f, 
-        1.0f, 0.0f, 0.0f, 
         0.0f, 0.0f, 0.0f
     };
+    static const GLubyte gridRawColors[] = {
+        0, 255, 0, 255,
+        255,0,0, 255,
+        0,0,0, 255,
+        255,0,0, 255,
+        0,0,0, 255,
+        0,0,0, 255,
+        255,0,0, 255,
+        0,0,0, 255,
+        255,0,0, 255,
+        0,0,0,255,
+        0,0,0,255
+    };
       
-    float xscale = 0.5/cols;
-    float yscale = 0.5/rows;
+    float xscale = 1.0/cols;
+    float yscale = 1.0/rows;
     float zscale = 0.5;
+    float halfXscale = 0.5*xscale;
+    float halfYscale = 0.5*yscale;
     gridVerticesCount = 0;    
 
-//    for(int r=0; r<rows; r++)
+    for(int r=0; r<rows; r++)
     {
-//        for(int c=0; c<cols; c++)
-        int c=0;
+        for(int c=0; c<cols; c++)
         {
-            for(int g=0; g<10; g++)
-            {
-                gridVertices[gridVerticesCount + 0] = gridRawVertices[3*g + 0] * xscale + c*xscale;
-                gridVertices[gridVerticesCount + 1] = gridRawVertices[3*g + 1] * yscale + c*yscale;
-                gridVertices[gridVerticesCount + 2] = gridRawVertices[3*g + 2] * zscale;
-                gridColors[gridVerticesCount + 0] = gridRawColors[3*g + 0];
-                gridColors[gridVerticesCount + 1] = gridRawColors[3*g + 1];
-                gridColors[gridVerticesCount + 2] = gridRawColors[3*g + 2];
-                gridVerticesCount+=3;
-            }
+            vertexAdd(xscale*c + halfXscale,0,0, 0,0,0,255);
+            vertexAdd(xscale*c + halfXscale,1,0, 0,0,0,255);
         }
+        vertexAdd(0,yscale*r + halfYscale,0, 0,0,0,255);
+        vertexAdd(1,yscale*r + halfYscale,0, 0,0,0,255);
     }
 }
 
@@ -154,7 +152,7 @@ void esgl1DrawGrid()
     glEnableClientState(GL_VERTEX_ARRAY);
     glColorPointer(4, GL_UNSIGNED_BYTE, 0, gridColors);
     glEnableClientState(GL_COLOR_ARRAY);
-    glDrawArrays(GL_TRIANGLE_STRIP, 0, gridVerticesCount);    
+    glDrawArrays(GL_LINES, 0, gridVerticesCount);    
 }
 
 
@@ -305,7 +303,8 @@ void esgl1DrawGrid()
         
     esgl1SetupCamera();
     esgl1DrawBackground();
-
+    esgl1DrawGrid();
+    
     [(EAGLView *)self.view presentFramebuffer];
 }
 
