@@ -34,3 +34,8 @@ void PitchHandler_setColCount(float colCount);
 
 float PitchHandler_getNoteDiff();
 void PitchHandler_setNoteDiff(float noteDiff);
+
+//Get a 4x4 matrix that describes our orientation
+void PitchHandler_getOrientation(float* matrix);
+void PitchHandler_clockwiseOrientation();
+void PitchHandler_xflipOrientation();

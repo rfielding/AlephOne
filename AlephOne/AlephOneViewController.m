@@ -10,6 +10,7 @@
 
 #import "AlephOneViewController.h"
 #import "EAGLView.h"
+#include "PitchHandler.h"
 
 // Uniform index.
 enum {
@@ -24,6 +25,139 @@ enum {
     ATTRIB_COLOR,
     NUM_ATTRIBUTES
 };
+
+static GLfloat gridVertices[1024];
+static GLfloat gridColors[1024];
+static int gridVerticesCount=0;
+
+void esgl1SetupCamera()
+{
+    glMatrixMode(GL_PROJECTION);
+    glLoadIdentity();
+    glMatrixMode(GL_MODELVIEW);
+    glLoadIdentity();
+
+    static float scale[16] = {
+      1.0f, 0.0f, 0.0f, 0.0f,
+      0.0f, 1.0f, 0.0f, 0.0f,
+      0.0f, 0.0f, 1.0f, 0.0f,
+      0.0f, 0.0f, 0.0f, 1.0f
+    };
+    PitchHandler_getOrientation(scale);
+    
+    glMultMatrixf(scale);
+    glScalef(2,2,1);
+    glTranslatef(-0.5,-0.5,0);    
+}
+
+void esgl1DrawBackground()
+{
+    static const GLfloat squareVertices[] = {
+        0.0f, 0.0f,
+        1.0f, 0.0f,
+        0.0f,  1.0f,
+        1.0f,  1.0f,
+    };
+    
+    static const GLubyte squareColors[] = {
+        0, 0,   0, 255,
+        255,   0, 0, 255,
+        0,     255,   0,   255,
+        0,   0, 255, 255,
+    };    
+    glVertexPointer(2, GL_FLOAT, 0, squareVertices);
+    glEnableClientState(GL_VERTEX_ARRAY);
+    glColorPointer(4, GL_UNSIGNED_BYTE, 0, squareColors);
+    glEnableClientState(GL_COLOR_ARRAY);
+    glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+}
+
+void esgl1SetupGrid()
+{
+    int rows = PitchHandler_getRowCount();
+    int cols = PitchHandler_getColCount();
+        
+    static const GLfloat gridRawVertices[] = {
+        0.0f, 0.0f, 0.0f,
+        0.5f, 0.2f, 0.3f,
+        0.0f, 0.5f, 0.0f,
+        0.5f, 0.8f, 0.3f,
+        0.0f, 1.0f, 0.0f,
+        1.0f, 1.0f, 0.0f,
+        0.5f, 0.8f, 0.3f,
+        1.0f, 0.5f, 0.0f,
+        0.5f, 0.2f, 0.3f,
+        1.0f, 0.0f, 0.0f,
+        
+        1.0f, 0.0f, 0.0f,
+        1.5f, 0.2f, 0.3f,
+        1.0f, 0.5f, 0.0f,
+        1.5f, 0.8f, 0.3f,
+        1.0f, 1.0f, 0.0f,
+        2.0f, 1.0f, 0.0f,
+        1.5f, 0.8f, 0.3f,
+        2.0f, 0.5f, 0.0f,
+        1.5f, 0.2f, 0.3f,
+        2.0f, 0.0f, 0.0f
+    };
+    static const GLfloat gridRawColors[] = {
+        0.0f, 0.0f, 0.0f, 
+        1.0f, 0.0f, 0.0f, 
+        0.0f, 0.0f, 0.0f, 
+        1.0f, 0.0f, 0.0f, 
+        0.0f, 0.0f, 0.0f, 
+        0.0f, 0.0f, 0.0f, 
+        1.0f, 0.0f, 0.0f, 
+        0.0f, 0.0f, 0.0f, 
+        1.0f, 0.0f, 0.0f, 
+        0.0f, 0.0f, 0.0f, 
+        
+        0.0f, 0.0f, 0.0f, 
+        1.0f, 0.0f, 0.0f, 
+        0.0f, 0.0f, 0.0f, 
+        1.0f, 0.0f, 0.0f, 
+        0.0f, 0.0f, 0.0f, 
+        0.0f, 0.0f, 0.0f, 
+        1.0f, 0.0f, 0.0f, 
+        0.0f, 0.0f, 0.0f, 
+        1.0f, 0.0f, 0.0f, 
+        0.0f, 0.0f, 0.0f
+    };
+      
+    float xscale = 0.5/cols;
+    float yscale = 0.5/rows;
+    float zscale = 0.5;
+    gridVerticesCount = 0;    
+
+//    for(int r=0; r<rows; r++)
+    {
+//        for(int c=0; c<cols; c++)
+        int c=0;
+        {
+            for(int g=0; g<10; g++)
+            {
+                gridVertices[gridVerticesCount + 0] = gridRawVertices[3*g + 0] * xscale + c*xscale;
+                gridVertices[gridVerticesCount + 1] = gridRawVertices[3*g + 1] * yscale + c*yscale;
+                gridVertices[gridVerticesCount + 2] = gridRawVertices[3*g + 2] * zscale;
+                gridColors[gridVerticesCount + 0] = gridRawColors[3*g + 0];
+                gridColors[gridVerticesCount + 1] = gridRawColors[3*g + 1];
+                gridColors[gridVerticesCount + 2] = gridRawColors[3*g + 2];
+                gridVerticesCount+=3;
+            }
+        }
+    }
+}
+
+void esgl1DrawGrid()
+{
+    glVertexPointer(3, GL_FLOAT, 0, gridVertices);
+    glEnableClientState(GL_VERTEX_ARRAY);
+    glColorPointer(4, GL_UNSIGNED_BYTE, 0, gridColors);
+    glEnableClientState(GL_COLOR_ARRAY);
+    glDrawArrays(GL_TRIANGLE_STRIP, 0, gridVerticesCount);    
+}
+
+
 
 @interface AlephOneViewController ()
 @property (nonatomic, retain) EAGLContext *context;
@@ -63,6 +197,8 @@ enum {
     animating = FALSE;
     animationFrameInterval = 1;
     self.displayLink = nil;
+    
+    esgl1SetupGrid();    
 }
 
 - (void)dealloc
@@ -160,71 +296,16 @@ enum {
     }
 }
 
+
+
 - (void)drawFrame
 {
     [(EAGLView *)self.view setFramebuffer];
     [(EAGLView *)self.view tick];
-    
-    // Replace the implementation of this method to do your own custom drawing.
-    /*
-    static const GLfloat squareVertices[] = {
-        -0.5f, -0.33f,
-        0.5f, -0.33f,
-        -0.5f,  0.33f,
-        0.5f,  0.33f,
-    };
-    
-    static const GLubyte squareColors[] = {
-        255, 255,   0, 255,
-        0,   255, 255, 255,
-        0,     0,   0,   0,
-        255,   0, 255, 255,
-    };
-    
-    static float transY = 0.0f;
-    */
-    
-    glClearColor(0.5f, 0.5f, 0.5f, 1.0f);
-    glClear(GL_COLOR_BUFFER_BIT);
-    /*
-    if ([context API] == kEAGLRenderingAPIOpenGLES2) {
-        // Use shader program.
-        glUseProgram(program);
         
-        // Update uniform value.
-        glUniform1f(uniforms[UNIFORM_TRANSLATE], (GLfloat)transY);
-        transY += 0.075f;	
-        
-        // Update attribute values.
-        glVertexAttribPointer(ATTRIB_VERTEX, 2, GL_FLOAT, 0, 0, squareVertices);
-        glEnableVertexAttribArray(ATTRIB_VERTEX);
-        glVertexAttribPointer(ATTRIB_COLOR, 4, GL_UNSIGNED_BYTE, 1, 0, squareColors);
-        glEnableVertexAttribArray(ATTRIB_COLOR);
-        
-        // Validate program before drawing. This is a good check, but only really necessary in a debug build.
-        // DEBUG macro must be defined in your debug configurations if that's not already the case.
-#if defined(DEBUG)
-        if (![self validateProgram:program]) {
-            NSLog(@"Failed to validate program: %d", program);
-            return;
-        }
-#endif
-    } else {
-        glMatrixMode(GL_PROJECTION);
-        glLoadIdentity();
-        glMatrixMode(GL_MODELVIEW);
-        glLoadIdentity();
-        glTranslatef(0.0f, (GLfloat)(sinf(transY)/2.0f), 0.0f);
-        transY += 0.075f;
-        
-        glVertexPointer(2, GL_FLOAT, 0, squareVertices);
-        glEnableClientState(GL_VERTEX_ARRAY);
-        glColorPointer(4, GL_UNSIGNED_BYTE, 0, squareColors);
-        glEnableClientState(GL_COLOR_ARRAY);
-    }
-    
-    glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
-    */
+    esgl1SetupCamera();
+    esgl1DrawBackground();
+
     [(EAGLView *)self.view presentFramebuffer];
 }
 

@@ -10,7 +10,9 @@
 
 #import "EAGLView.h"
 #import "GenericTouchHandling.h"
+#import "PitchHandler.h"
 
+BOOL isInitialized = FALSE;
 
 @interface EAGLView (PrivateMethods)
 - (void)createFramebuffer;
@@ -41,7 +43,12 @@
                                         nil];
     }
     [self setMultipleTouchEnabled:TRUE];
-    GenericTouchHandling_touchesInit();
+    if(isInitialized==FALSE)
+    {
+        PitchHandler_clockwiseOrientation();
+        GenericTouchHandling_touchesInit();
+        isInitialized=TRUE;
+    }
     return self;
 }
 
@@ -159,7 +166,7 @@
                 touch,
                 phase == UITouchPhaseMoved,
                 [touch locationInView:self].x/framebufferWidth,
-                [touch locationInView:self].y/framebufferHeight
+                1 - [touch locationInView:self].y/framebufferHeight
             );
         }
     }
@@ -179,7 +186,7 @@
                 touch,
                 phase == UITouchPhaseMoved,
                 [touch locationInView:self].x/framebufferWidth,
-                [touch locationInView:self].y/framebufferHeight
+                1 - [touch locationInView:self].y/framebufferHeight
             );
         }
     }

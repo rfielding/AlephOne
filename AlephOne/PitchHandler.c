@@ -12,10 +12,88 @@
 #define FINGERMAX 16
 #define NOBODY -1
 static float tuneInterval = 5; ////12*log2f(4.0/3) is Just intonation btw
-static float tuneSpeed = 0.1;
+static float tuneSpeed = 0.05;
 static float rowCount = 3;
 static float colCount = 5;
-static int   noteDiff = 48;
+static int   noteDiff = (48-1);
+
+
+static float coordinateMatrix[16] = 
+    {
+        1.0f, 0.0f, 0.0f, 0.0f,
+        0.0f, 1.0f, 0.0f, 0.0f,
+        0.0f, 0.0f, 1.0f, 0.0f,
+        0.0f, 0.0f, 0.0f, 1.0f
+    };
+
+static float rot90Matrix[16] =
+    {
+         0.0f,-1.0f, 0.0f, 0.0f,
+         1.0f, 0.0f, 0.0f, 0.0f,
+         0.0f, 0.0f, 1.0f, 0.0f,
+         0.0f, 0.0f, 0.0f, 1.0f    
+    };
+
+static float scratchMatrix[16] = 
+{
+    1.0f, 0.0f, 0.0f, 0.0f,
+    0.0f, 1.0f, 0.0f, 0.0f,
+    0.0f, 0.0f, 1.0f, 0.0f,
+    0.0f, 0.0f, 0.0f, 1.0f
+};
+
+void PitchHandler_getOrientation(float* matrix)
+{
+    for(int i=0; i<16; i++)
+    {
+        matrix[i] = coordinateMatrix[i];
+    }
+}
+
+void PitchHandler_clockwiseOrientation()
+{
+    for(int r=0; r<4; r++)
+    {
+        for(int c=0; c<4; c++)
+        {
+            scratchMatrix[4*r + c] = 0;
+        }
+    }
+    for(int r=0; r<4; r++)
+    {
+        for(int c=0; c<4; c++)
+        {
+            for(int n=0; n<4; n++)
+            {
+                scratchMatrix[4*r + c] += 
+                coordinateMatrix[4*n + c] * rot90Matrix[4*r + n];                
+            }
+        }
+    }
+    for(int i=0; i<16; i++)
+    {
+        coordinateMatrix[i] = scratchMatrix[i];
+    }
+}
+
+void PitchHandler_translate(float* xp,float* yp)
+{
+    printf("<%f,%f>\n",*xp, *yp);
+    float xs = (*xp * 2) - 1;
+    float ys = (*yp * 2) - 1;
+    float xr = xs;
+    float yr = ys;
+    
+    xr = 
+        coordinateMatrix[4*0 + 0] * xs +
+        coordinateMatrix[4*0 + 1] * ys;
+    yr = 
+        coordinateMatrix[4*1 + 0] * xs +
+        coordinateMatrix[4*1 + 1] * ys;
+    
+    *xp = ( xr+1)/2;
+    *yp = ( yr+1)/2;
+}
 
 float PitchHandler_getTuneInterval()
 {
@@ -68,11 +146,14 @@ void PitchHandler_setNoteDiff(float noteDiffArg)
 }
 
 
+
 float PitchHandler_pickPitchRaw(int finger,float x,float y,int* stringP,float* exprP)
 {
-    *stringP = (rowCount * x);
-    *exprP = (rowCount*x) - *stringP;
-    float fret = colCount*y;
+    PitchHandler_translate(&x,&y);
+    
+    *stringP = (rowCount * y);
+    *exprP = (rowCount*y) - *stringP;
+    float fret = colCount*x;
     float thisPitch = (fret + (*stringP)*tuneInterval); 
     return thisPitch;
 }
