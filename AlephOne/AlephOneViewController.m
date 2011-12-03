@@ -11,9 +11,9 @@
 #import "AlephOneViewController.h"
 #import "EAGLView.h"
 #include "PitchHandler.h"
-
 #import "VertexObjectBuilder.h"
 
+struct VertexObjectBuilder* voCtx;
 
 void esgl1SetupCamera()
 {
@@ -46,38 +46,38 @@ void esgl1SetupGrid()
     float halfXscale = 0.5*xscale;
     float halfYscale = 0.5*yscale;
      
-    vertexReset();
-    vertexObjectStart(GL_TRIANGLE_STRIP);
+    voCtx = VertexObjectBuilder_init(malloc);
+    VertexObjectBuilder_startObject(voCtx,GL_TRIANGLE_STRIP);
   
-    vertexAdd(0,0,0, 0,0,0,255);
-    vertexAdd(1,0,0, 255,0,0,255);
-    vertexAdd(0,1,0, 0,255,0,255);
-    vertexAdd(1,1,0, 255,255,0,255);
+    VertexObjectBuilder_addVertex(voCtx,0,0,0, 0,0,0,255);
+    VertexObjectBuilder_addVertex(voCtx,1,0,0, 255,0,0,255);
+    VertexObjectBuilder_addVertex(voCtx,0,1,0, 0,255,0,255);
+    VertexObjectBuilder_addVertex(voCtx,1,1,0, 255,255,0,255);
     
-    vertexObjectStart(GL_LINES);
+    VertexObjectBuilder_startObject(voCtx,GL_LINES);
     for(int r=0; r<rows; r++)
     {
         for(int c=0; c<cols; c++)
         {
-            vertexAdd(xscale*c + halfXscale,0,0, 0,0,0,255);
-            vertexAdd(xscale*c + halfXscale,1,0, 0,0,0,255);
+            VertexObjectBuilder_addVertex(voCtx,xscale*c + halfXscale,0,0, 0,0,0,255);
+            VertexObjectBuilder_addVertex(voCtx,xscale*c + halfXscale,1,0, 0,0,0,255);
         }
-        vertexAdd(0,yscale*r + halfYscale,0, 0,0,0,255);
-        vertexAdd(1,yscale*r + halfYscale,0, 0,0,0,255);
+        VertexObjectBuilder_addVertex(voCtx,0,yscale*r + halfYscale,0, 0,0,0,255);
+        VertexObjectBuilder_addVertex(voCtx,1,yscale*r + halfYscale,0, 0,0,0,255);
     }
 }
 
 
 void vertexObjectsDraw()
 {
-    int voCount = vertexObjectCount();
+    int voCount = VertexObjectBuilder_getVertexCount(voCtx);
     for(int o=0; o<voCount;o++)
     {
         int type;
         float* vertices;
         unsigned char* colors;
         int count;
-        vertexObjectGet(o,&type,&vertices,&colors,&count);
+        VertexObjectBuilder_getVertex(voCtx,o,&type,&vertices,&colors,&count);
         glVertexPointer(3, GL_FLOAT, 0, vertices);
         glEnableClientState(GL_VERTEX_ARRAY);
         glColorPointer(4, GL_UNSIGNED_BYTE, 0, colors);

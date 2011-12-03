@@ -15,50 +15,62 @@ struct VertexObject {
     int count;
     int type;
 };
-static struct VertexObject vertexObjects[256];
-static int vertexObjectsCount=0;
-static float gridVertices[4096];
-static unsigned char gridColors[4096];
-static int gridVerticesCount=0;
 
-void vertexReset()
+struct VertexObjectBuilder
 {
-    gridVerticesCount=0;
-    vertexObjectsCount=0;
+    struct VertexObject vertexObjects[256];
+    int vertexObjectsCount;
+    float gridVertices[4096];
+    unsigned char gridColors[4096];
+    int gridVerticesCount;    
+};
+
+
+struct VertexObjectBuilder* VertexObjectBuilder_init(void* (*allocFn)(unsigned long))
+{
+    struct VertexObjectBuilder* ctxp = allocFn(sizeof(struct VertexObjectBuilder));
+    VertexObjectBuilder_reset(ctxp);
+    return ctxp;
 }
 
-void vertexObjectStart(int type)
+void VertexObjectBuilder_reset(struct VertexObjectBuilder* ctxp)
 {
-    vertexObjects[vertexObjectsCount].vertices = &gridVertices[3*gridVerticesCount];
-    vertexObjects[vertexObjectsCount].colors = &gridColors[4*gridVerticesCount];
-    vertexObjects[vertexObjectsCount].count = 0;
-    vertexObjects[vertexObjectsCount].type = type;
-    vertexObjectsCount++;
+    ctxp->gridVerticesCount=0;
+    ctxp->vertexObjectsCount=0;
 }
 
-void vertexAdd(float x,float y,float z,unsigned char cr,unsigned char cg,unsigned char cb, unsigned char ca)
+void VertexObjectBuilder_startObject(struct VertexObjectBuilder* ctxp,int type)
 {
-    gridVertices[3*gridVerticesCount + 0] = x;
-    gridVertices[3*gridVerticesCount + 1] = y;
-    gridVertices[3*gridVerticesCount + 2] = z;
-    gridColors[4*gridVerticesCount + 0] = cr;
-    gridColors[4*gridVerticesCount + 1] = cg;
-    gridColors[4*gridVerticesCount + 2] = cb;
-    gridColors[4*gridVerticesCount + 3] = ca;
-    gridVerticesCount++;        
-    vertexObjects[vertexObjectsCount-1].count++;
+    ctxp->vertexObjects[ctxp->vertexObjectsCount].vertices = &ctxp->gridVertices[3*ctxp->gridVerticesCount];
+    ctxp->vertexObjects[ctxp->vertexObjectsCount].colors = &ctxp->gridColors[4*ctxp->gridVerticesCount];
+    ctxp->vertexObjects[ctxp->vertexObjectsCount].count = 0;
+    ctxp->vertexObjects[ctxp->vertexObjectsCount].type = type;
+    ctxp->vertexObjectsCount++;
 }
 
-int vertexObjectCount()
+void VertexObjectBuilder_addVertex(struct VertexObjectBuilder* ctxp,float x,float y,float z,unsigned char cr,unsigned char cg,unsigned char cb, unsigned char ca)
 {
-    return vertexObjectsCount;
+    ctxp->gridVertices[3*ctxp->gridVerticesCount + 0] = x;
+    ctxp->gridVertices[3*ctxp->gridVerticesCount + 1] = y;
+    ctxp->gridVertices[3*ctxp->gridVerticesCount + 2] = z;
+    ctxp->gridColors[4*ctxp->gridVerticesCount + 0] = cr;
+    ctxp->gridColors[4*ctxp->gridVerticesCount + 1] = cg;
+    ctxp->gridColors[4*ctxp->gridVerticesCount + 2] = cb;
+    ctxp->gridColors[4*ctxp->gridVerticesCount + 3] = ca;
+    ctxp->gridVerticesCount++;        
+    ctxp->vertexObjects[ctxp->vertexObjectsCount-1].count++;
 }
 
-void vertexObjectGet(int idx,int* type,float** vertices,unsigned char** colors,int* count)
+int VertexObjectBuilder_getVertexCount(struct VertexObjectBuilder* ctxp)
 {
-    *type = vertexObjects[idx].type;
-    *vertices = vertexObjects[idx].vertices;
-    *colors = vertexObjects[idx].colors;
-    *count = vertexObjects[idx].count;
+    return ctxp->vertexObjectsCount;
+}
+
+void VertexObjectBuilder_getVertex(struct VertexObjectBuilder* ctxp,int idx,int* type,float** vertices,unsigned char** colors,int* count)
+{
+    *type = ctxp->vertexObjects[idx].type;
+    *vertices = ctxp->vertexObjects[idx].vertices;
+    *colors = ctxp->vertexObjects[idx].colors;
+    *count = ctxp->vertexObjects[idx].count;
 }
 
