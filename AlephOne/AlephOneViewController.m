@@ -12,23 +12,8 @@
 #import "EAGLView.h"
 #include "PitchHandler.h"
 
-// Uniform index.
-enum {
-    UNIFORM_TRANSLATE,
-    NUM_UNIFORMS
-};
-GLint uniforms[NUM_UNIFORMS];
+#import "VertexObjectBuilder.h"
 
-// Attribute index.
-enum {
-    ATTRIB_VERTEX,
-    ATTRIB_COLOR,
-    NUM_ATTRIBUTES
-};
-
-static GLfloat gridVertices[4096];
-static GLfloat gridColors[4096];
-static int gridVerticesCount=0;
 
 void esgl1SetupCamera()
 {
@@ -47,93 +32,29 @@ void esgl1SetupCamera()
     
     glMultMatrixf(scale);
     glScalef(2,2,1);
-    glTranslatef(-0.5,-0.5,0);    
+    glTranslatef(-0.5,-0.5,0);        
 }
 
-void esgl1DrawBackground()
-{
-    static const GLfloat squareVertices[] = {
-        0.0f, 0.0f, 0.0f,
-        1.0f, 0.0f, 0.0f,
-        0.0f,  1.0f, 0.0f,
-        1.0f,  1.0f, 0.0f,
-    };
-    
-    static const GLubyte squareColors[] = {
-        0, 0,   0, 255,
-        255,   0, 0, 255,
-        0,     0,  255,   255,
-        255,   0, 255, 255,
-    };    
-    glVertexPointer(3, GL_FLOAT, 0, squareVertices);
-    glEnableClientState(GL_VERTEX_ARRAY);
-    glColorPointer(4, GL_UNSIGNED_BYTE, 0, squareColors);
-    glEnableClientState(GL_COLOR_ARRAY);
-    glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
-}
-
-void vertexAdd(float x,float y,float z,float cr,float cg,float cb, float ca)
-{
-    gridVertices[3*gridVerticesCount + 0] = x;
-    gridVertices[3*gridVerticesCount + 1] = y;
-    gridVertices[3*gridVerticesCount + 2] = z;
-    gridColors[4*gridVerticesCount + 0] = cr;
-    gridColors[4*gridVerticesCount + 1] = cg;
-    gridColors[4*gridVerticesCount + 2] = cb;
-    gridColors[4*gridVerticesCount + 3] = ca;
-    gridVerticesCount++;        
-}
-
-void makeGridTriangle(float* gridRawVertices, char* gridRawColors, int g, float xscale, float yscale, float r, float c)
-{
-    gridVertices[3*gridVerticesCount + 0] = gridRawVertices[3*g + 0] * xscale + c*xscale;
-    gridVertices[3*gridVerticesCount + 1] = gridRawVertices[3*g + 1] * yscale + r*yscale;
-    gridVertices[3*gridVerticesCount + 2] = gridRawVertices[3*g + 2];
-    gridColors[4*gridVerticesCount + 0] = gridRawColors[4*g + 0];
-    gridColors[4*gridVerticesCount + 1] = gridRawColors[4*g + 1];
-    gridColors[4*gridVerticesCount + 2] = gridRawColors[4*g + 2];
-    gridColors[4*gridVerticesCount + 3] = gridRawColors[4*g + 3];
-    gridVerticesCount++;    
-}
 
 void esgl1SetupGrid()
 {
     int rows = PitchHandler_getRowCount();
     int cols = PitchHandler_getColCount();
-        
-    static const GLfloat gridRawVertices[] = {
-        0.0f, 0.0f, 0.0f,
-        0.5f, 0.2f, 0.3f,
-        0.0f, 0.5f, 0.0f,
-        0.5f, 0.8f, 0.3f,
-        0.0f, 1.0f, 0.0f,
-        1.0f, 1.0f, 0.0f,
-        1.0f, 0.5f, 0.0f,
-        0.5f, 0.2f, 0.3f,
-        1.0f, 0.0f, 0.0f,
-        0.0f, 0.0f, 0.0f
-    };
-    static const GLubyte gridRawColors[] = {
-        0, 255, 0, 255,
-        255,0,0, 255,
-        0,0,0, 255,
-        255,0,0, 255,
-        0,0,0, 255,
-        0,0,0, 255,
-        255,0,0, 255,
-        0,0,0, 255,
-        255,0,0, 255,
-        0,0,0,255,
-        0,0,0,255
-    };
-      
+              
     float xscale = 1.0/cols;
     float yscale = 1.0/rows;
-    float zscale = 0.5;
     float halfXscale = 0.5*xscale;
     float halfYscale = 0.5*yscale;
-    gridVerticesCount = 0;    
-
+     
+    vertexReset();
+    vertexObjectStart(GL_TRIANGLE_STRIP);
+  
+    vertexAdd(0,0,0, 0,0,0,255);
+    vertexAdd(1,0,0, 255,0,0,255);
+    vertexAdd(0,1,0, 0,255,0,255);
+    vertexAdd(1,1,0, 255,255,0,255);
+    
+    vertexObjectStart(GL_LINES);
     for(int r=0; r<rows; r++)
     {
         for(int c=0; c<cols; c++)
@@ -146,24 +67,28 @@ void esgl1SetupGrid()
     }
 }
 
-void esgl1DrawGrid()
+
+void vertexObjectsDraw()
 {
-    glVertexPointer(3, GL_FLOAT, 0, gridVertices);
-    glEnableClientState(GL_VERTEX_ARRAY);
-    glColorPointer(4, GL_UNSIGNED_BYTE, 0, gridColors);
-    glEnableClientState(GL_COLOR_ARRAY);
-    glDrawArrays(GL_LINES, 0, gridVerticesCount);    
+    int voCount = vertexObjectCount();
+    for(int o=0; o<voCount;o++)
+    {
+        int type;
+        float* vertices;
+        unsigned char* colors;
+        int count;
+        vertexObjectGet(o,&type,&vertices,&colors,&count);
+        glVertexPointer(3, GL_FLOAT, 0, vertices);
+        glEnableClientState(GL_VERTEX_ARRAY);
+        glColorPointer(4, GL_UNSIGNED_BYTE, 0, colors);
+        glEnableClientState(GL_COLOR_ARRAY);
+        glDrawArrays(type, 0, count);            
+    }
 }
-
-
 
 @interface AlephOneViewController ()
 @property (nonatomic, retain) EAGLContext *context;
 @property (nonatomic, assign) CADisplayLink *displayLink;
-- (BOOL)loadShaders;
-- (BOOL)compileShader:(GLuint *)shader type:(GLenum)type file:(NSString *)file;
-- (BOOL)linkProgram:(GLuint)prog;
-- (BOOL)validateProgram:(GLuint)prog;
 @end
 
 @implementation AlephOneViewController
@@ -302,165 +227,11 @@ void esgl1DrawGrid()
     [(EAGLView *)self.view tick];
         
     esgl1SetupCamera();
-    esgl1DrawBackground();
-    esgl1DrawGrid();
+    vertexObjectsDraw();
     
     [(EAGLView *)self.view presentFramebuffer];
 }
 
-- (BOOL)compileShader:(GLuint *)shader type:(GLenum)type file:(NSString *)file
-{
-    GLint status;
-    const GLchar *source;
-    
-    source = (GLchar *)[[NSString stringWithContentsOfFile:file encoding:NSUTF8StringEncoding error:nil] UTF8String];
-    if (!source)
-    {
-        NSLog(@"Failed to load vertex shader");
-        return FALSE;
-    }
-    
-    *shader = glCreateShader(type);
-    glShaderSource(*shader, 1, &source, NULL);
-    glCompileShader(*shader);
-    
-#if defined(DEBUG)
-    GLint logLength;
-    glGetShaderiv(*shader, GL_INFO_LOG_LENGTH, &logLength);
-    if (logLength > 0)
-    {
-        GLchar *log = (GLchar *)malloc(logLength);
-        glGetShaderInfoLog(*shader, logLength, &logLength, log);
-        NSLog(@"Shader compile log:\n%s", log);
-        free(log);
-    }
-#endif
-    
-    glGetShaderiv(*shader, GL_COMPILE_STATUS, &status);
-    if (status == 0)
-    {
-        glDeleteShader(*shader);
-        return FALSE;
-    }
-    
-    return TRUE;
-}
 
-- (BOOL)linkProgram:(GLuint)prog
-{
-    GLint status;
-    
-    glLinkProgram(prog);
-    
-#if defined(DEBUG)
-    GLint logLength;
-    glGetProgramiv(prog, GL_INFO_LOG_LENGTH, &logLength);
-    if (logLength > 0)
-    {
-        GLchar *log = (GLchar *)malloc(logLength);
-        glGetProgramInfoLog(prog, logLength, &logLength, log);
-        NSLog(@"Program link log:\n%s", log);
-        free(log);
-    }
-#endif
-    
-    glGetProgramiv(prog, GL_LINK_STATUS, &status);
-    if (status == 0)
-        return FALSE;
-    
-    return TRUE;
-}
-
-- (BOOL)validateProgram:(GLuint)prog
-{
-    GLint logLength, status;
-    
-    glValidateProgram(prog);
-    glGetProgramiv(prog, GL_INFO_LOG_LENGTH, &logLength);
-    if (logLength > 0)
-    {
-        GLchar *log = (GLchar *)malloc(logLength);
-        glGetProgramInfoLog(prog, logLength, &logLength, log);
-        NSLog(@"Program validate log:\n%s", log);
-        free(log);
-    }
-    
-    glGetProgramiv(prog, GL_VALIDATE_STATUS, &status);
-    if (status == 0)
-        return FALSE;
-    
-    return TRUE;
-}
-
-- (BOOL)loadShaders
-{
-    GLuint vertShader, fragShader;
-    NSString *vertShaderPathname, *fragShaderPathname;
-    
-    // Create shader program.
-    program = glCreateProgram();
-    
-    // Create and compile vertex shader.
-    vertShaderPathname = [[NSBundle mainBundle] pathForResource:@"Shader" ofType:@"vsh"];
-    if (![self compileShader:&vertShader type:GL_VERTEX_SHADER file:vertShaderPathname])
-    {
-        NSLog(@"Failed to compile vertex shader");
-        return FALSE;
-    }
-    
-    // Create and compile fragment shader.
-    fragShaderPathname = [[NSBundle mainBundle] pathForResource:@"Shader" ofType:@"fsh"];
-    if (![self compileShader:&fragShader type:GL_FRAGMENT_SHADER file:fragShaderPathname])
-    {
-        NSLog(@"Failed to compile fragment shader");
-        return FALSE;
-    }
-    
-    // Attach vertex shader to program.
-    glAttachShader(program, vertShader);
-    
-    // Attach fragment shader to program.
-    glAttachShader(program, fragShader);
-    
-    // Bind attribute locations.
-    // This needs to be done prior to linking.
-    glBindAttribLocation(program, ATTRIB_VERTEX, "position");
-    glBindAttribLocation(program, ATTRIB_COLOR, "color");
-    
-    // Link program.
-    if (![self linkProgram:program])
-    {
-        NSLog(@"Failed to link program: %d", program);
-        
-        if (vertShader)
-        {
-            glDeleteShader(vertShader);
-            vertShader = 0;
-        }
-        if (fragShader)
-        {
-            glDeleteShader(fragShader);
-            fragShader = 0;
-        }
-        if (program)
-        {
-            glDeleteProgram(program);
-            program = 0;
-        }
-        
-        return FALSE;
-    }
-    
-    // Get uniform locations.
-    uniforms[UNIFORM_TRANSLATE] = glGetUniformLocation(program, "translate");
-    
-    // Release vertex and fragment shaders.
-    if (vertShader)
-        glDeleteShader(vertShader);
-    if (fragShader)
-        glDeleteShader(fragShader);
-    
-    return TRUE;
-}
 
 @end
