@@ -34,6 +34,14 @@ static float rot90Matrix[16] =
          0.0f, 0.0f, 0.0f, 1.0f    
     };
 
+static float xflipMatrix[16] =
+{
+    -1.0f, 0.0f, 0.0f, 0.0f,
+     0.0f, 1.0f, 0.0f, 0.0f,
+     0.0f, 0.0f, 1.0f, 0.0f,
+     0.0f, 0.0f, 0.0f, 1.0f    
+};
+
 static float scratchMatrix[16] = 
 {
     1.0f, 0.0f, 0.0f, 0.0f,
@@ -50,7 +58,7 @@ void PitchHandler_getOrientation(float* matrix)
     }
 }
 
-void PitchHandler_clockwiseOrientation()
+void PitchHandler_mult(float* matrix)
 {
     for(int r=0; r<4; r++)
     {
@@ -66,7 +74,7 @@ void PitchHandler_clockwiseOrientation()
             for(int n=0; n<4; n++)
             {
                 scratchMatrix[4*r + c] += 
-                coordinateMatrix[4*n + c] * rot90Matrix[4*r + n];                
+                coordinateMatrix[4*n + c] * matrix[4*r + n];                
             }
         }
     }
@@ -76,9 +84,18 @@ void PitchHandler_clockwiseOrientation()
     }
 }
 
+void PitchHandler_clockwiseOrientation()
+{
+    PitchHandler_mult(rot90Matrix);
+}
+
+void PitchHandler_xflipOrientation()
+{
+    PitchHandler_mult(xflipMatrix);
+}
+
 void PitchHandler_translate(float* xp,float* yp)
 {
-    printf("<%f,%f>\n",*xp, *yp);
     float xs = (*xp * 2) - 1;
     float ys = (*yp * 2) - 1;
     float xr = xs;
