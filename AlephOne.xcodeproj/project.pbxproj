@@ -8,7 +8,6 @@
 
 /* Begin PBXBuildFile section */
 		493A9D97148B32E00029F6C9 /* GenericRendering.c in Sources */ = {isa = PBXBuildFile; fileRef = 493A9D95148B32E00029F6C9 /* GenericRendering.c */; };
-		496862831481EFD900460B4B /* CoreMIDI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 496862821481EFD900460B4B /* CoreMIDI.framework */; };
 		496862861481FB7600460B4B /* CoreMIDIRenderer.m in Sources */ = {isa = PBXBuildFile; fileRef = 496862851481FB7600460B4B /* CoreMIDIRenderer.m */; };
 		49B39079144914DC008C9F6E /* UIKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 49B39078144914DC008C9F6E /* UIKit.framework */; };
 		49B3907B144914DC008C9F6E /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 49B3907A144914DC008C9F6E /* Foundation.framework */; };
@@ -37,6 +36,7 @@
 		49CB084714889D4C003DEA9D /* ControlRegistry.c in Sources */ = {isa = PBXBuildFile; fileRef = 49CB084514889D4B003DEA9D /* ControlRegistry.c */; };
 		49CB084A1488C11A003DEA9D /* GenericTouchHandling.c in Sources */ = {isa = PBXBuildFile; fileRef = 49CB08481488C119003DEA9D /* GenericTouchHandling.c */; };
 		49CB0855148A8F8B003DEA9D /* VertexObjectBuilder.c in Sources */ = {isa = PBXBuildFile; fileRef = 49CB0853148A8F8B003DEA9D /* VertexObjectBuilder.c */; };
+		49DB469E148B37E500C7AA76 /* CoreMIDI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 49DB469D148B37E500C7AA76 /* CoreMIDI.framework */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -52,7 +52,6 @@
 /* Begin PBXFileReference section */
 		493A9D95148B32E00029F6C9 /* GenericRendering.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = GenericRendering.c; sourceTree = "<group>"; };
 		493A9D96148B32E00029F6C9 /* GenericRendering.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = GenericRendering.h; sourceTree = "<group>"; };
-		496862821481EFD900460B4B /* CoreMIDI.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; path = CoreMIDI.framework; sourceTree = "<group>"; };
 		496862841481FB7600460B4B /* CoreMIDIRenderer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CoreMIDIRenderer.h; sourceTree = "<group>"; };
 		496862851481FB7600460B4B /* CoreMIDIRenderer.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = CoreMIDIRenderer.m; sourceTree = "<group>"; };
 		49B39074144914DC008C9F6E /* AlephOne.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = AlephOne.app; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -93,6 +92,7 @@
 		49CB08491488C11A003DEA9D /* GenericTouchHandling.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = GenericTouchHandling.h; sourceTree = "<group>"; };
 		49CB0853148A8F8B003DEA9D /* VertexObjectBuilder.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = VertexObjectBuilder.c; sourceTree = "<group>"; };
 		49CB0854148A8F8B003DEA9D /* VertexObjectBuilder.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = VertexObjectBuilder.h; sourceTree = "<group>"; };
+		49DB469D148B37E500C7AA76 /* CoreMIDI.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreMIDI.framework; path = System/Library/Frameworks/CoreMIDI.framework; sourceTree = SDKROOT; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -105,7 +105,7 @@
 				49B3907D144914DC008C9F6E /* CoreGraphics.framework in Frameworks */,
 				49B3907F144914DC008C9F6E /* QuartzCore.framework in Frameworks */,
 				49B39081144914DC008C9F6E /* OpenGLES.framework in Frameworks */,
-				496862831481EFD900460B4B /* CoreMIDI.framework in Frameworks */,
+				49DB469E148B37E500C7AA76 /* CoreMIDI.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -144,7 +144,7 @@
 		49B39077144914DC008C9F6E /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
-				496862821481EFD900460B4B /* CoreMIDI.framework */,
+				49DB469D148B37E500C7AA76 /* CoreMIDI.framework */,
 				49B39078144914DC008C9F6E /* UIKit.framework */,
 				49B3907A144914DC008C9F6E /* Foundation.framework */,
 				49B3907C144914DC008C9F6E /* CoreGraphics.framework */,
