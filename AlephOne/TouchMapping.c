@@ -51,6 +51,7 @@ void TouchMapping_unmapFinger(struct Fretless_context* ctxp, void* ptr)
     //ctxp->fail("Fretless_util_unmapFinger tried to unmap an unmapped pointer\n");
 }
 
+//Provide a second mapping for the finger, which is useful for voice doubling
 int TouchMapping_mapFinger2(struct Fretless_context* ctxp, void* touch)
 {
     return TouchMapping_mapFinger(ctxp, (void*)((int)touch ^ 0xFFFFFFFF));

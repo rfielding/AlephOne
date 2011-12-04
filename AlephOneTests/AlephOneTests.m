@@ -142,8 +142,6 @@ void midiPassed()
     Fretless_up(ctxp,secondFinger);
     Fretless_flush(ctxp);
     
-    
-    Fretless_selfTest(ctxp);
 }
 
 -(void)testInterleavePolySame

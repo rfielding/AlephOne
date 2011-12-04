@@ -26,6 +26,7 @@ void GenericTouchHandling_touchesInit()
 {
     fretlessp = Fretless_init(CoreMIDIRenderer_midiPutch,CoreMIDIRenderer_midiFlush,malloc,CoreMIDIRenderer_midiFail,CoreMIDIRenderer_midiPassed,printf);
     CoreMIDIRenderer_midiInit(fretlessp);
+    //Fretless_setMidiHintChannelSpan(fretlessp, 1);
     Fretless_boot(fretlessp);     
 }
 
@@ -77,20 +78,22 @@ void GenericTouchHandling_touchesDown(void* touch,int isMoving,float x,float y)
     float note = PitchHandler_pickPitch(finger1,isMoving,noteRaw,&beginNote,&endNote);
     noteHi = note + (expr*expr)*0.2;
     noteLo = note - (expr*expr)*0.2;    
+    int polyGroup1 = polygroup;
+    int polyGroup2 = polygroup+8;
     if(isMoving)
     {
-        Fretless_move(fretlessp,finger1,noteLo);
+        Fretless_move(fretlessp,finger1,noteLo,polyGroup1);
         Fretless_express(fretlessp, finger1, 0, expr);
-        Fretless_move(fretlessp,finger2,noteHi);
+        Fretless_move(fretlessp,finger2,noteHi,polyGroup2);
         Fretless_express(fretlessp, finger2, 0, expr);        
     }
     else
     {
         float velocity = 1.0;
         int legato = 0;
-        Fretless_down(fretlessp,finger1, noteLo,polygroup,velocity,legato); 
+        Fretless_down(fretlessp,finger1, noteLo,polyGroup1,velocity,legato); 
         Fretless_express(fretlessp, finger1, 0, expr);
-        Fretless_down(fretlessp,finger2,noteHi,polygroup+8,velocity,legato); 
+        Fretless_down(fretlessp,finger2,noteHi,polyGroup2,velocity,legato); 
         Fretless_express(fretlessp, finger2, 0, expr);        
     }
 }

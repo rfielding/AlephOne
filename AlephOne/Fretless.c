@@ -115,6 +115,7 @@ struct Fretless_fingerState
     int prevFingerInPolyGroup;
     int nextFingerInChannel;
     int prevFingerInChannel;
+    int visitingPolyGroup;
 };
 
 #define FINGERMAX 16
@@ -230,6 +231,8 @@ void Fretless_reset_FingerState(struct Fretless_fingerState* fsPtr)
     fsPtr->nextFingerInChannel = NOBODY;
     fsPtr->prevFingerInChannel = NOBODY;
     fsPtr->isSupressed = FALSE;
+    fsPtr->visitingPolyGroup = NOBODY;
+    fsPtr->polyGroup = NOBODY;
 }
 
 void Fretless_setMidiHintSupressBends(struct Fretless_context* ctxp, int supressBends)
@@ -575,7 +578,7 @@ void Fretless_down(struct Fretless_context* ctxp, int finger,float fnote,int pol
             ctxp->midiPutch(MIDI_ON + fsPtr->channel);
             ctxp->midiPutch(fsPtr->note);
             ctxp->midiPutch(0);
-            if( ctxp->noteChannelDownRawBalance[fsPtr->note][fsPtr->channel] > 0 )
+            //if( ctxp->noteChannelDownRawBalance[fsPtr->note][fsPtr->channel] > 0 )
             {
                 ctxp->noteChannelDownRawBalance[fsPtr->note][fsPtr->channel]--;            
             }
@@ -602,7 +605,7 @@ void Fretless_down(struct Fretless_context* ctxp, int finger,float fnote,int pol
         ctxp->midiPutch(MIDI_ON + turningOffPtr->channel);
         ctxp->midiPutch(turningOffPtr->note);
         ctxp->midiPutch(0);
-        if( ctxp->noteChannelDownRawBalance[turningOffPtr->note][turningOffPtr->channel] > 0 )
+        //if( ctxp->noteChannelDownRawBalance[turningOffPtr->note][turningOffPtr->channel] > 0 )
         {
             ctxp->noteChannelDownRawBalance[turningOffPtr->note][turningOffPtr->channel]--;
         }
@@ -643,7 +646,7 @@ void Fretless_up(struct Fretless_context* ctxp, int finger)
             ctxp->midiPutch(MIDI_ON + fsPtr->channel);
             ctxp->midiPutch(fsPtr->note);
             ctxp->midiPutch(0);
-            if( ctxp->noteChannelDownRawBalance[fsPtr->note][fsPtr->channel] > 0 )
+            //if( ctxp->noteChannelDownRawBalance[fsPtr->note][fsPtr->channel] > 0 )
             {
                 ctxp->noteChannelDownRawBalance[fsPtr->note][fsPtr->channel]--;            
             }
@@ -698,7 +701,7 @@ void Fretless_express(struct Fretless_context* ctxp, int finger,int key,int val)
     FINGERCHECK(ctxp,finger)    
 }
 
-float Fretless_move(struct Fretless_context* ctxp, int finger,float fnote)
+float Fretless_move(struct Fretless_context* ctxp, int finger,float fnote,int polyGroup)
 {
     FINGERCHECK(ctxp,finger)
     FNOTECHECK(ctxp,fnote)
@@ -713,6 +716,11 @@ float Fretless_move(struct Fretless_context* ctxp, int finger,float fnote)
     int newBend;
     Fretless_fnoteBendFromExisting(ctxp,fnote, &newNote, &newBend,fsPtr);
     //If it's just a bend of the current note, then do that
+    int existingPolyGroup = fsPtr->polyGroup;
+    if(0 <= polyGroup && polyGroup < FINGERMAX)
+    {
+        fsPtr->visitingPolyGroup = polyGroup;        
+    }
     if(newNote == fsPtr->note)
     {
         fsPtr->bend = newBend;
@@ -720,12 +728,9 @@ float Fretless_move(struct Fretless_context* ctxp, int finger,float fnote)
     }    
     else
     {
-        float oldVelocity = fsPtr->velocity/127.0;
-        int oldPolyGroup = fsPtr->polyGroup;
-        //If we exceeded bend range, and it picked a new note, retrigger with a note tie
-        Fretless_noteTie(ctxp,fsPtr);
+        Fretless_noteTie(ctxp,fsPtr);            
         Fretless_up(ctxp,finger);
-        Fretless_down(ctxp,finger,fnote,oldPolyGroup,oldVelocity,TRUE);
+        Fretless_down(ctxp,finger,fnote,existingPolyGroup,fsPtr->velocity/127.0,TRUE);
     }
     return fnote;
 }
@@ -765,7 +770,7 @@ void Fretless_selfTest(struct Fretless_context* ctxp)
                     {
                         int foundVal = ctxp->noteChannelDownRawBalance[n][c];
                         ctxp->noteChannelDownRawBalance[n][c] = 0;    
-                        ctxp->logger("ctxp->noteChannelDownRawBalance[%2x][%2x] == %d",n,c,foundVal);
+                        ctxp->logger("ctxp->noteChannelDownRawBalance[%2x][%2x] == %d\n",n,c,foundVal);
                     }
                     else
                     {

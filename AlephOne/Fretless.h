@@ -32,7 +32,7 @@ void Fretless_down(struct Fretless_context* ctxp, int finger,float fnote,int pol
 //Callable for down or move, before flush
 void Fretless_express(struct Fretless_context* ctxp, int finger,int key,int val);
 //Move may balk and only do a partial move
-float Fretless_move(struct Fretless_context* ctxp, int finger,float fnote);
+float Fretless_move(struct Fretless_context* ctxp, int finger,float fnote,int polyGroup);
 //Free up the finger
 void Fretless_up(struct Fretless_context* ctxp, int finger);
 

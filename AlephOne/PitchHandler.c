@@ -12,7 +12,7 @@
 #define FINGERMAX 16
 #define NOBODY -1
 static float tuneInterval = 5; ////12*log2f(4.0/3) is Just intonation btw
-static float tuneSpeed = 0.05;
+static float tuneSpeed = 0.025;
 static float rowCount = 3;
 static float colCount = 5;
 static int   noteDiff = (48-1);
