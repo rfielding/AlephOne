@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		493A9D97148B32E00029F6C9 /* GenericRendering.c in Sources */ = {isa = PBXBuildFile; fileRef = 493A9D95148B32E00029F6C9 /* GenericRendering.c */; };
 		496862831481EFD900460B4B /* CoreMIDI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 496862821481EFD900460B4B /* CoreMIDI.framework */; };
 		496862861481FB7600460B4B /* CoreMIDIRenderer.m in Sources */ = {isa = PBXBuildFile; fileRef = 496862851481FB7600460B4B /* CoreMIDIRenderer.m */; };
 		49B39079144914DC008C9F6E /* UIKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 49B39078144914DC008C9F6E /* UIKit.framework */; };
@@ -49,6 +50,8 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		493A9D95148B32E00029F6C9 /* GenericRendering.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = GenericRendering.c; sourceTree = "<group>"; };
+		493A9D96148B32E00029F6C9 /* GenericRendering.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = GenericRendering.h; sourceTree = "<group>"; };
 		496862821481EFD900460B4B /* CoreMIDI.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; path = CoreMIDI.framework; sourceTree = "<group>"; };
 		496862841481FB7600460B4B /* CoreMIDIRenderer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CoreMIDIRenderer.h; sourceTree = "<group>"; };
 		496862851481FB7600460B4B /* CoreMIDIRenderer.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = CoreMIDIRenderer.m; sourceTree = "<group>"; };
@@ -154,6 +157,8 @@
 		49B39082144914DC008C9F6E /* AlephOne */ = {
 			isa = PBXGroup;
 			children = (
+				493A9D95148B32E00029F6C9 /* GenericRendering.c */,
+				493A9D96148B32E00029F6C9 /* GenericRendering.h */,
 				49B390BC14491549008C9F6E /* Fretless */,
 				49B3908B144914DC008C9F6E /* AlephOneAppDelegate.h */,
 				49B3908C144914DC008C9F6E /* AlephOneAppDelegate.m */,
@@ -343,6 +348,7 @@
 				49CB084714889D4C003DEA9D /* ControlRegistry.c in Sources */,
 				49CB084A1488C11A003DEA9D /* GenericTouchHandling.c in Sources */,
 				49CB0855148A8F8B003DEA9D /* VertexObjectBuilder.c in Sources */,
+				493A9D97148B32E00029F6C9 /* GenericRendering.c in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
