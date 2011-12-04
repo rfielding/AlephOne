@@ -7,20 +7,34 @@ After only a few weeks of effort, it is better than Geo in a lot of ways (almost
 
 http://www.youtube.com/watch?v=ZGSZBsxYMfI
 
+Conventions
+-----------
+
+Because the point of this project is to start building up reuseable components, and try to influence the MIDI standard (as MIDI HD is being defined) as practiced on mobile devices, I follow rules like this where I can:
+
+* No includes in either the header or in the implementation of the module is ideal.  If you have dependencies, injecting function pointers that use predefined types through the interface is usually sufficient.
+
+* I favor pure C code everywhere that it is possible, because requiring C++ or ObjectiveC can be a pretty invasive requirement where it's not already justified.
+
+* Try to avoid including headers in headers.  That is, keep dependencies private if at all possible.  
+
+* Avoid declaring more than functions in header files.  If you must declare a pointer to a type that you define, try to keep the definition internal and provide functions to keep the structure opaque.
+
+* Avoid having modules have *any* static variables.  Fretless adheres to this, and because of it, we can run multiple instances of it for the cases where different settings on the MIDI generator necessitate that different MIDI streams be generated.  It's not quite like emulating object oriented programming, because even the malloc is a function that's passed in
+
+* Inject logging functions into modules.  Do not include libraries all over the place in order to log things.  Not only is logging something that is pervasive but spreads throughout the code, but it's also something that will be different every time you try to assemble an application out of a bunch of modules that you get from different places.  If you want to include a module as it is without having to change it, your best bets are to wrap up some functions to have the expected interfaces and inject them.  (ie: submit a logging function with an interface that looks like printf, or literally submit printf if that is sufficient, or a vacuous function to supress the logging - where this is sufficient because strings are only built in the logger if it does something with its args, etc.)
+
+ 
+
 Main Components
 ---------------
 
-As far as conventions being followed, I don't really consider any code that is not written in pure C to be all that portable or reuseable for these purposes.  These are the main components so far, listed in the order in which it is most important that they stay portable:
+These are the main components roughly in order from most portable to least portable:
 
-* Fretless -- A totally isolated MIDI library. This library is the essence of what makes Mugician and Geo special, and would allow almost anybody to painlessly write such an app (so long as it talks to MIDI of course).  It is designed as a portable C buffer generator of MIDI data.  All dependencies are injected, and all types are built-in types.  
 
-All of this is necessary because one goal of this library is to standardize how Fretless MIDI is done; to fix the MIDI standard for touch-screens essentially.  SampleWiz and ThumbJam recognize this MIDI, and Geo emits it.  The plan is to get this code very solid, and see if we can get many synths to understand this code, and for many controllers to emit it.  That will never work if there are application specific dependencies abound in the code.  This is designed so that almost any app that is using MIDI can start here, even if they have their own plans for all of the other modules.
+* Fretless -- A totally isolated MIDI library. This library is the essence of what makes Mugician and Geo special, and would allow almost anybody to painlessly write such an app (so long as it talks to MIDI of course).  It is designed as a portable C buffer generator of MIDI data.  All dependencies are injected, and all types are built-in types.  All of this is necessary because one goal of this library is to standardize how Fretless MIDI is done; to fix the MIDI standard for touch-screens essentially.  SampleWiz and ThumbJam recognize this MIDI, and Geo emits it.  The plan is to get this code very solid, and see if we can get many synths to understand this code, and for many controllers to emit it.  That will never work if there are application specific dependencies abound in the code.  This is designed so that almost any app that is using MIDI can start here, even if they have their own plans for all of the other modules.
 
-* PitchHandler -- An isolated pitch handling library, that is currently handling the main coordinate system problems as well.  One of the main problems I had with Mugician and Geo is that coordinate systems not done right, spread complexity absolutely everywhere else throughout the code.  This problem starts with the fact that basic things like touches and OpenGL windows have different coordinate system conventions by default.  We immediately get out of coordinates to pitches as soon as that is possible.  
-
-Where coordinates are necessary, we ensure that this is done so that the coordinate system that will be used by the OpenGL code later on will be identical, so that there is no proliferation of equations throughout the code trying to compensate for the inconsistency.  
-
-This module may eventually split as it ties together coordinate systems too tightly with pitch handling proper.  This module will provide the metadata that the OpenGL surfaces will need to actually render.  This means that once the moveable frets and snapping rules are set, OpenGL should be able to run some iterators in this library to figure out how to draw the surface and how to show the touches to the user.
+* PitchHandler -- An isolated pitch handling library, that is currently handling the main coordinate system problems as well.  One of the main problems I had with Mugician and Geo is that coordinate systems not done right, spread complexity absolutely everywhere else throughout the code.  This problem starts with the fact that basic things like touches and OpenGL windows have different coordinate system conventions by default.  We immediately get out of coordinates to pitches as soon as that is possible.  Where coordinates are necessary, we ensure that this is done so that the coordinate system that will be used by the OpenGL code later on will be identical, so that there is no proliferation of equations throughout the code trying to compensate for the inconsistency.  This module may eventually split as it ties together coordinate systems too tightly with pitch handling proper.  This module will provide the metadata that the OpenGL surfaces will need to actually render.  This means that once the moveable frets and snapping rules are set, OpenGL should be able to run some iterators in this library to figure out how to draw the surface and how to show the touches to the user.
 
 * TouchMaping -- An isolated library for mapping pointers to some kind of touch object to finger identifiers.   
 
