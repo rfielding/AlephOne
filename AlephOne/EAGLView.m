@@ -153,6 +153,14 @@ BOOL isInitialized = FALSE;
 }
 
 
+- (void)handleTouchDown:(UITouch*)touch inPhase:(UITouchPhase) phase
+{
+    float x = [touch locationInView:self].x/framebufferWidth;
+    float y = 1 - [touch locationInView:self].y/framebufferHeight;
+    PitchHandler_translate(&x, &y);
+    GenericTouchHandling_touchesDown(touch,phase == UITouchPhaseMoved,x,y);    
+}
+
 - (void)touchesBegan:(NSSet *)touches withEvent:(UIEvent *)event {
     NSArray* touchArray = [touches allObjects];
     int touchCount = [touches count];
@@ -162,12 +170,7 @@ BOOL isInitialized = FALSE;
         UITouchPhase phase = [touch phase];
         if(phase == UITouchPhaseBegan)
         {            
-            GenericTouchHandling_touchesDown(
-                touch,
-                phase == UITouchPhaseMoved,
-                [touch locationInView:self].x/framebufferWidth,
-                1 - [touch locationInView:self].y/framebufferHeight
-            );
+            [self handleTouchDown:touch inPhase: phase];
         }
     }
     GenericTouchHandling_touchesFlush();
@@ -182,12 +185,7 @@ BOOL isInitialized = FALSE;
         UITouchPhase phase = [touch phase];
         if(phase == UITouchPhaseMoved)
         {
-            GenericTouchHandling_touchesDown(
-                touch,
-                phase == UITouchPhaseMoved,
-                [touch locationInView:self].x/framebufferWidth,
-                1 - [touch locationInView:self].y/framebufferHeight
-            );
+            [self handleTouchDown:touch inPhase: phase];
         }
     }
     GenericTouchHandling_touchesFlush();

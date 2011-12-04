@@ -66,13 +66,7 @@ void GenericTouchHandling_touchesDown(void* touch,int isMoving,float x,float y)
     {
         CoreMIDIRenderer_midiFail("touch did not map to a finger2");   
     }    
-    float noteRaw = PitchHandler_pickPitchRaw(
-                                              finger1,
-                                              x,
-                                              y,
-                                              &polygroup,
-                                              &expr
-                                              );
+    float noteRaw = PitchHandler_pickPitchRaw(finger1,x,y,&polygroup,&expr);
     float beginNote;
     float endNote;
     float note = PitchHandler_pickPitch(finger1,isMoving,noteRaw,&beginNote,&endNote);

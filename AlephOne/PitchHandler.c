@@ -166,8 +166,6 @@ void PitchHandler_setNoteDiff(float noteDiffArg)
 
 float PitchHandler_pickPitchRaw(int finger,float x,float y,int* stringP,float* exprP)
 {
-    PitchHandler_translate(&x,&y);
-    
     *stringP = (rowCount * y);
     *exprP = (rowCount*y) - *stringP;
     float fret = colCount*x;
