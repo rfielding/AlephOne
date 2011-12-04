@@ -67,7 +67,7 @@ void midiPassed()
     Fretless_boot(ctxp);
     
     Fretless_down(ctxp,middleFinger,concertA,polyGroupNone,mezzoForte,0);
-    Fretless_move(ctxp,middleFinger,concertA+oneCent);
+    Fretless_move(ctxp,middleFinger,concertA+oneCent,polyGroupNone);
     Fretless_flush(ctxp);
     Fretless_express(ctxp,middleFinger,expr1,mezzoForte);
     Fretless_up(ctxp,middleFinger);
