@@ -157,8 +157,6 @@
 		49B39082144914DC008C9F6E /* AlephOne */ = {
 			isa = PBXGroup;
 			children = (
-				493A9D95148B32E00029F6C9 /* GenericRendering.c */,
-				493A9D96148B32E00029F6C9 /* GenericRendering.h */,
 				49B390BC14491549008C9F6E /* Fretless */,
 				49B3908B144914DC008C9F6E /* AlephOneAppDelegate.h */,
 				49B3908C144914DC008C9F6E /* AlephOneAppDelegate.m */,
@@ -171,6 +169,10 @@
 				49B39099144914DC008C9F6E /* AlephOneViewController.m */,
 				49B3909B144914DC008C9F6E /* AlephOneViewController.xib */,
 				49B39083144914DC008C9F6E /* Supporting Files */,
+				49CB084514889D4B003DEA9D /* ControlRegistry.c */,
+				49CB084614889D4C003DEA9D /* ControlRegistry.h */,
+				493A9D95148B32E00029F6C9 /* GenericRendering.c */,
+				493A9D96148B32E00029F6C9 /* GenericRendering.h */,
 				496862841481FB7600460B4B /* CoreMIDIRenderer.h */,
 				496862851481FB7600460B4B /* CoreMIDIRenderer.m */,
 				49CB08481488C119003DEA9D /* GenericTouchHandling.c */,
@@ -221,8 +223,6 @@
 				49CB083F14888CA3003DEA9D /* PitchHandler.h */,
 				49CB084214888E55003DEA9D /* TouchMapping.c */,
 				49CB084314888E55003DEA9D /* TouchMapping.h */,
-				49CB084514889D4B003DEA9D /* ControlRegistry.c */,
-				49CB084614889D4C003DEA9D /* ControlRegistry.h */,
 			);
 			name = Fretless;
 			sourceTree = "<group>";

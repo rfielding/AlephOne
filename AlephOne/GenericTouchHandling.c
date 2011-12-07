@@ -42,6 +42,7 @@ void GenericTouchHandling_touchesUp(void* touch)
     {
         CoreMIDIRenderer_midiFail("touch did not map to a finger2");   
     }
+    PitchHandler_unpickPitch(finger);
     Fretless_up(fretlessp, finger);
     Fretless_up(fretlessp, finger2);
     TouchMapping_unmapFinger(fretlessp,touch);
@@ -54,8 +55,6 @@ void GenericTouchHandling_touchesDown(void* touch,int isMoving,float x,float y)
     int finger2;
     float noteHi;
     float noteLo;
-    int polygroup;
-    float expr;
     finger1  = TouchMapping_mapFinger(fretlessp, touch);
     if(finger1 < 0)
     {
@@ -66,10 +65,10 @@ void GenericTouchHandling_touchesDown(void* touch,int isMoving,float x,float y)
     {
         CoreMIDIRenderer_midiFail("touch did not map to a finger2");   
     }    
-    float noteRaw = PitchHandler_pickPitchRaw(finger1,x,y,&polygroup,&expr);
-    float beginNote;
-    float endNote;
-    float note = PitchHandler_pickPitch(finger1,isMoving,noteRaw,&beginNote,&endNote);
+    struct FingerInfo* fingerInfo = PitchHandler_pickPitch(finger1,isMoving,x,y);
+    float note = fingerInfo->pitch;
+    int polygroup = fingerInfo->string;
+    float expr = fingerInfo->expr;
     noteHi = note + (expr*expr)*0.2;
     noteLo = note - (expr*expr)*0.2;    
     int polyGroup1 = polygroup;

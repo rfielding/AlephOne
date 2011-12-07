@@ -9,12 +9,7 @@
 #include "VertexObjectBuilder.h"
 
 
-struct VertexObject {
-    float* vertices;
-    unsigned char* colors;
-    int count;
-    int type;
-};
+
 
 struct VertexObjectBuilder
 {
@@ -66,11 +61,8 @@ int VertexObjectBuilder_getVertexCount(struct VertexObjectBuilder* ctxp)
     return ctxp->vertexObjectsCount;
 }
 
-void VertexObjectBuilder_getVertex(struct VertexObjectBuilder* ctxp,int idx,int* type,float** vertices,unsigned char** colors,int* count)
+struct VertexObject* VertexObjectBuilder_getVertex(struct VertexObjectBuilder* ctxp,int idx)
 {
-    *type = ctxp->vertexObjects[idx].type;
-    *vertices = ctxp->vertexObjects[idx].vertices;
-    *colors = ctxp->vertexObjects[idx].colors;
-    *count = ctxp->vertexObjects[idx].count;
+    return &ctxp->vertexObjects[idx];
 }
 

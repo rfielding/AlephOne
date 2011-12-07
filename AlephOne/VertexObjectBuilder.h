@@ -8,10 +8,17 @@
 
 struct VertexObjectBuilder;
 
+struct VertexObject {
+    float* vertices;
+    unsigned char* colors;
+    int count;
+    int type;
+};
+
 struct VertexObjectBuilder* VertexObjectBuilder_init(void* (*allocFn)(unsigned long));
 
 void VertexObjectBuilder_reset(struct VertexObjectBuilder* ctxp);
 void VertexObjectBuilder_startObject(struct VertexObjectBuilder* ctxp,int type);
 void VertexObjectBuilder_addVertex(struct VertexObjectBuilder* ctxp,float x,float y,float z,unsigned char cr,unsigned char cg,unsigned char cb, unsigned char ca);
-void VertexObjectBuilder_getVertex(struct VertexObjectBuilder* ctxp,int idx,int* type,float** vertices,unsigned char** colors,int* count);
+struct VertexObject* VertexObjectBuilder_getVertex(struct VertexObjectBuilder* ctxp,int idx);
 int VertexObjectBuilder_getVertexCount(struct VertexObjectBuilder* ctxp);

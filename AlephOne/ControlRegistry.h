@@ -7,13 +7,26 @@
 //
 
 
-int   ControlRegistry_Count();
+void  ControlRegistry_AddFloat(
+    void (*setValue)(float),
+    float (*getValue)(),
+    char* (*getDescription)(float),
+    char* name,
+    float minValue,
+    float maxValue,
+    int width,
+    int height
+);
 
+int   ControlRegistry_Count();
 char* ControlRegistry_Name(int idx);
 int   ControlRegistry_Type(int idx);
 char* ControlRegistry_GetDescription(int idx);
 
 float ControlRegistry_GetFloat(int idx);
-float ControlRegistry_SetFloat(int idx, float val);
+void  ControlRegistry_SetFloat(int idx, float val);
 float ControlRegistry_GetFloatMin(int idx);
 float ControlRegistry_GetFloatMax(int idx);
+
+int   ControlRegistry_GetWidth(int idx);
+int   ControlRegistry_GetHeight(int idx);

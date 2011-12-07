@@ -12,7 +12,8 @@
 #include <OpenGLES/ES1/gl.h>
 #include <stdlib.h>
 
-struct VertexObjectBuilder* voCtx;
+struct VertexObjectBuilder* voCtxStatic;
+struct VertexObjectBuilder* voCtxDynamic;
 
 void GenericRendering_camera()
 {
@@ -45,42 +46,76 @@ void GenericRendering_setup()
     float halfXscale = 0.5*xscale;
     float halfYscale = 0.5*yscale;
     
-    voCtx = VertexObjectBuilder_init(malloc);
-    VertexObjectBuilder_startObject(voCtx,GL_TRIANGLE_STRIP);
+    voCtxDynamic = VertexObjectBuilder_init(malloc);
     
-    VertexObjectBuilder_addVertex(voCtx,0,0,0, 0,0,0,255);
-    VertexObjectBuilder_addVertex(voCtx,1,0,0, 255,0,0,255);
-    VertexObjectBuilder_addVertex(voCtx,0,1,0, 0,255,0,255);
-    VertexObjectBuilder_addVertex(voCtx,1,1,0, 255,255,0,255);
+    voCtxStatic = VertexObjectBuilder_init(malloc);
     
-    VertexObjectBuilder_startObject(voCtx,GL_LINES);
+    VertexObjectBuilder_startObject(voCtxStatic,GL_TRIANGLE_STRIP);
+    
+    VertexObjectBuilder_addVertex(voCtxStatic,0,0,0, 0,0,0,255);
+    VertexObjectBuilder_addVertex(voCtxStatic,1,0,0, 255,0,0,255);
+    VertexObjectBuilder_addVertex(voCtxStatic,0,1,0, 0,255,0,255);
+    VertexObjectBuilder_addVertex(voCtxStatic,1,1,0, 255,255,0,255);
+    
+    VertexObjectBuilder_startObject(voCtxStatic,GL_LINES);
     for(int r=0; r<rows; r++)
     {
         for(int c=0; c<cols; c++)
         {
-            VertexObjectBuilder_addVertex(voCtx,xscale*c + halfXscale,0,0, 0,0,0,255);
-            VertexObjectBuilder_addVertex(voCtx,xscale*c + halfXscale,1,0, 0,0,0,255);
+            VertexObjectBuilder_addVertex(voCtxStatic,xscale*c + halfXscale,0,0, 0,0,0,255);
+            VertexObjectBuilder_addVertex(voCtxStatic,xscale*c + halfXscale,1,0, 0,0,0,255);
         }
-        VertexObjectBuilder_addVertex(voCtx,0,yscale*r + halfYscale,0, 0,0,0,255);
-        VertexObjectBuilder_addVertex(voCtx,1,yscale*r + halfYscale,0, 0,0,0,255);
+        VertexObjectBuilder_addVertex(voCtxStatic,0,yscale*r + halfYscale,0, 0,0,0,255);
+        VertexObjectBuilder_addVertex(voCtxStatic,1,yscale*r + halfYscale,0, 0,0,0,255);
     }
 }
 
+void GenericRendering_dynamic()
+{
+    float dx = 0.03;
+    float dy = 0.03;
+    VertexObjectBuilder_reset(voCtxDynamic);
+    VertexObjectBuilder_startObject(voCtxDynamic, GL_TRIANGLES);
+    for(int f=0; f<16; f++)
+    {
+        struct FingerInfo* fInfo = PitchHandler_fingerState(f);
+        if(fInfo->isActive)
+        {
+            VertexObjectBuilder_addVertex(voCtxDynamic,fInfo->fingerX, fInfo->fingerY - dy,0, 255,0,0,255);
+            VertexObjectBuilder_addVertex(voCtxDynamic,fInfo->fingerX + dx, fInfo->fingerY + dy,0, 255,0,0,255);
+            VertexObjectBuilder_addVertex(voCtxDynamic,fInfo->fingerX - dx, fInfo->fingerY + dy,0, 255,0,0,255);            
+        }
+    }
+    VertexObjectBuilder_startObject(voCtxDynamic, GL_TRIANGLES);
+    for(int f=0; f<16; f++)
+    {
+        struct FingerInfo* fInfo = PitchHandler_fingerState(f);
+        if(fInfo->isActive)
+        {
+            VertexObjectBuilder_addVertex(voCtxDynamic,fInfo->pitchX, fInfo->pitchY - dy,0, 0,255,0,255);
+            VertexObjectBuilder_addVertex(voCtxDynamic,fInfo->pitchX + dx, fInfo->pitchY + dy,0, 0,255,0,255);
+            VertexObjectBuilder_addVertex(voCtxDynamic,fInfo->pitchX - dx, fInfo->pitchY + dy,0, 0,255,0,255);            
+        }
+    }
+}
+
+void GenericRendering_drawVO(struct VertexObjectBuilder* vobj)
+{
+    int voCount = VertexObjectBuilder_getVertexCount(vobj);
+    for(int o=0; o<voCount;o++)
+    {
+        struct VertexObject* vo = VertexObjectBuilder_getVertex(vobj,o);
+        glVertexPointer(3, GL_FLOAT, 0, vo->vertices);
+        glEnableClientState(GL_VERTEX_ARRAY);
+        glColorPointer(4, GL_UNSIGNED_BYTE, 0, vo->colors);
+        glEnableClientState(GL_COLOR_ARRAY);
+        glDrawArrays(vo->type, 0, vo->count);            
+    }
+}
 
 void GenericRendering_draw()
 {
-    int voCount = VertexObjectBuilder_getVertexCount(voCtx);
-    for(int o=0; o<voCount;o++)
-    {
-        int type;
-        float* vertices;
-        unsigned char* colors;
-        int count;
-        VertexObjectBuilder_getVertex(voCtx,o,&type,&vertices,&colors,&count);
-        glVertexPointer(3, GL_FLOAT, 0, vertices);
-        glEnableClientState(GL_VERTEX_ARRAY);
-        glColorPointer(4, GL_UNSIGNED_BYTE, 0, colors);
-        glEnableClientState(GL_COLOR_ARRAY);
-        glDrawArrays(type, 0, count);            
-    }
+    GenericRendering_drawVO(voCtxStatic);
+    GenericRendering_dynamic();
+    GenericRendering_drawVO(voCtxDynamic);
 }
