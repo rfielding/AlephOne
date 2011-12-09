@@ -8,14 +8,23 @@
 
 #include "PitchHandler.h"
 #include <math.h>
+#include <stdio.h>
 
 #define FINGERMAX 16
 #define NOBODY -1
-static float tuneInterval = 5; ////12*log2f(4.0/3) is Just intonation btw
+static float tuneInterval = 5; //4.9804499913461244;  //12*log2f(4.0/3); //is Just intonation btw
 static float tuneSpeed = 0.025;
 static float rowCount = 3;
 static float colCount = 5;
-static float   noteDiff = (48-1);
+static float noteDiff = (48-1);
+
+static float frets[1024];
+static int fretsUsed=0;
+static int fretIterator=0;
+static float fretOffsetY=0;
+static float fretOffsetX=0;
+static float fretOffsetYInitial=0.5;
+static float fretOffsetXInitial=0.5;
 
 struct FingerInfo fingers[FINGERMAX];
 
@@ -207,7 +216,7 @@ struct FingerInfo* PitchHandler_pickPitch(int finger,int isMoving,float x,float 
     
     thisPitch += noteDiffOurs;
     fingers[finger].beginPitch = thisPitch;
-    fingers[finger].endPitch = (int)thisPitch;
+    fingers[finger].endPitch = PitchHandler_getTarget(thisPitch);
     
     float targetDrift = (fingers[finger].endPitch - thisPitch);
     if( isMoving )
@@ -258,5 +267,77 @@ struct FingerInfo* PitchHandler_pickPitch(int finger,int isMoving,float x,float 
     
     
     return &fingers[finger];
+}
+
+
+//Moveable fret generator
+void PitchHandler_clearFrets()
+{
+    fretsUsed=0;
+}
+
+//This must span an octave from 0 <= pitch < 12.0, or everything breaks
+void PitchHandler_placeFret(float pitch)
+{
+    frets[fretsUsed] = pitch;
+    fretsUsed++;
+}
+
+void PitchHandler_getFretsBegin()
+{
+    fretIterator=-fretsUsed;
+    fretOffsetY=fretOffsetYInitial;
+    fretOffsetX=fretOffsetXInitial;
+}
+
+float PitchHandler_getPitchFromFret(int fret)
+{
+    int octave = (int)floorf(fret / fretsUsed);
+    return 12.0 * octave + frets[((int)floorf(fret+fretsUsed)) % fretsUsed] - 1;    
+}
+
+float PitchHandler_getTarget(float pitch)
+{
+    int octaveEst = fretsUsed*floorf(pitch / 12.0);
+    float pitchVal = pitch;
+    float bestDistance=48;
+    for(int fret=octaveEst-fretsUsed; fret <= octaveEst+fretsUsed; fret++)
+    {
+        float p = PitchHandler_getPitchFromFret(fret);
+        float dist = fabs(pitch - fretOffsetXInitial - p);
+        if(dist < bestDistance)
+        {
+            bestDistance = dist;
+            pitchVal = p;
+        }
+    }
+    return pitchVal;
+}
+
+int PitchHandler_getFret(float* pitch,float* x,float* y)
+{
+    int octave = (int)floorf(1.0 * fretIterator / fretsUsed);
+    float pitchVal = 12.0 * octave + frets[(fretIterator+fretsUsed) % fretsUsed];
+    
+    if(pitchVal+fretOffsetX > colCount)
+    {
+        fretOffsetX -= tuneInterval;
+        fretOffsetY+=1;
+    }
+    
+    *pitch = pitchVal;
+    *x = (pitchVal+fretOffsetX)/colCount;
+    *y = (fretOffsetY)/rowCount;
+    //printf("fretIterator=%d fretStringShift=%f fretStringLocation=%d pitch=%f    (%f,%f)\n",fretIterator,fretStringShift,fretStringLocation,*pitch,*x,*y);    
+    
+    fretIterator++;
+    if(fretOffsetY < rowCount)
+    {
+        return 1;
+    }
+    else
+    {
+        return 0;
+    }
 }
 

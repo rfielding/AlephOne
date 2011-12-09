@@ -9,14 +9,15 @@
 #include "VertexObjectBuilder.h"
 
 
-
+#define VOVERTEXMAX 4096
+#define VOOBJMAX 256
 
 struct VertexObjectBuilder
 {
-    struct VertexObject vertexObjects[256];
+    struct VertexObject vertexObjects[VOOBJMAX];
     int vertexObjectsCount;
-    float gridVertices[4096];
-    unsigned char gridColors[4096];
+    float gridVertices[VOVERTEXMAX];
+    unsigned char gridColors[VOVERTEXMAX];
     int gridVerticesCount;    
 };
 
@@ -34,17 +35,20 @@ void VertexObjectBuilder_reset(struct VertexObjectBuilder* ctxp)
     ctxp->vertexObjectsCount=0;
 }
 
-void VertexObjectBuilder_startObject(struct VertexObjectBuilder* ctxp,int type)
+int VertexObjectBuilder_startObject(struct VertexObjectBuilder* ctxp,int type)
 {
+    if(ctxp->vertexObjectsCount+1 >= VOOBJMAX)return 0;
     ctxp->vertexObjects[ctxp->vertexObjectsCount].vertices = &ctxp->gridVertices[3*ctxp->gridVerticesCount];
     ctxp->vertexObjects[ctxp->vertexObjectsCount].colors = &ctxp->gridColors[4*ctxp->gridVerticesCount];
     ctxp->vertexObjects[ctxp->vertexObjectsCount].count = 0;
     ctxp->vertexObjects[ctxp->vertexObjectsCount].type = type;
     ctxp->vertexObjectsCount++;
+    return 1;
 }
 
-void VertexObjectBuilder_addVertex(struct VertexObjectBuilder* ctxp,float x,float y,float z,unsigned char cr,unsigned char cg,unsigned char cb, unsigned char ca)
+int VertexObjectBuilder_addVertex(struct VertexObjectBuilder* ctxp,float x,float y,float z,unsigned char cr,unsigned char cg,unsigned char cb, unsigned char ca)
 {
+    if(ctxp->vertexObjects[ctxp->vertexObjectsCount].count + 1 >= VOVERTEXMAX)return 0;
     ctxp->gridVertices[3*ctxp->gridVerticesCount + 0] = x;
     ctxp->gridVertices[3*ctxp->gridVerticesCount + 1] = y;
     ctxp->gridVertices[3*ctxp->gridVerticesCount + 2] = z;
@@ -54,6 +58,7 @@ void VertexObjectBuilder_addVertex(struct VertexObjectBuilder* ctxp,float x,floa
     ctxp->gridColors[4*ctxp->gridVerticesCount + 3] = ca;
     ctxp->gridVerticesCount++;        
     ctxp->vertexObjects[ctxp->vertexObjectsCount-1].count++;
+    return 1;
 }
 
 int VertexObjectBuilder_getVertexCount(struct VertexObjectBuilder* ctxp)

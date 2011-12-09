@@ -97,6 +97,23 @@ void GenericRendering_dynamic()
             VertexObjectBuilder_addVertex(voCtxDynamic,fInfo->pitchX - dx, fInfo->pitchY + dy,0, 0,255,0,255);            
         }
     }
+    
+    
+    VertexObjectBuilder_startObject(voCtxDynamic, GL_TRIANGLES);
+    float pitch=0;
+    float x=0;
+    float y=0;
+    PitchHandler_getFretsBegin();
+    int canAdd=100;
+    
+    while(PitchHandler_getFret(&pitch, &x, &y) && canAdd)
+    {
+        canAdd *= VertexObjectBuilder_addVertex(voCtxDynamic,x, y - dy,0, 0,0,255,255);
+        canAdd *= VertexObjectBuilder_addVertex(voCtxDynamic,x + dx, y + dy,0, 0,0,255,255);
+        canAdd *= VertexObjectBuilder_addVertex(voCtxDynamic,x - dx, y + dy,0, 0,0,255,255);    
+        canAdd--;
+    }
+     
 }
 
 void GenericRendering_drawVO(struct VertexObjectBuilder* vobj)

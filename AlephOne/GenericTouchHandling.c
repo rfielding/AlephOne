@@ -44,7 +44,7 @@ void GenericTouchHandling_touchesUp(void* touch)
     }
     PitchHandler_unpickPitch(finger);
     Fretless_up(fretlessp, finger);
-    Fretless_up(fretlessp, finger2);
+//    Fretless_up(fretlessp, finger2);
     TouchMapping_unmapFinger(fretlessp,touch);
     TouchMapping_unmapFinger2(fretlessp,touch);    
 }
@@ -69,15 +69,15 @@ void GenericTouchHandling_touchesDown(void* touch,int isMoving,float x,float y)
     float note = fingerInfo->pitch;
     int polygroup = fingerInfo->string;
     float expr = fingerInfo->expr;
-    noteHi = note + (expr*expr)*0.2;
-    noteLo = note - (expr*expr)*0.2;    
+    noteHi = note + (expr*expr*expr)*0.2;
+    noteLo = note - (expr*expr*expr)*0.2;    
     int polyGroup1 = polygroup;
     int polyGroup2 = polygroup+8;
     if(isMoving)
     {
         Fretless_move(fretlessp,finger1,noteLo,polyGroup1);
         Fretless_express(fretlessp, finger1, 0, expr);
-        Fretless_move(fretlessp,finger2,noteHi,polyGroup2);
+//        Fretless_move(fretlessp,finger2,noteHi,polyGroup2);
         Fretless_express(fretlessp, finger2, 0, expr);        
     }
     else
@@ -86,7 +86,7 @@ void GenericTouchHandling_touchesDown(void* touch,int isMoving,float x,float y)
         int legato = 0;
         Fretless_down(fretlessp,finger1, noteLo,polyGroup1,velocity,legato); 
         Fretless_express(fretlessp, finger1, 0, expr);
-        Fretless_down(fretlessp,finger2,noteHi,polyGroup2,velocity,legato); 
+//        Fretless_down(fretlessp,finger2,noteHi,polyGroup2,velocity,legato); 
         Fretless_express(fretlessp, finger2, 0, expr);        
     }
 }

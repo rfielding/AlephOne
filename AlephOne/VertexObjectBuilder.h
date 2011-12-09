@@ -18,7 +18,7 @@ struct VertexObject {
 struct VertexObjectBuilder* VertexObjectBuilder_init(void* (*allocFn)(unsigned long));
 
 void VertexObjectBuilder_reset(struct VertexObjectBuilder* ctxp);
-void VertexObjectBuilder_startObject(struct VertexObjectBuilder* ctxp,int type);
-void VertexObjectBuilder_addVertex(struct VertexObjectBuilder* ctxp,float x,float y,float z,unsigned char cr,unsigned char cg,unsigned char cb, unsigned char ca);
+int VertexObjectBuilder_startObject(struct VertexObjectBuilder* ctxp,int type);
+int VertexObjectBuilder_addVertex(struct VertexObjectBuilder* ctxp,float x,float y,float z,unsigned char cr,unsigned char cg,unsigned char cb, unsigned char ca);
 struct VertexObject* VertexObjectBuilder_getVertex(struct VertexObjectBuilder* ctxp,int idx);
 int VertexObjectBuilder_getVertexCount(struct VertexObjectBuilder* ctxp);

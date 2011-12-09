@@ -50,6 +50,12 @@ void PitchHandler_setColCount(float colCount);
 
 
 
+//Moveable fret generator
+void PitchHandler_clearFrets();
+void PitchHandler_placeFret(float pitch);
+void PitchHandler_getFretsBegin();
+int PitchHandler_getFret(float* pitch,float* x,float* y);
+float PitchHandler_getTarget(float pitch);
 
 //Given where the finger is (in pitch terms), and whether it's moving (or just begin),
 //Compute the adjusted pitch for where this finger is beginning from, the end pitch it wants to go to.
