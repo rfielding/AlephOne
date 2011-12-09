@@ -331,13 +331,6 @@ int PitchHandler_getFret(float* pitch,float* x,float* y)
     //printf("fretIterator=%d fretStringShift=%f fretStringLocation=%d pitch=%f    (%f,%f)\n",fretIterator,fretStringShift,fretStringLocation,*pitch,*x,*y);    
     
     fretIterator++;
-    if(fretOffsetY < rowCount)
-    {
-        return 1;
-    }
-    else
-    {
-        return 0;
-    }
+    return (fretOffsetY < rowCount);
 }
 

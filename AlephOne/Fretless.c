@@ -337,7 +337,7 @@ static void Fretless_fnoteToNoteBendPair(struct Fretless_context* ctxp, float fn
     //Find the closest 12ET note
     *notep = (int)(fnote+0.5);
     //Compute the bend in terms of -1.0 to 1.0 range
-    float floatBend = (fnote - *notep)*2;
+    float floatBend = (fnote - *notep);
     *bendp = (BENDCENTER + floatBend*BENDCENTER/ctxp->channelBendSemis);
 }
 
@@ -492,6 +492,7 @@ void Fretless_setCurrentBend(struct Fretless_context* ctxp, int finger)
         Fretless_numTo7BitNums(fsPtr->bend, &lo, &hi);
         ctxp->midiPutch(lo);
         ctxp->midiPutch(hi);   
+        //ctxp->logger("%d:%d\n", fsPtr->channel, fsPtr->bend);
     }      
 }
 
@@ -587,9 +588,12 @@ void Fretless_down(struct Fretless_context* ctxp, int finger,float fnote,int pol
     
     //See if we just took over in our poly group
     int fingerTurningOff = Fretless_link(ctxp,finger);
-    
     Fretless_setCurrentBend(ctxp, finger);
     
+    if(finger != ctxp->channels[fsPtr->channel].currentFingerInChannel)
+    {
+        ctxp->fail("finger %d should be current in channel because it's note down\n",finger);        
+    }
     if(fingerTurningOff != NOBODY)
     {    
         struct Fretless_fingerState* turningOffPtr = &ctxp->fingers[fingerTurningOff];        
