@@ -55,6 +55,7 @@ BOOL isInitialized = FALSE;
         PitchHandler_placeFret(5.0);
         PitchHandler_placeFret(7.0);
         PitchHandler_placeFret(8.0);
+        PitchHandler_placeFret(8.5);
         PitchHandler_placeFret(10.0);
         PitchHandler_placeFret(11.0);
         PitchHandler_placeFret(11.5);
