@@ -71,6 +71,7 @@ BOOL isInitialized = FALSE;
         PitchHandler_setRowCount(3);
         PitchHandler_setNoteDiff(45); //make B the bottom corner.. C is 0 in MIDI
         //PitchHandler_setTuneInterval(7);
+        PitchHandler_setTuneSpeed(0.25);
         
         GenericTouchHandling_touchesInit();
         isInitialized=TRUE;
@@ -175,7 +176,12 @@ BOOL isInitialized = FALSE;
 
 - (void)tick
 {
-    GenericTouchHandling_tick();            
+    tickClock++;
+    tickClock%=4;
+    if(tickClock==0)
+    {
+        GenericTouchHandling_tick();                    
+    }
 }
 
 
