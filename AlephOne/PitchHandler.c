@@ -261,7 +261,7 @@ struct FingerInfo* PitchHandler_pickPitch(int finger,int isMoving,float x,float 
     noteDiffByFinger[finger] = noteDiffOurs;        
 
     
-    fingers[finger].pitchX = fingers[finger].fingerX + (targetDrift + 0.5)/colCount;
+    fingers[finger].pitchX = fingers[finger].fingerX + (yDiffByFinger[finger] + 0.5)/colCount;
     fingers[finger].pitchY = fingers[finger].fingerY;
     fingers[finger].pitch = thisPitch;
     

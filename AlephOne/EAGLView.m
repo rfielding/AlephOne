@@ -163,12 +163,7 @@ BOOL isInitialized = FALSE;
 
 - (void)tick
 {
-    tickClock++;
-    tickClock%=10;
-    if(tickClock==0)
-    {
-        GenericTouchHandling_tick();            
-    }
+    GenericTouchHandling_tick();            
 }
 
 

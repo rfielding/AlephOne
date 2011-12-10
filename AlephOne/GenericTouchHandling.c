@@ -95,6 +95,7 @@ void GenericTouchHandling_tick()
         struct FingerInfo* fingerInfo = PitchHandler_fingerState(finger);
         if(fingerInfo->isActive)
         {
+            PitchHandler_pickPitch(finger,1,fingerInfo->fingerX,fingerInfo->fingerY);
             Fretless_move(fretlessp,finger,fingerInfo->pitch,fingerInfo->string);            
         }
     }
