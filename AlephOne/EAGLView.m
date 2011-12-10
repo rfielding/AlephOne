@@ -163,7 +163,12 @@ BOOL isInitialized = FALSE;
 
 - (void)tick
 {
-    //    Fretless_tick(fretlessp);
+    tickClock++;
+    tickClock%=10;
+    if(tickClock==0)
+    {
+        GenericTouchHandling_tick();            
+    }
 }
 
 

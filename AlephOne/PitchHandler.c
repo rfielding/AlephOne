@@ -340,3 +340,4 @@ int PitchHandler_getFret(float* pitch,float* x,float* y)
     return (fretOffsetY < rowCount);
 }
 
+
