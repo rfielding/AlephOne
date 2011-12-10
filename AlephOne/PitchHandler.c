@@ -13,7 +13,7 @@
 #define FINGERMAX 16
 #define NOBODY -1
 static float tuneInterval = 5; //4.9804499913461244;  //12*log2f(4.0/3); //is Just intonation btw
-static float tuneSpeed = 0.025;
+static float tuneSpeed = 0.1;
 static float rowCount = 3;
 static float colCount = 5;
 static float noteDiff = (48-1);
@@ -25,6 +25,14 @@ static float fretOffsetY=0;
 static float fretOffsetX=0;
 static float fretOffsetYInitial=0.5;
 static float fretOffsetXInitial=0.5;
+
+
+static int   lastFingerDown = NOBODY;
+static float lastNoteDown = 0;
+static int   noteDiffOurs = 0;
+static float   noteDiffByFinger[FINGERMAX];
+static float   pitchDiffByFinger[FINGERMAX];
+
 
 struct FingerInfo fingers[FINGERMAX];
 
@@ -196,11 +204,7 @@ struct FingerInfo* PitchHandler_pickPitch(int finger,int isMoving,float x,float 
     
     float thisPitch = fingers[finger].pitchRaw;
     
-    static int   lastFingerDown = NOBODY;
-    static float lastNoteDown = 0;
-    static int   noteDiffOurs = 0;
-    static float   noteDiffByFinger[FINGERMAX];
-    static float   yDiffByFinger[FINGERMAX];
+
     
     if( isMoving )
     {
@@ -221,13 +225,16 @@ struct FingerInfo* PitchHandler_pickPitch(int finger,int isMoving,float x,float 
     float targetDrift = (fingers[finger].endPitch - thisPitch);
     if( isMoving )
     {
-        yDiffByFinger[finger] = (1 - tuneSpeed) * yDiffByFinger[finger] + tuneSpeed * targetDrift;                
+        float pitchDiff = fabs(fingers[finger].beginPitch - fingers[finger].endPitch);
+        float tuneRate = tuneSpeed * pitchDiff;
+        
+        pitchDiffByFinger[finger] = (1 - tuneRate) * pitchDiffByFinger[finger] + tuneRate * targetDrift;                
     }
     else
     {
-        yDiffByFinger[finger] = targetDrift;        
+        pitchDiffByFinger[finger] = targetDrift;        
     }
-    thisPitch += yDiffByFinger[finger];
+    thisPitch += pitchDiffByFinger[finger];
     
     if(finger == lastFingerDown)
     {
@@ -261,7 +268,7 @@ struct FingerInfo* PitchHandler_pickPitch(int finger,int isMoving,float x,float 
     noteDiffByFinger[finger] = noteDiffOurs;        
 
     
-    fingers[finger].pitchX = fingers[finger].fingerX + (yDiffByFinger[finger] + 0.5)/colCount;
+    fingers[finger].pitchX = fingers[finger].fingerX + (pitchDiffByFinger[finger] + 0.5)/colCount;
     fingers[finger].pitchY = fingers[finger].fingerY;
     fingers[finger].pitch = thisPitch;
     
