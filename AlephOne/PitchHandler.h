@@ -67,7 +67,7 @@ void PitchHandler_unpickPitch(int finger);
 float PitchHandler_getTuneSpeed();
 void PitchHandler_setTuneSpeed(float tuneSpeed);
 
-//Transpose in 12ET notes
-float PitchHandler_getNoteDiff();
-void PitchHandler_setNoteDiff(float noteDiff);
+//Move interface 12ET notes
+int PitchHandler_getNoteDiff();
+void PitchHandler_setNoteDiff(int noteDiff);
 

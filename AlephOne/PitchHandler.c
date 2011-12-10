@@ -16,7 +16,7 @@ static float tuneInterval = 5; //4.9804499913461244;  //12*log2f(4.0/3); //is Ju
 static float tuneSpeed = 0.1;
 static float rowCount = 3;
 static float colCount = 5;
-static float noteDiff = (12*4); //(48-1);
+static int noteDiff = (12*4); //(48-1);
 
 static float frets[1024];
 static int fretsUsed=0;
@@ -176,12 +176,12 @@ void PitchHandler_setColCount(float colCountArg)
     colCount = colCountArg;
 }
 
-float PitchHandler_getNoteDiff()
+int PitchHandler_getNoteDiff()
 {
     return noteDiff;
 }
 
-void PitchHandler_setNoteDiff(float noteDiffArg)
+void PitchHandler_setNoteDiff(int noteDiffArg)
 {
     noteDiff = noteDiffArg;
 }
@@ -292,7 +292,8 @@ void PitchHandler_placeFret(float pitch)
 
 void PitchHandler_getFretsBegin()
 {
-    fretIterator=-fretsUsed;
+    //Not sure why I have to compensate, as I thought octave rounding was out of this problem
+    fretIterator=-4*fretsUsed;
     fretOffsetY=fretOffsetYInitial;
     fretOffsetX=fretOffsetXInitial;
 }
@@ -323,9 +324,8 @@ float PitchHandler_getTarget(float pitch)
 
 int PitchHandler_getFret(float* pitch,float* x,float* y)
 {
-    //int octave = (int)floorf(1.0 * fretIterator / fretsUsed);
-    //float pitchVal = 12.0 * octave + frets[(fretIterator+fretsUsed) % fretsUsed];
-    float pitchVal = PitchHandler_getPitchFromFret(fretIterator);
+    //TODO: I have NO idea why the noteDiff thing comes into play
+    float pitchVal = PitchHandler_getPitchFromFret(fretIterator)+(48-noteDiff);
     
     if(pitchVal+fretOffsetX > colCount)
     {
