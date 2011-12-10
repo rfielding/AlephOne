@@ -321,8 +321,14 @@ int PitchHandler_getFret(float* pitch,float* x,float* y)
     
     if(pitchVal+fretOffsetX > colCount)
     {
-        fretOffsetX -= tuneInterval;
+        //We went off the right edge of the screen
+        //so move up a string
         fretOffsetY+=1;
+        //Move back an octave in addition to the tuning interval
+        fretOffsetX -= tuneInterval + 12;
+        //and move back an octave number of frets
+        fretIterator -= fretsUsed;
+        //notice that we ASSUME that the screen doesn't get wider than an octave here!
     }
     
     *pitch = pitchVal;

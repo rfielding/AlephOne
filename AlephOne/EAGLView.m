@@ -46,7 +46,7 @@ BOOL isInitialized = FALSE;
     if(isInitialized==FALSE)
     {
         PitchHandler_clockwiseOrientation();
-
+        
         //Set up a quartertone scale
         PitchHandler_clearFrets();
         PitchHandler_placeFret(0.0);
@@ -55,10 +55,10 @@ BOOL isInitialized = FALSE;
         PitchHandler_placeFret(5.0);
         PitchHandler_placeFret(7.0);
         PitchHandler_placeFret(8.0);
-        PitchHandler_placeFret(8.5);
         PitchHandler_placeFret(10.0);
-        PitchHandler_placeFret(11.0);
-        PitchHandler_placeFret(11.5);
+        
+        PitchHandler_setColCount(5);
+        PitchHandler_setRowCount(3);
         
         GenericTouchHandling_touchesInit();
         isInitialized=TRUE;
