@@ -104,7 +104,7 @@ void GenericRendering_dynamic()
     float x=0;
     float y=0;
     PitchHandler_getFretsBegin();
-    int canAdd=100;
+    int canAdd=1000;
     
     while(PitchHandler_getFret(&pitch, &x, &y) && canAdd)
     {

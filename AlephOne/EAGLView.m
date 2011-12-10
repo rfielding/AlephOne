@@ -47,18 +47,26 @@ BOOL isInitialized = FALSE;
     {
         PitchHandler_clockwiseOrientation();
         
+        //PitchHandler_setNoteDiff(48);
+        
         //Set up a quartertone scale
         PitchHandler_clearFrets();
         PitchHandler_placeFret(0.0);
         PitchHandler_placeFret(1.0);
+        PitchHandler_placeFret(2.0);
         PitchHandler_placeFret(3.0);
+        PitchHandler_placeFret(4.0);
         PitchHandler_placeFret(5.0);
+        PitchHandler_placeFret(6.0);
         PitchHandler_placeFret(7.0);
         PitchHandler_placeFret(8.0);
+        PitchHandler_placeFret(9.0);
         PitchHandler_placeFret(10.0);
+        PitchHandler_placeFret(11.0);
         
         PitchHandler_setColCount(5);
         PitchHandler_setRowCount(3);
+        //PitchHandler_setTuneInterval(7);
         
         GenericTouchHandling_touchesInit();
         isInitialized=TRUE;

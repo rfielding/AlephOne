@@ -16,7 +16,7 @@ static float tuneInterval = 5; //4.9804499913461244;  //12*log2f(4.0/3); //is Ju
 static float tuneSpeed = 0.1;
 static float rowCount = 3;
 static float colCount = 5;
-static float noteDiff = (48-1);
+static float noteDiff = (12*4); //(48-1);
 
 static float frets[1024];
 static int fretsUsed=0;
@@ -299,8 +299,8 @@ void PitchHandler_getFretsBegin()
 
 float PitchHandler_getPitchFromFret(int fret)
 {
-    int octave = (int)floorf(fret / fretsUsed);
-    return 12.0 * octave + frets[((int)floorf(fret+fretsUsed)) % fretsUsed] - 1;    
+    int octave = (int)floorf(1.0 * fret / fretsUsed);
+    return 12.0 * octave + frets[(fret+10*fretsUsed) % fretsUsed];
 }
 
 float PitchHandler_getTarget(float pitch)
@@ -323,8 +323,9 @@ float PitchHandler_getTarget(float pitch)
 
 int PitchHandler_getFret(float* pitch,float* x,float* y)
 {
-    int octave = (int)floorf(1.0 * fretIterator / fretsUsed);
-    float pitchVal = 12.0 * octave + frets[(fretIterator+fretsUsed) % fretsUsed];
+    //int octave = (int)floorf(1.0 * fretIterator / fretsUsed);
+    //float pitchVal = 12.0 * octave + frets[(fretIterator+fretsUsed) % fretsUsed];
+    float pitchVal = PitchHandler_getPitchFromFret(fretIterator);
     
     if(pitchVal+fretOffsetX > colCount)
     {
@@ -341,10 +342,9 @@ int PitchHandler_getFret(float* pitch,float* x,float* y)
     *pitch = pitchVal;
     *x = (pitchVal+fretOffsetX)/colCount;
     *y = (fretOffsetY)/rowCount;
-    //printf("fretIterator=%d fretStringShift=%f fretStringLocation=%d pitch=%f    (%f,%f)\n",fretIterator,fretStringShift,fretStringLocation,*pitch,*x,*y);    
     
     fretIterator++;
-    return (fretOffsetY < rowCount);
+    return (fretOffsetY < rowCount+1);
 }
 
 
