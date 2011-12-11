@@ -74,6 +74,8 @@ BOOL isInitialized = FALSE;
         PitchHandler_setTuneSpeed(0.25);
         
         GenericTouchHandling_touchesInit();
+        GenericTouchHandling_setChorusLevel(0.25);
+        
         isInitialized=TRUE;
     }
     return self;

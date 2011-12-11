@@ -14,6 +14,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+static float chorusLevel = 0.25;
 
 static struct Fretless_context* fretlessp = NULL;
 
@@ -26,7 +27,6 @@ void GenericTouchHandling_touchesInit()
 {
     fretlessp = Fretless_init(CoreMIDIRenderer_midiPutch,CoreMIDIRenderer_midiFlush,malloc,CoreMIDIRenderer_midiFail,CoreMIDIRenderer_midiPassed,printf);
     CoreMIDIRenderer_midiInit(fretlessp);
-    //Fretless_setMidiHintChannelSpan(fretlessp, 1);
     Fretless_boot(fretlessp);     
 }
 
@@ -37,45 +37,45 @@ void GenericTouchHandling_touchesUp(void* touch)
     {
         CoreMIDIRenderer_midiFail("touch did not map to a finger1");   
     }
-//    int finger2 = TouchMapping_mapFinger2(fretlessp, touch);
-//    if(finger < 0)
-//    {
-//        CoreMIDIRenderer_midiFail("touch did not map to a finger2");   
-//    }
+    int finger2 = TouchMapping_mapFinger2(fretlessp, touch);
+    if(finger < 0)
+    {
+        CoreMIDIRenderer_midiFail("touch did not map to a finger2");   
+    }
     PitchHandler_unpickPitch(finger);
     Fretless_up(fretlessp, finger);
-//    Fretless_up(fretlessp, finger2);
+    Fretless_up(fretlessp, finger2);
     TouchMapping_unmapFinger(fretlessp,touch);
-//    TouchMapping_unmapFinger2(fretlessp,touch);    
+    TouchMapping_unmapFinger2(fretlessp,touch);    
 }
 
 void GenericTouchHandling_touchesDown(void* touch,int isMoving,float x,float y)
 {
     int finger1;
-//    int finger2;
+    int finger2;
     finger1  = TouchMapping_mapFinger(fretlessp, touch);
     if(finger1 < 0)
     {
         CoreMIDIRenderer_midiFail("touch did not map to a finger1");   
     }    
-//    finger2  = TouchMapping_mapFinger2(fretlessp, touch);
-//    if(finger2 < 0)
-//    {
-//        CoreMIDIRenderer_midiFail("touch did not map to a finger2");   
-//    }    
+    finger2  = TouchMapping_mapFinger2(fretlessp, touch);
+    if(finger2 < 0)
+    {
+        CoreMIDIRenderer_midiFail("touch did not map to a finger2");   
+    }    
     struct FingerInfo* fingerInfo = PitchHandler_pickPitch(finger1,isMoving,x,y);
     float note = fingerInfo->pitch;
     int polygroup = fingerInfo->string;
     float expr = fingerInfo->expr;
     int polyGroup1 = polygroup;
-//    int polyGroup2 = polygroup+8;
-    float dx = (expr*expr*expr*expr)*0.25;
+    int polyGroup2 = polygroup+8;
+    float dx = (expr*expr*expr*expr)*chorusLevel;
     if(isMoving)
     {
         Fretless_move(fretlessp,finger1,note-dx,polyGroup1);
         Fretless_express(fretlessp, finger1, 0, expr);
-//        Fretless_move(fretlessp,finger2,note+dx,polyGroup2);
-//        Fretless_express(fretlessp, finger2, 0, expr);        
+        Fretless_move(fretlessp,finger2,note+dx,polyGroup2);
+        Fretless_express(fretlessp, finger2, 0, expr);        
     }
     else
     {
@@ -83,8 +83,8 @@ void GenericTouchHandling_touchesDown(void* touch,int isMoving,float x,float y)
         int legato = 0;
         Fretless_down(fretlessp,finger1, note-dx,polyGroup1,velocity,legato); 
         Fretless_express(fretlessp, finger1, 0, expr);
-//        Fretless_down(fretlessp,finger2,note+dx,polyGroup2,velocity,legato); 
-//        Fretless_express(fretlessp, finger2, 0, expr);        
+        Fretless_down(fretlessp,finger2,note+dx,polyGroup2,velocity,legato); 
+        Fretless_express(fretlessp, finger2, 0, expr);        
     }
 }
 
@@ -92,13 +92,31 @@ void GenericTouchHandling_tick()
 {
     for(int finger=0; finger<16; finger++)
     {
+        //We get the second finger associated with this one.  We don't know which one is the
+        //original, associated with the real touch, so we take finger<finger2 to be the
+        //pairing we choose
+        int finger2 = TouchMapping_finger2FromFinger1(fretlessp,finger);
+        //Only the real finger will show up as active
         struct FingerInfo* fingerInfo = PitchHandler_fingerState(finger);
         if(fingerInfo->isActive)
         {
+            float expr = fingerInfo->expr;
+            float dx = (expr*expr*expr*expr)*chorusLevel;
             PitchHandler_pickPitch(finger,1,fingerInfo->fingerX,fingerInfo->fingerY);
-            Fretless_move(fretlessp,finger,fingerInfo->pitch,fingerInfo->string);            
-        }
+            Fretless_move(fretlessp,finger,fingerInfo->pitch-dx,fingerInfo->string);            
+            Fretless_move(fretlessp,finger2,fingerInfo->pitch+dx,fingerInfo->string);            
+        }            
     }
     Fretless_flush(fretlessp);
 }
 
+
+float GenericTouchHandling_getChorusLevel()
+{
+    return chorusLevel;
+}
+
+void GenericTouchHandling_setChorusLevel(float chorus)
+{
+    chorusLevel = chorus;
+}

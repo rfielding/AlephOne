@@ -62,6 +62,12 @@ void TouchMapping_unmapFinger2(struct Fretless_context* ctxp, void* touch)
     TouchMapping_unmapFinger(ctxp, (void*)((int)touch ^ 0xFFFFFFFF));
 }
 
+int TouchMapping_finger2FromFinger1(struct Fretless_context* ctxp, int finger)
+{
+    void* finger1Touch = utilFingerAlloced[finger];
+    void* finger2 = (void*) ((int)finger1Touch ^ 0xFFFFFFFF);
+    return TouchMapping_mapFinger(ctxp, finger2);
+}
 
 
 

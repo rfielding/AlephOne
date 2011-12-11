@@ -6,6 +6,9 @@
 //  Copyright 2011 Check Point Software. All rights reserved.
 //
 
-void GenericRendering_camera();
+//Done when OpenGL is initialized
 void GenericRendering_setup();
+
+//These are done on every frame
+void GenericRendering_camera();
 void GenericRendering_draw();

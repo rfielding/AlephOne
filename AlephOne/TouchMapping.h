@@ -13,3 +13,5 @@ void TouchMapping_unmapFinger(struct Fretless_context* ctxp, void* touch);
 
 int TouchMapping_mapFinger2(struct Fretless_context* ctxp, void* touch);
 void TouchMapping_unmapFinger2(struct Fretless_context* ctxp, void* touch);
+
+int TouchMapping_finger2FromFinger1(struct Fretless_context* ctxp,int finger);

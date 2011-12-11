@@ -292,7 +292,6 @@ void PitchHandler_placeFret(float pitch)
 
 void PitchHandler_getFretsBegin()
 {
-    //Not sure why I have to compensate, as I thought octave rounding was out of this problem
     fretIterator=-fretsUsed;
     fretOffsetY=fretOffsetYInitial;
     fretOffsetX=fretOffsetXInitial;
@@ -304,6 +303,10 @@ float PitchHandler_getPitchFromFret(int fret)
     return 12.0 * octave + frets[(fret+10*fretsUsed) % fretsUsed];
 }
 
+/**
+ * TODO: this is inappropriate if we have a large number of frets per octave.
+ * It should be a binary search in that case.
+ */
 float PitchHandler_getTarget(float pitch)
 {
     int octaveEst = fretsUsed*floorf(pitch / 12.0);
@@ -324,7 +327,6 @@ float PitchHandler_getTarget(float pitch)
 
 int PitchHandler_getFret(float* pitch,float* x,float* y)
 {
-    //TODO: I have NO idea why the noteDiff thing comes into play
     float pitchVal = PitchHandler_getPitchFromFret(fretIterator)-noteDiff;
     
     if(pitchVal+fretOffsetX > colCount)
