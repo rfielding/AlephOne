@@ -92,9 +92,6 @@ void GenericTouchHandling_tick()
 {
     for(int finger=0; finger<16; finger++)
     {
-        //We get the second finger associated with this one.  We don't know which one is the
-        //original, associated with the real touch, so we take finger<finger2 to be the
-        //pairing we choose
         int finger2 = TouchMapping_finger2FromFinger1(fretlessp,finger);
         //Only the real finger will show up as active
         struct FingerInfo* fingerInfo = PitchHandler_fingerState(finger);

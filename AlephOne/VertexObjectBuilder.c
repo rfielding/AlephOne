@@ -61,12 +61,12 @@ int VertexObjectBuilder_addVertex(struct VertexObjectBuilder* ctxp,float x,float
     return 1;
 }
 
-int VertexObjectBuilder_getVertexCount(struct VertexObjectBuilder* ctxp)
+int VertexObjectBuilder_getVertexObjectsCount(struct VertexObjectBuilder* ctxp)
 {
     return ctxp->vertexObjectsCount;
 }
 
-struct VertexObject* VertexObjectBuilder_getVertex(struct VertexObjectBuilder* ctxp,int idx)
+struct VertexObject* VertexObjectBuilder_getVertexObject(struct VertexObjectBuilder* ctxp,int idx)
 {
     return &ctxp->vertexObjects[idx];
 }

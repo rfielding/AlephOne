@@ -6,6 +6,10 @@
 //  Copyright 2011 Check Point Software. All rights reserved.
 //
 
+//
+//The putch/flush is all that is required for a synth to be embeddable in our API
+//
+
 struct Fretless_context;
 
 void CoreMIDIRenderer_midiInit(struct Fretless_context* fretlessp);

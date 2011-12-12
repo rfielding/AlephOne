@@ -136,10 +136,10 @@ void GenericRendering_dynamic()
 
 void GenericRendering_drawVO(struct VertexObjectBuilder* vobj)
 {
-    int voCount = VertexObjectBuilder_getVertexCount(vobj);
+    int voCount = VertexObjectBuilder_getVertexObjectsCount(vobj);
     for(int o=0; o<voCount;o++)
     {
-        struct VertexObject* vo = VertexObjectBuilder_getVertex(vobj,o);
+        struct VertexObject* vo = VertexObjectBuilder_getVertexObject(vobj,o);
         glVertexPointer(3, GL_FLOAT, 0, vo->vertices);
         glEnableClientState(GL_VERTEX_ARRAY);
         glColorPointer(4, GL_UNSIGNED_BYTE, 0, vo->colors);
