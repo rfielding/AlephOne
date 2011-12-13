@@ -45,6 +45,8 @@ void PitchHandler_setRowCount(float rowCount);
 float PitchHandler_getColCount();
 void PitchHandler_setColCount(float colCount);
 
+int PitchHandler_getOctaveRounding();
+void PitchHandler_setOctaveRounding(int octRound);
 
 
 //Moveable fret generator

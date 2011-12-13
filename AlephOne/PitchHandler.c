@@ -34,6 +34,9 @@ static float   noteDiffByFinger[FINGERMAX];
 static float   pitchDiffByFinger[FINGERMAX];
 static float   tuneInterval[FINGERMAX];
 
+static int doOctaveRounding=1;
+
+
 struct FingerInfo fingers[FINGERMAX];
 
 struct FingerInfo* PitchHandler_fingerState(int finger)
@@ -41,6 +44,15 @@ struct FingerInfo* PitchHandler_fingerState(int finger)
     return &fingers[finger];
 }
 
+int PitchHandler_getOctaveRounding()
+{
+    return doOctaveRounding;
+}
+
+void PitchHandler_setOctaveRounding(int octRound)
+{
+    doOctaveRounding = octRound;
+}
 
 float PitchHandler_getTuneInterval(int string)
 {
@@ -145,17 +157,20 @@ struct FingerInfo* PitchHandler_pickPitch(int finger,int isMoving,float x,float 
     if(finger == lastFingerDown)
     {
         float diff = (thisPitch - lastNoteDown);
-        if(diff > 6.5)
+        if(doOctaveRounding)
         {
-            thisPitch -= 12;
-            noteDiff -= 12;
-            noteDiffOurs -= 12;
-        }
-        if(diff <= -6.5)
-        {
-            thisPitch += 12;
-            noteDiff += 12;
-            noteDiffOurs += 12;
+            if(diff > 6.5)
+            {
+                thisPitch -= 12;
+                noteDiff -= 12;
+                noteDiffOurs -= 12;
+            }
+            if(diff <= -6.5)
+            {
+                thisPitch += 12;
+                noteDiff += 12;
+                noteDiffOurs += 12;
+            }            
         }
         while(thisPitch < -0.5)
         {
