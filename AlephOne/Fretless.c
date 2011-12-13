@@ -258,6 +258,11 @@ void Fretless_setMidiHintChannelSpan(struct Fretless_context* ctxp, int span)
     ctxp->channelSpan = span;
 }
 
+/**
+ Call this AFTER boot to send it to the midi device!
+ 
+ This is called at the end of boot
+ */
 void Fretless_setMidiHintChannelBendSemis(struct Fretless_context* ctxp, int semitones)
 {
     if(semitones < 1 || semitones > 24)
@@ -265,6 +270,35 @@ void Fretless_setMidiHintChannelBendSemis(struct Fretless_context* ctxp, int sem
         ctxp->fail("span < 1 || span > 24 -- MIDI spec limits to 24\n");
     }
     ctxp->channelBendSemis = semitones;
+    if(ctxp->ctxState == CTXSTATE_BOOTED)
+    {
+        //int lsb;
+        //int msb;
+        //Fretless_numTo7BitNums(1223,&lsb,&msb);
+        for(int c = 0; c < ctxp->channelSpan; c++)
+        {
+            int channel = ctxp->channelBase + c;
+            ctxp->midiPutch(0xB0 + channel);
+            ctxp->midiPutch(101);
+            ctxp->midiPutch(0);
+            ctxp->midiPutch(0xB0 + channel);
+            ctxp->midiPutch(100);
+            ctxp->midiPutch(0);
+            ctxp->midiPutch(0xB0 + channel);
+            ctxp->midiPutch(6);
+            ctxp->midiPutch(semitones);        
+            ctxp->midiPutch(0xB0 + channel);
+            ctxp->midiPutch(38);
+            ctxp->midiPutch(0);        
+            ctxp->midiPutch(0xB0 + channel);
+            ctxp->midiPutch(101);
+            ctxp->midiPutch(127);
+            ctxp->midiPutch(0xB0 + channel);
+            ctxp->midiPutch(100);
+            ctxp->midiPutch(127);
+            ctxp->logger("set ch%d bend width to %d semitones up/down\n",channel,semitones);
+        }
+    }
 }
 
 
@@ -323,6 +357,7 @@ void Fretless_boot(struct Fretless_context* ctxp)
         ctxp->fail("Fretless_state.channelSpan + Fretless_state.channelBase >= CHANNELMAX\n");
     }
     ctxp->ctxState=CTXSTATE_BOOTED;
+    Fretless_setMidiHintChannelBendSemis(ctxp,ctxp->channelBendSemis);
 }
 
 static int Fretless_limitVal(int low,int val,int high)
@@ -470,12 +505,14 @@ void Fretless_noteTie(struct Fretless_context* ctxp,struct Fretless_fingerState*
     ctxp->midiPutch(0xB0 + channel);
     ctxp->midiPutch(0x06);
     ctxp->midiPutch(note);
+    ///* I am told that the reset is bad for some synths
     ctxp->midiPutch(0xB0 + channel);
     ctxp->midiPutch(0x63);
     ctxp->midiPutch(0x7f);
     ctxp->midiPutch(0xB0 + channel);
     ctxp->midiPutch(0x62);
     ctxp->midiPutch(0x7f);
+     //*/
 }
 
 void Fretless_setCurrentBend(struct Fretless_context* ctxp, int finger)

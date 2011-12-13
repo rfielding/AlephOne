@@ -7,10 +7,7 @@
 //
 
 //Translate from ((0,0),(1,1)) rectangle space into the internal coordinate space
-void PitchHandler_translate(float* xp,float* yp);
-void PitchHandler_getOrientation(float* matrix);
-void PitchHandler_clockwiseOrientation();
-void PitchHandler_xflipOrientation();
+
 
 
 struct FingerInfo

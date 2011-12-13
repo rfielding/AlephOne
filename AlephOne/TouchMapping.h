@@ -6,12 +6,10 @@
 //  Copyright 2011 Check Point Software. All rights reserved.
 //
 
-struct Fretless_context;
+int TouchMapping_mapFinger(void* touch);
+void TouchMapping_unmapFinger(void* touch);
 
-int TouchMapping_mapFinger(struct Fretless_context* ctxp, void* touch);
-void TouchMapping_unmapFinger(struct Fretless_context* ctxp, void* touch);
+int TouchMapping_mapFinger2(void* touch);
+void TouchMapping_unmapFinger2(void* touch);
 
-int TouchMapping_mapFinger2(struct Fretless_context* ctxp, void* touch);
-void TouchMapping_unmapFinger2(struct Fretless_context* ctxp, void* touch);
-
-int TouchMapping_finger2FromFinger1(struct Fretless_context* ctxp,int finger);
+int TouchMapping_finger2FromFinger1(int finger);

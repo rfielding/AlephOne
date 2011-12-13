@@ -28,16 +28,19 @@ void GenericTouchHandling_touchesInit()
     fretlessp = Fretless_init(CoreMIDIRenderer_midiPutch,CoreMIDIRenderer_midiFlush,malloc,CoreMIDIRenderer_midiFail,CoreMIDIRenderer_midiPassed,printf);
     CoreMIDIRenderer_midiInit(fretlessp);
     Fretless_boot(fretlessp);     
+    //Here mostly as an example, and to avoid having to tell people to set it up.  
+    //12 should work just fine
+    //Fretless_setMidiHintChannelBendSemis(fretlessp, 2);
 }
 
 void GenericTouchHandling_touchesUp(void* touch)
 {
-    int finger  = TouchMapping_mapFinger(fretlessp, touch);
+    int finger  = TouchMapping_mapFinger(touch);
     if(finger < 0)
     {
         CoreMIDIRenderer_midiFail("touch did not map to a finger1");   
     }
-    int finger2 = TouchMapping_mapFinger2(fretlessp, touch);
+    int finger2 = TouchMapping_mapFinger2(touch);
     if(finger < 0)
     {
         CoreMIDIRenderer_midiFail("touch did not map to a finger2");   
@@ -45,20 +48,20 @@ void GenericTouchHandling_touchesUp(void* touch)
     PitchHandler_unpickPitch(finger);
     Fretless_up(fretlessp, finger);
     Fretless_up(fretlessp, finger2);
-    TouchMapping_unmapFinger(fretlessp,touch);
-    TouchMapping_unmapFinger2(fretlessp,touch);    
+    TouchMapping_unmapFinger(touch);
+    TouchMapping_unmapFinger2(touch);    
 }
 
 void GenericTouchHandling_touchesDown(void* touch,int isMoving,float x,float y)
 {
     int finger1;
     int finger2;
-    finger1  = TouchMapping_mapFinger(fretlessp, touch);
+    finger1  = TouchMapping_mapFinger(touch);
     if(finger1 < 0)
     {
         CoreMIDIRenderer_midiFail("touch did not map to a finger1");   
     }    
-    finger2  = TouchMapping_mapFinger2(fretlessp, touch);
+    finger2  = TouchMapping_mapFinger2(touch);
     if(finger2 < 0)
     {
         CoreMIDIRenderer_midiFail("touch did not map to a finger2");   
@@ -92,7 +95,7 @@ void GenericTouchHandling_tick()
 {
     for(int finger=0; finger<16; finger++)
     {
-        int finger2 = TouchMapping_finger2FromFinger1(fretlessp,finger);
+        int finger2 = TouchMapping_finger2FromFinger1(finger);
         //Only the real finger will show up as active
         struct FingerInfo* fingerInfo = PitchHandler_fingerState(finger);
         if(fingerInfo->isActive)

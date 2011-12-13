@@ -7,7 +7,6 @@
 //
 
 #include "TouchMapping.h"
-#include "Fretless.h"
 
 #define FINGERMAX 16
 #define NOBODY -1
@@ -15,7 +14,7 @@
 
 static void* utilFingerAlloced[FINGERMAX];
 
-int TouchMapping_mapFinger(struct Fretless_context* ctxp, void* ptr)
+int TouchMapping_mapFinger(void* ptr)
 {
     //return an id if we already allocated one for this pointer
     for(int f=0; f<FINGERMAX; f++)
@@ -38,7 +37,7 @@ int TouchMapping_mapFinger(struct Fretless_context* ctxp, void* ptr)
     return NOBODY;
 }
 
-void TouchMapping_unmapFinger(struct Fretless_context* ctxp, void* ptr)
+void TouchMapping_unmapFinger(void* ptr)
 {
     for(int f=0; f<FINGERMAX; f++)
     {
@@ -52,21 +51,21 @@ void TouchMapping_unmapFinger(struct Fretless_context* ctxp, void* ptr)
 }
 
 //Provide a second mapping for the finger, which is useful for voice doubling
-int TouchMapping_mapFinger2(struct Fretless_context* ctxp, void* touch)
+int TouchMapping_mapFinger2(void* touch)
 {
-    return TouchMapping_mapFinger(ctxp, (void*)((int)touch ^ 0xFFFFFFFF));
+    return TouchMapping_mapFinger((void*)((int)touch ^ 0xFFFFFFFF));
 }
 
-void TouchMapping_unmapFinger2(struct Fretless_context* ctxp, void* touch)
+void TouchMapping_unmapFinger2(void* touch)
 {
-    TouchMapping_unmapFinger(ctxp, (void*)((int)touch ^ 0xFFFFFFFF));
+    TouchMapping_unmapFinger((void*)((int)touch ^ 0xFFFFFFFF));
 }
 
-int TouchMapping_finger2FromFinger1(struct Fretless_context* ctxp, int finger)
+int TouchMapping_finger2FromFinger1(int finger)
 {
     void* finger1Touch = utilFingerAlloced[finger];
     void* finger2 = (void*) ((int)finger1Touch ^ 0xFFFFFFFF);
-    return TouchMapping_mapFinger(ctxp, finger2);
+    return TouchMapping_mapFinger(finger2);
 }
 
 

@@ -8,6 +8,7 @@
 
 /* Begin PBXBuildFile section */
 		493A9D97148B32E00029F6C9 /* GenericRendering.c in Sources */ = {isa = PBXBuildFile; fileRef = 493A9D95148B32E00029F6C9 /* GenericRendering.c */; };
+		4959A8D6149702EB00D4F03B /* Transforms.c in Sources */ = {isa = PBXBuildFile; fileRef = 4959A8D4149702EA00D4F03B /* Transforms.c */; };
 		496862861481FB7600460B4B /* CoreMIDIRenderer.m in Sources */ = {isa = PBXBuildFile; fileRef = 496862851481FB7600460B4B /* CoreMIDIRenderer.m */; };
 		49B39079144914DC008C9F6E /* UIKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 49B39078144914DC008C9F6E /* UIKit.framework */; };
 		49B3907B144914DC008C9F6E /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 49B3907A144914DC008C9F6E /* Foundation.framework */; };
@@ -52,6 +53,8 @@
 /* Begin PBXFileReference section */
 		493A9D95148B32E00029F6C9 /* GenericRendering.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = GenericRendering.c; sourceTree = "<group>"; };
 		493A9D96148B32E00029F6C9 /* GenericRendering.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = GenericRendering.h; sourceTree = "<group>"; };
+		4959A8D4149702EA00D4F03B /* Transforms.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = Transforms.c; sourceTree = "<group>"; };
+		4959A8D5149702EB00D4F03B /* Transforms.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Transforms.h; sourceTree = "<group>"; };
 		496862841481FB7600460B4B /* CoreMIDIRenderer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CoreMIDIRenderer.h; sourceTree = "<group>"; };
 		496862851481FB7600460B4B /* CoreMIDIRenderer.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = CoreMIDIRenderer.m; sourceTree = "<group>"; };
 		49B39074144914DC008C9F6E /* AlephOne.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = AlephOne.app; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -223,6 +226,8 @@
 				49CB083F14888CA3003DEA9D /* PitchHandler.h */,
 				49CB084214888E55003DEA9D /* TouchMapping.c */,
 				49CB084314888E55003DEA9D /* TouchMapping.h */,
+				4959A8D4149702EA00D4F03B /* Transforms.c */,
+				4959A8D5149702EB00D4F03B /* Transforms.h */,
 			);
 			name = Fretless;
 			sourceTree = "<group>";
@@ -349,6 +354,7 @@
 				49CB084A1488C11A003DEA9D /* GenericTouchHandling.c in Sources */,
 				49CB0855148A8F8B003DEA9D /* VertexObjectBuilder.c in Sources */,
 				493A9D97148B32E00029F6C9 /* GenericRendering.c in Sources */,
+				4959A8D6149702EB00D4F03B /* Transforms.c in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

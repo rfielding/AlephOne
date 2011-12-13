@@ -9,6 +9,7 @@
 #include "GenericRendering.h"
 #include "PitchHandler.h"
 #include "VertexObjectBuilder.h"
+#include "Transforms.h"
 #include <OpenGLES/ES1/gl.h>
 #include <stdlib.h>
 
@@ -30,7 +31,7 @@ void GenericRendering_camera()
         0.0f, 0.0f, 1.0f, 0.0f,
         0.0f, 0.0f, 0.0f, 1.0f
     };
-    PitchHandler_getOrientation(scale);
+    Transforms_getOrientation(scale);
     
     glMultMatrixf(scale);
     glScalef(2,2,1);

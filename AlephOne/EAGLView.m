@@ -11,6 +11,8 @@
 #import "EAGLView.h"
 #import "GenericTouchHandling.h"
 #import "PitchHandler.h"
+#import "Fretless.h"
+#import "Transforms.h"
 
 BOOL isInitialized = FALSE;
 
@@ -45,7 +47,7 @@ BOOL isInitialized = FALSE;
     [self setMultipleTouchEnabled:TRUE];
     if(isInitialized==FALSE)
     {
-        PitchHandler_clockwiseOrientation();
+        Transforms_clockwiseOrientation();
         
         //PitchHandler_setNoteDiff(48);
         
@@ -191,7 +193,7 @@ BOOL isInitialized = FALSE;
 {
     float x = [touch locationInView:self].x/framebufferWidth;
     float y = 1 - [touch locationInView:self].y/framebufferHeight;
-    PitchHandler_translate(&x, &y);
+    Transforms_translate(&x, &y);
     GenericTouchHandling_touchesDown(touch,phase == UITouchPhaseMoved,x,y);    
 }
 
