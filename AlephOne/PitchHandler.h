@@ -34,8 +34,8 @@ struct FingerInfo* PitchHandler_pickPitchRaw(int finger,float x,float y);
 struct FingerInfo* PitchHandler_fingerState(int finger);
 
 //Tuning between strings
-float PitchHandler_getTuneInterval();
-void PitchHandler_setTuneInterval(float tuning);
+float PitchHandler_getTuneInterval(int string);
+void PitchHandler_setTuneInterval(int string,float tuning);
 
 //The number of strings
 float PitchHandler_getRowCount();

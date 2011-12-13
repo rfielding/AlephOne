@@ -51,6 +51,10 @@ BOOL isInitialized = FALSE;
         
         //PitchHandler_setNoteDiff(48);
         
+        PitchHandler_setTuneInterval(0,5);
+        PitchHandler_setTuneInterval(1,5+5);
+        PitchHandler_setTuneInterval(2,5+5+5);
+        
         //0.0 is C
         PitchHandler_clearFrets();
         PitchHandler_placeFret(0.0);

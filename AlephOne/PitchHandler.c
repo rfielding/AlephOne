@@ -12,7 +12,7 @@
 
 #define FINGERMAX 16
 #define NOBODY -1
-static float tuneInterval = 5; //4.9804499913461244;  //12*log2f(4.0/3); //is Just intonation btw
+//static float tuneInterval = 5; //4.9804499913461244;  //12*log2f(4.0/3); //is Just intonation btw
 static float tuneSpeed = 0.1;
 static float rowCount = 3;
 static float colCount = 5;
@@ -32,7 +32,7 @@ static float lastNoteDown = 0;
 static int   noteDiffOurs = 0;
 static float   noteDiffByFinger[FINGERMAX];
 static float   pitchDiffByFinger[FINGERMAX];
-
+static float   tuneInterval[FINGERMAX];
 
 struct FingerInfo fingers[FINGERMAX];
 
@@ -42,14 +42,14 @@ struct FingerInfo* PitchHandler_fingerState(int finger)
 }
 
 
-float PitchHandler_getTuneInterval()
+float PitchHandler_getTuneInterval(int string)
 {
-    return tuneInterval;
+    return tuneInterval[string];
 }
 
-void PitchHandler_setTuneInterval(float tuning)
+void PitchHandler_setTuneInterval(int string,float tuning)
 {
-    tuneInterval = tuning;
+    tuneInterval[string] = tuning;
 }
 
 float PitchHandler_getTuneSpeed()
@@ -102,7 +102,7 @@ struct FingerInfo* PitchHandler_pickPitch(int finger,int isMoving,float x,float 
     fingers[finger].string = (rowCount * y);
     fingers[finger].expr = (rowCount*y) - fingers[finger].string;
     float fret = colCount*x;
-    fingers[finger].pitchRaw = (fret + (fingers[finger].string)*tuneInterval); 
+    fingers[finger].pitchRaw = (fret + tuneInterval[fingers[finger].string]); 
     
     fingers[finger].fingerX = x;
     fingers[finger].fingerY = y;
@@ -237,12 +237,12 @@ int PitchHandler_getFret(float* pitch,float* x,float* y)
     
     if(pitchVal+fretOffsetX > colCount)
     {
+        //Move back an octave in addition to the tuning interval
+        //and move back an octave number of frets
+        fretOffsetX -= tuneInterval[(int)fretOffsetY] + 12;
         //We went off the right edge of the screen
         //so move up a string
         fretOffsetY+=1;
-        //Move back an octave in addition to the tuning interval
-        fretOffsetX -= tuneInterval + 12;
-        //and move back an octave number of frets
         fretIterator -= fretsUsed;
         //notice that we ASSUME that the screen doesn't get wider than an octave here!
     }
