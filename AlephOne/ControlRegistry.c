@@ -10,26 +10,28 @@
 
 struct ControlRegistry_Control
 {
-    void (*setValue)(float);
-    float (*getValue)();
-    char* (*getDescription)(float);
+    void (*setValue)(void*,float);
+    float (*getValue)(void*);
+    char* (*getDescription)(void*,float);
     char* name;
     float minValue;
     float maxValue;
     int width;
-    int height;    
+    int height;   
+    void* ctx;
 } _registry[100];
 static int _registrySize = 0;
 
 void  ControlRegistry_AddFloat(
-                               void (*setValue)(float),
-                               float (*getValue)(),
-                               char* (*getDescription)(float),
+                               void (*setValue)(void*,float),
+                               float (*getValue)(void*),
+                               char* (*getDescription)(void*,float),
                                char* name,
                                float minValue,
                                float maxValue,
                                int width,
-                               int height
+                               int height,
+                               void* ctx
                                )
 {
     _registry[_registrySize].setValue = setValue;
@@ -39,7 +41,8 @@ void  ControlRegistry_AddFloat(
     _registry[_registrySize].minValue = minValue;
     _registry[_registrySize].maxValue = maxValue;
     _registry[_registrySize].width = width;
-    _registry[_registrySize].height = height;    
+    _registry[_registrySize].height = height;   
+    _registry[_registrySize].ctx = ctx;
     _registrySize++;
 }
 
@@ -60,17 +63,17 @@ int   ControlRegistry_Type(int idx)
 
 char* ControlRegistry_GetDescription(int idx)
 {
-    return _registry[idx].getDescription(_registry[idx].getValue());
+    return _registry[idx].getDescription(_registry[idx].ctx,_registry[idx].getValue(_registry[idx].ctx));
 }
 
 float ControlRegistry_GetFloat(int idx)
 {
-    return _registry[idx].getValue();
+    return _registry[idx].getValue(_registry[idx].ctx);
 }
 
 void  ControlRegistry_SetFloat(int idx, float val)
 {
-    _registry[idx].setValue(val);
+    _registry[idx].setValue(_registry[idx].ctx,val);
 }
 
 float ControlRegistry_GetFloatMin(int idx)

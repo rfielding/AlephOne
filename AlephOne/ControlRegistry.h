@@ -8,14 +8,15 @@
 
 
 void  ControlRegistry_AddFloat(
-    void (*setValue)(float),
-    float (*getValue)(),
-    char* (*getDescription)(float),
+    void (*setValue)(void*,float),
+    float (*getValue)(void*),
+    char* (*getDescription)(void*,float),
     char* name,
     float minValue,
     float maxValue,
     int width,
-    int height
+    int height,
+    void* ctx
 );
 
 int   ControlRegistry_Count();
