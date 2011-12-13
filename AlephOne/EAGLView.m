@@ -50,38 +50,9 @@ BOOL isInitialized = FALSE;
     {
         Transforms_clockwiseOrientation();
         
-        //PitchHandler_setNoteDiff(48);
-        
-        PitchHandler_setTuneInterval(0,5);
-        PitchHandler_setTuneInterval(1,5+5);
-        PitchHandler_setTuneInterval(2,5+5+5);
-        
-        //0.0 is C
-        PitchHandler_clearFrets();
-        PitchHandler_placeFret(0.0);
-        PitchHandler_placeFret(1.0);
-        PitchHandler_placeFret(2.0);
-        PitchHandler_placeFret(3.0);
-        PitchHandler_placeFret(3.5);
-        PitchHandler_placeFret(4.0);
-        PitchHandler_placeFret(5.0);
-        PitchHandler_placeFret(6.0);
-        PitchHandler_placeFret(7.0);
-        PitchHandler_placeFret(8.0);
-        PitchHandler_placeFret(8.5);
-        PitchHandler_placeFret(9.0);
-        PitchHandler_placeFret(10.0);
-        PitchHandler_placeFret(10.5);
-        PitchHandler_placeFret(11.0);
-        
-        PitchHandler_setColCount(5);
-        PitchHandler_setRowCount(3);
-        PitchHandler_setNoteDiff(45); //make B the bottom corner.. C is 0 in MIDI
-        //PitchHandler_setTuneInterval(7);
-        PitchHandler_setTuneSpeed(0.25);
-        
-        GenericTouchHandling_touchesInit();
-        GenericTouchHandling_setChorusLevel(0.25);
+        struct PitchHandlerContext* phctx = PitchHandler_init(malloc);
+        GenericRendering_init(phctx);
+        GenericTouchHandling_touchesInit(phctx);
         
         isInitialized=TRUE;
     }

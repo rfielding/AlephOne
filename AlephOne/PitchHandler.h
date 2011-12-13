@@ -16,6 +16,8 @@
  * as well.
  */
 
+struct PitchHandlerContext;
+
 struct FingerInfo
 {
     float fingerX;
@@ -33,46 +35,47 @@ struct FingerInfo
     float endPitch;
 };
 
+struct PitchHandlerContext* PitchHandler_init(void* (*allocFn)(unsigned long));
 
 //With x,y that came out of PitchHandler_translate,
-struct FingerInfo* PitchHandler_pickPitchRaw(int finger,float x,float y);
+struct FingerInfo* PitchHandler_pickPitchRaw(struct PitchHandlerContext* ctx, int finger,float x,float y);
 
-struct FingerInfo* PitchHandler_fingerState(int finger);
+struct FingerInfo* PitchHandler_fingerState(struct PitchHandlerContext* ctx, int finger);
 
 //Tuning between strings
-float PitchHandler_getTuneInterval(int string);
-void PitchHandler_setTuneInterval(int string,float tuning);
+float PitchHandler_getTuneInterval(struct PitchHandlerContext* ctx, int string);
+void PitchHandler_setTuneInterval(struct PitchHandlerContext* ctx, int string,float tuning);
 
 //The number of strings
-float PitchHandler_getRowCount();
-void PitchHandler_setRowCount(float rowCount);
+float PitchHandler_getRowCount(struct PitchHandlerContext* ctx);
+void PitchHandler_setRowCount(struct PitchHandlerContext* ctx, float rowCount);
 
 //The number of frets in 12ET
-float PitchHandler_getColCount();
-void PitchHandler_setColCount(float colCount);
+float PitchHandler_getColCount(struct PitchHandlerContext* ctx);
+void PitchHandler_setColCount(struct PitchHandlerContext* ctx, float colCount);
 
-int PitchHandler_getOctaveRounding();
-void PitchHandler_setOctaveRounding(int octRound);
+int PitchHandler_getOctaveRounding(struct PitchHandlerContext* ctx);
+void PitchHandler_setOctaveRounding(struct PitchHandlerContext* ctx, int octRound);
 
 
 //Moveable fret generator
-void PitchHandler_clearFrets();
-void PitchHandler_placeFret(float pitch);
-void PitchHandler_getFretsBegin();
-int PitchHandler_getFret(float* pitch,float* x,float* y);
-float PitchHandler_getTarget(float pitch);
+void PitchHandler_clearFrets(struct PitchHandlerContext* ctx);
+void PitchHandler_placeFret(struct PitchHandlerContext* ctx, float pitch);
+void PitchHandler_getFretsBegin(struct PitchHandlerContext* ctx);
+int PitchHandler_getFret(struct PitchHandlerContext* ctx, float* pitch,float* x,float* y);
+float PitchHandler_getTarget(struct PitchHandlerContext* ctx, float pitch);
 
 //Given where the finger is (in pitch terms), and whether it's moving (or just begin),
 //Compute the adjusted pitch for where this finger is beginning from, the end pitch it wants to go to.
 //The returned pitch is somewhere in between beginPitch and endPitch
-struct FingerInfo* PitchHandler_pickPitch(int finger,int isMoving,float x,float y);
-void PitchHandler_unpickPitch(int finger);
+struct FingerInfo* PitchHandler_pickPitch(struct PitchHandlerContext* ctx, int finger,int isMoving,float x,float y);
+void PitchHandler_unpickPitch(struct PitchHandlerContext* ctx, int finger);
 
 //The rate at which we drift to endPitch
-float PitchHandler_getTuneSpeed();
-void PitchHandler_setTuneSpeed(float tuneSpeed);
+float PitchHandler_getTuneSpeed(struct PitchHandlerContext* ctx);
+void PitchHandler_setTuneSpeed(struct PitchHandlerContext* ctx, float tuneSpeed);
 
 //Move interface 12ET notes
-int PitchHandler_getNoteDiff();
-void PitchHandler_setNoteDiff(int noteDiff);
+int PitchHandler_getNoteDiff(struct PitchHandlerContext* ctx);
+void PitchHandler_setNoteDiff(struct PitchHandlerContext* ctx, int noteDiff);
 

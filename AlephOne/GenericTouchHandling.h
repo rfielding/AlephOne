@@ -6,7 +6,9 @@
 //  Copyright 2011 Check Point Software. All rights reserved.
 //
 
-void GenericTouchHandling_touchesInit();
+struct PitchHandlerContext;
+
+void GenericTouchHandling_touchesInit(struct PitchHandlerContext*);
 void GenericTouchHandling_touchesUp(void* touch);
 void GenericTouchHandling_touchesDown(void* touch,int isMoving,float x,float y);
 void GenericTouchHandling_touchesFlush();

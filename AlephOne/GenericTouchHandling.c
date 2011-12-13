@@ -17,20 +17,52 @@
 static float chorusLevel = 0.25;
 
 static struct Fretless_context* fretlessp = NULL;
+static struct PitchHandlerContext* phctx = NULL;
 
 void GenericTouchHandling_touchesFlush()
 {
     Fretless_flush(fretlessp);    
 }
 
-void GenericTouchHandling_touchesInit()
+void GenericTouchHandling_touchesInit(struct PitchHandlerContext* phctxArg)
 {
+    phctx = phctxArg;
+    
+    //0.0 is C
+    PitchHandler_clearFrets(phctx);
+    PitchHandler_placeFret(phctx,0.0);
+    PitchHandler_placeFret(phctx,1.0);
+    PitchHandler_placeFret(phctx,2.0);
+    PitchHandler_placeFret(phctx,3.0);
+    PitchHandler_placeFret(phctx,3.5);
+    PitchHandler_placeFret(phctx,4.0);
+    PitchHandler_placeFret(phctx,5.0);
+    PitchHandler_placeFret(phctx,6.0);
+    PitchHandler_placeFret(phctx,7.0);
+    PitchHandler_placeFret(phctx,8.0);
+    PitchHandler_placeFret(phctx,8.5);
+    PitchHandler_placeFret(phctx,9.0);
+    PitchHandler_placeFret(phctx,10.0);
+    PitchHandler_placeFret(phctx,10.5);
+    PitchHandler_placeFret(phctx,11.0);
+    
+    PitchHandler_setColCount(phctx,5);
+    PitchHandler_setRowCount(phctx,3);
+    PitchHandler_setNoteDiff(phctx,45); //make B the bottom corner.. C is 0 in MIDI
+    PitchHandler_setTuneSpeed(phctx,0.25);
+    
     fretlessp = Fretless_init(CoreMIDIRenderer_midiPutch,CoreMIDIRenderer_midiFlush,malloc,CoreMIDIRenderer_midiFail,CoreMIDIRenderer_midiPassed,printf);
+    
     CoreMIDIRenderer_midiInit(fretlessp);
+    
     Fretless_boot(fretlessp);     
+    
     //Here mostly as an example, and to avoid having to tell people to set it up.  
     //12 should work just fine
     //Fretless_setMidiHintChannelBendSemis(fretlessp, 2);
+
+    GenericTouchHandling_setChorusLevel(0.25);
+    
 }
 
 void GenericTouchHandling_touchesUp(void* touch)
@@ -45,7 +77,7 @@ void GenericTouchHandling_touchesUp(void* touch)
     {
         CoreMIDIRenderer_midiFail("touch did not map to a finger2");   
     }
-    PitchHandler_unpickPitch(finger);
+    PitchHandler_unpickPitch(phctx,finger);
     Fretless_up(fretlessp, finger);
     Fretless_up(fretlessp, finger2);
     TouchMapping_unmapFinger(touch);
@@ -66,7 +98,7 @@ void GenericTouchHandling_touchesDown(void* touch,int isMoving,float x,float y)
     {
         CoreMIDIRenderer_midiFail("touch did not map to a finger2");   
     }    
-    struct FingerInfo* fingerInfo = PitchHandler_pickPitch(finger1,isMoving,x,y);
+    struct FingerInfo* fingerInfo = PitchHandler_pickPitch(phctx,finger1,isMoving,x,y);
     float note = fingerInfo->pitch;
     int polygroup = fingerInfo->string;
     float expr = fingerInfo->expr;
@@ -97,12 +129,12 @@ void GenericTouchHandling_tick()
     {
         int finger2 = TouchMapping_finger2FromFinger1(finger);
         //Only the real finger will show up as active
-        struct FingerInfo* fingerInfo = PitchHandler_fingerState(finger);
+        struct FingerInfo* fingerInfo = PitchHandler_fingerState(phctx,finger);
         if(fingerInfo->isActive)
         {
             float expr = fingerInfo->expr;
             float dx = (expr*expr*expr*expr)*chorusLevel;
-            PitchHandler_pickPitch(finger,1,fingerInfo->fingerX,fingerInfo->fingerY);
+            PitchHandler_pickPitch(phctx,finger,1,fingerInfo->fingerX,fingerInfo->fingerY);
             Fretless_move(fretlessp,finger,fingerInfo->pitch-dx,fingerInfo->string);            
             Fretless_move(fretlessp,finger2,fingerInfo->pitch+dx,fingerInfo->string);            
         }            

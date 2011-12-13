@@ -15,6 +15,12 @@
 
 struct VertexObjectBuilder* voCtxStatic;
 struct VertexObjectBuilder* voCtxDynamic;
+struct PitchHandlerContext* phctx;
+
+void GenericRendering_init(struct PitchHandlerContext* phctxArg)
+{
+    phctx = phctxArg;
+}
 
 void GenericRendering_camera()
 {
@@ -40,8 +46,8 @@ void GenericRendering_camera()
 
 void GenericRendering_drawBackground()
 {
-    int rows = PitchHandler_getRowCount();
-    int cols = PitchHandler_getColCount();
+    int rows = PitchHandler_getRowCount(phctx);
+    int cols = PitchHandler_getColCount(phctx);
     
     float xscale = 1.0/cols;
     float yscale = 1.0/rows;
@@ -83,8 +89,8 @@ void GenericRendering_drawMoveableFrets()
     float y=0;
     float dx = 0.04;
     float dy = 0.04;
-    PitchHandler_getFretsBegin();
-    while(PitchHandler_getFret(&pitch, &x, &y))
+    PitchHandler_getFretsBegin(phctx);
+    while(PitchHandler_getFret(phctx,&pitch, &x, &y))
     {
         VertexObjectBuilder_addVertex(voCtxDynamic,x, y - dy,0, 0,0,255,200);
         VertexObjectBuilder_addVertex(voCtxDynamic,x + dx, y + dy,0, 0,0,255,200);
@@ -99,7 +105,7 @@ void GenericRendering_drawFingerLocation()
     VertexObjectBuilder_startObject(voCtxDynamic, GL_TRIANGLES);
     for(int f=0; f<16; f++)
     {
-        struct FingerInfo* fInfo = PitchHandler_fingerState(f);
+        struct FingerInfo* fInfo = PitchHandler_fingerState(phctx,f);
         if(fInfo->isActive)
         {
             VertexObjectBuilder_addVertex(voCtxDynamic,fInfo->fingerX, fInfo->fingerY - dy,0, 255,0,0,200);
@@ -116,7 +122,7 @@ void GenericRendering_drawPitchLocation()
     VertexObjectBuilder_startObject(voCtxDynamic, GL_TRIANGLES);
     for(int f=0; f<16; f++)
     {
-        struct FingerInfo* fInfo = PitchHandler_fingerState(f);
+        struct FingerInfo* fInfo = PitchHandler_fingerState(phctx,f);
         if(fInfo->isActive)
         {
             VertexObjectBuilder_addVertex(voCtxDynamic,fInfo->pitchX, fInfo->pitchY - dy,0, 0,255,0,200);
