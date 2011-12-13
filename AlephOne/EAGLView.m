@@ -214,47 +214,26 @@ BOOL isInitialized = FALSE;
 }
 
 
-- (void)handleTouchDown:(UITouch*)touch inPhase:(UITouchPhase) phase
+- (void)handleTouchDown:(NSSet*)touches inPhase:(UITouchPhase)expectPhase
 {
-    float x = [touch locationInView:self].x/framebufferWidth;
-    float y = 1 - [touch locationInView:self].y/framebufferHeight;
-    Transforms_translate(&x, &y);
-    GenericTouchHandling_touchesDown(touch,phase == UITouchPhaseMoved,x,y);    
-}
-
-- (void)touchesBegan:(NSSet *)touches withEvent:(UIEvent *)event {
     NSArray* touchArray = [touches allObjects];
     int touchCount = [touches count];
     for(int t=0; t < touchCount; t++)
     {
         UITouch* touch = [touchArray objectAtIndex:t];
         UITouchPhase phase = [touch phase];
-        if(phase == UITouchPhaseBegan)
+        if(phase == expectPhase)
         {            
-            [self handleTouchDown:touch inPhase: phase];
+            float x = [touch locationInView:self].x/framebufferWidth;
+            float y = 1 - [touch locationInView:self].y/framebufferHeight;
+            Transforms_translate(&x, &y);
+            GenericTouchHandling_touchesDown(touch,phase == UITouchPhaseMoved,x,y); 
         }
     }
-    GenericTouchHandling_touchesFlush();
+    GenericTouchHandling_touchesFlush();    
 }
 
-- (void)touchesMoved:(NSSet *)touches withEvent:(UIEvent *)event {
-    NSArray* touchArray = [touches allObjects];
-    int touchCount = [touches count];
-    for(int t=0; t < touchCount; t++)
-    {
-        UITouch* touch = [touchArray objectAtIndex:t];
-        UITouchPhase phase = [touch phase];
-        if(phase == UITouchPhaseMoved)
-        {
-            [self handleTouchDown:touch inPhase: phase];
-        }
-    }
-    GenericTouchHandling_touchesFlush();
-}
-
-
-
-- (void)touchesEnded:(NSSet *)touches withEvent:(UIEvent *)event
+- (void)handleTouchUp:(NSSet*)touches inPhase:(UITouchPhase)expectPhase
 {
     NSArray* touchArray = [touches allObjects];
     int touchCount = [touchArray count];
@@ -262,28 +241,30 @@ BOOL isInitialized = FALSE;
     {
         UITouch* touch = [touchArray objectAtIndex:t];
         UITouchPhase phase = [touch phase];
-        if(phase==UITouchPhaseEnded)
+        if(phase==expectPhase)
         {
             GenericTouchHandling_touchesUp(touch);
         }
     }
-    GenericTouchHandling_touchesFlush();
+    GenericTouchHandling_touchesFlush();    
+}
+
+- (void)touchesBegan:(NSSet *)touches withEvent:(UIEvent *)event {
+    [self handleTouchDown:touches inPhase:UITouchPhaseBegan];
+}
+
+- (void)touchesMoved:(NSSet *)touches withEvent:(UIEvent *)event {
+    [self handleTouchDown:touches inPhase:UITouchPhaseMoved];
+}
+
+- (void)touchesEnded:(NSSet *)touches withEvent:(UIEvent *)event
+{
+    [self handleTouchUp:touches inPhase:UITouchPhaseEnded];
 }
     
 - (void)touchesCancelled:(NSSet *)touches withEvent:(UIEvent *)event
 {
-    NSArray* touchArray = [touches allObjects];
-    int touchCount = [touchArray count];
-    for(int t=0; t < touchCount; t++)
-    {
-        UITouch* touch = [touchArray objectAtIndex:t];
-        UITouchPhase phase = [touch phase];
-        if(phase==UITouchPhaseCancelled)
-        {
-            GenericTouchHandling_touchesUp(touch);
-        }
-    }
-    GenericTouchHandling_touchesFlush();
+    [self handleTouchUp:touches inPhase:UITouchPhaseCancelled];
 }
 
 @end
