@@ -10,7 +10,6 @@
 
 #import "AlephOneViewController.h"
 #import "EAGLView.h"
-#include "GenericRendering.h"
 
 
 @interface AlephOneViewController ()
@@ -38,14 +37,12 @@
 	self.context = aContext;
 	[aContext release];
 	
-    [(EAGLView *)self.view setContext:context];
-    [(EAGLView *)self.view setFramebuffer];
-        
     animating = FALSE;
     animationFrameInterval = 1;
     self.displayLink = nil;
     
-    GenericRendering_setup();    
+    [(EAGLView *)self.view setup:aContext];
+    
 }
 
 - (void)dealloc
@@ -125,7 +122,7 @@
 - (void)startAnimation
 {
     if (!animating) {
-        CADisplayLink *aDisplayLink = [[UIScreen mainScreen] displayLinkWithTarget:self selector:@selector(drawFrame)];
+        CADisplayLink *aDisplayLink = [[UIScreen mainScreen] displayLinkWithTarget:self.view selector:@selector(drawFrame)];
         [aDisplayLink setFrameInterval:animationFrameInterval];
         [aDisplayLink addToRunLoop:[NSRunLoop currentRunLoop] forMode:NSDefaultRunLoopMode];
         self.displayLink = aDisplayLink;
@@ -142,20 +139,6 @@
         animating = FALSE;
     }
 }
-
-
-
-- (void)drawFrame
-{
-    [(EAGLView *)self.view setFramebuffer];
-    [(EAGLView *)self.view tick];
-        
-    GenericRendering_camera();
-    GenericRendering_draw();
-    
-    [(EAGLView *)self.view presentFramebuffer];
-}
-
 
 
 @end

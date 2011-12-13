@@ -13,6 +13,7 @@
 #import "PitchHandler.h"
 #import "Fretless.h"
 #import "Transforms.h"
+#import "GenericRendering.h"
 
 BOOL isInitialized = FALSE;
 
@@ -93,6 +94,26 @@ BOOL isInitialized = FALSE;
     [context release];
     
     [super dealloc];
+}
+
+- (void)setup:(EAGLContext*)newContext
+{
+    [self setContext:newContext];
+    [self setFramebuffer];    
+    
+    GenericRendering_setup();    
+    
+}
+
+- (void)drawFrame
+{
+    [self setFramebuffer];
+    [self tick];
+    
+    GenericRendering_camera();
+    GenericRendering_draw();
+    
+    [self presentFramebuffer];
 }
 
 - (void)setContext:(EAGLContext *)newContext

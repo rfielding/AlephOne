@@ -6,9 +6,15 @@
 //  Copyright 2011 Check Point Software. All rights reserved.
 //
 
-//Translate from ((0,0),(1,1)) rectangle space into the internal coordinate space
 
-
+/**
+ * All coordinates are in the rectangle ((0,0),(1,1)) at this point, 
+ * so that there are no funny transformations required throughout the code.
+ *
+ * Transforms module changes from the system specific space into this one.
+ * It is important that it match this because the rendering is expected to use it
+ * as well.
+ */
 
 struct FingerInfo
 {

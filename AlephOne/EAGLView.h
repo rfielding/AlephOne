@@ -35,5 +35,7 @@
 - (void)setFramebuffer;
 - (BOOL)presentFramebuffer;
 - (void)tick;
+- (void)setup:(EAGLContext*)newContext;
+- (void)drawFrame;
 
 @end
