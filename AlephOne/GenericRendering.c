@@ -20,9 +20,9 @@ struct VertexObjectBuilder* voCtxDynamic;
 struct PitchHandlerContext* phctx;
 
 static float lightPosition[] = {0, 0, -1,0};
-static float specularAmount[] = {1.0,1.0,1.0,1.0};
-static float diffuseAmount[] = {1.0,1.0,1.0,1.0};
-static float ambientAmount[] = {1.0,1.0,1.0,1.0};
+static float specularAmount[] = {0.7,1.0,1.0,1.0};
+static float diffuseAmount[] = {1.0,0.8,1.0,1.0};
+static float ambientAmount[] = {1.0,1.0,0.9,1.0};
 
 static float scale[16] = {
     1.0f, 0.0f, 0.0f, 0.0f,
@@ -34,8 +34,6 @@ static float scale[16] = {
 void GenericRendering_init(struct PitchHandlerContext* phctxArg)
 {
     phctx = phctxArg;
-    //glEnable(GL_BLEND);
-    //glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 }
 
 void GenericRendering_updateLightOrientation(float x,float y, float z)
@@ -59,17 +57,20 @@ void GenericRendering_camera()
     glScalef(2,2,1);
     glTranslatef(-0.5,-0.5,0);
     
-    /*
-    glEnable(GL_LIGHTING);
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    ///*
+//    glEnable(GL_LIGHTING);
     
     glEnable(GL_LIGHT0);
     glLightfv(GL_LIGHT0, GL_POSITION, lightPosition);
-    glLightfv(GL_LIGHT0, GL_AMBIENT_AND_DIFFUSE, diffuseAmount);
+    glLightfv(GL_LIGHT0, GL_DIFFUSE, diffuseAmount);
+    glLightfv(GL_LIGHT0, GL_AMBIENT, ambientAmount);
     glLightfv(GL_LIGHT0, GL_SPECULAR, specularAmount);
     
-    glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, specularAmount );
-    glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE, diffuseAmount );
-     */ 
+     //*/ 
+    
+//    glClearColor(0.9,0.8,0.3,1.0);
 } 
 
 void GenericRendering_drawBackground()
@@ -172,6 +173,9 @@ void GenericRendering_dynamic()
 void GenericRendering_drawVO(struct VertexObjectBuilder* vobj)
 {
     int voCount = VertexObjectBuilder_getVertexObjectsCount(vobj);
+    glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, specularAmount );
+    glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, diffuseAmount );
+    glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT, ambientAmount );
     for(int o=0; o<voCount;o++)
     {
         struct VertexObject* vo = VertexObjectBuilder_getVertexObject(vobj,o);
