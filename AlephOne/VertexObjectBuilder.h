@@ -10,6 +10,7 @@ struct VertexObjectBuilder;
 
 struct VertexObject {
     float* vertices;
+    float* normals;
     unsigned char* colors;
     int count;
     int type;
@@ -26,7 +27,7 @@ void VertexObjectBuilder_reset(struct VertexObjectBuilder* ctxp);
 int VertexObjectBuilder_startObject(struct VertexObjectBuilder* ctxp,int type);
 
 //Add a vertex to an object
-int VertexObjectBuilder_addVertex(struct VertexObjectBuilder* ctxp,float x,float y,float z,unsigned char cr,unsigned char cg,unsigned char cb, unsigned char ca);
+int VertexObjectBuilder_addVertex(struct VertexObjectBuilder* ctxp,float x,float y,float z,unsigned char cr,unsigned char cg,unsigned char cb, unsigned char ca, float nx,float ny, float nz);
 
 
 //When iterating objects, here is how you get an object to draw it

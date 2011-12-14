@@ -7,15 +7,33 @@
 //
 
 
-#import "PressureSensor.h"
+
+#import <Foundation/Foundation.h>
+#import <UIKit/UIGestureRecognizerSubclass.h>
+
+float PressureSensor_pressure;
+float PressureSensor_xNorm;
+float PressureSensor_yNorm;
+float PressureSensor_zNorm;
+
+
+@interface PressureSensor : NSObject<UIAccelerometerDelegate> {
+@private
+    float lastx;
+    float lasty;
+    float lastz;
+}
+
+
+-(void)setup;
+-(void)accelerometer:(UIAccelerometer *)accelerometer didAccelerate:(UIAcceleration *)acceleration; 
+@end
 
 #define kUpdateFrequency            30.0f
 #define KNumberOfPressureSamples    3
 
 
 @implementation PressureSensor
-@synthesize pressure;
-
 
 - (id)init {
     self = [super init];
@@ -32,7 +50,7 @@
 
 - (void)setup {
     NSLog(@"PressureSensor setup");
-    pressure = CPBPressureNone;
+    PressureSensor_pressure = 0.0;
     
     [[UIAccelerometer sharedAccelerometer] setUpdateInterval:1.0f / kUpdateFrequency];
     [[UIAccelerometer sharedAccelerometer] setDelegate:self];
@@ -53,15 +71,17 @@
     lastx = acceleration.x;
     lasty = acceleration.y;
     lastz = acceleration.z;
-    lastxNorm = acceleration.x / n;
-    lastyNorm = acceleration.y / n;
-    lastzNorm = acceleration.z / n;
-    pressure = v;
+    PressureSensor_xNorm = acceleration.x /n;
+    PressureSensor_yNorm = acceleration.y /n;
+    PressureSensor_zNorm = acceleration.z /n;
+    PressureSensor_pressure = v;
 }
 
 
-- (void)reset {
-    pressure = CPBPressureNone;
-}
 
 @end
+
+void PressureSensor_setup()
+{
+    [[PressureSensor alloc] init];    
+}

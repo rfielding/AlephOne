@@ -14,6 +14,7 @@
 #import "Fretless.h"
 #import "Transforms.h"
 #import "GenericRendering.h"
+#import "PressureSensor.h"
 
 BOOL isInitialized = FALSE;
 
@@ -47,9 +48,8 @@ BOOL isInitialized = FALSE;
     }
     [self setMultipleTouchEnabled:TRUE];
     if(isInitialized==FALSE)
-    {
-        pressureSensor = [[PressureSensor alloc] init];
-        
+    {        
+        PressureSensor_setup();
         Transforms_clockwiseOrientation();
         
         struct PitchHandlerContext* phctx = PitchHandler_init(malloc);
@@ -182,6 +182,11 @@ BOOL isInitialized = FALSE;
     tickClock%=4;
     if(tickClock==0)
     {
+        GenericRendering_updateLightOrientation(
+            PressureSensor_xNorm,
+            PressureSensor_yNorm,
+            PressureSensor_zNorm
+        );
         GenericTouchHandling_tick();                    
     }
 }
@@ -207,9 +212,10 @@ BOOL isInitialized = FALSE;
             if(valFloat != nil)
             {
                 area = ([valFloat floatValue]-4)/7.0;
+                area *= area*area;
             }
-            
-            GenericTouchHandling_touchesDown(touch,phase == UITouchPhaseMoved,x,y, pressureSensor.pressure, area); 
+            //NSLog(@"%f",PressureSensor_pressure);
+            GenericTouchHandling_touchesDown(touch,phase == UITouchPhaseMoved,x,y, PressureSensor_pressure, area); 
         }
     }
     GenericTouchHandling_touchesFlush();    

@@ -18,6 +18,7 @@ struct VertexObjectBuilder
     int vertexObjectsCount;
     float gridVertices[VOVERTEXMAX];
     unsigned char gridColors[VOVERTEXMAX];
+    float gridNormals[VOVERTEXMAX];
     int gridVerticesCount;    
 };
 
@@ -41,12 +42,13 @@ int VertexObjectBuilder_startObject(struct VertexObjectBuilder* ctxp,int type)
     ctxp->vertexObjects[ctxp->vertexObjectsCount].vertices = &ctxp->gridVertices[3*ctxp->gridVerticesCount];
     ctxp->vertexObjects[ctxp->vertexObjectsCount].colors = &ctxp->gridColors[4*ctxp->gridVerticesCount];
     ctxp->vertexObjects[ctxp->vertexObjectsCount].count = 0;
+    ctxp->vertexObjects[ctxp->vertexObjectsCount].normals = &ctxp->gridNormals[3*ctxp->gridVerticesCount];
     ctxp->vertexObjects[ctxp->vertexObjectsCount].type = type;
     ctxp->vertexObjectsCount++;
     return 1;
 }
 
-int VertexObjectBuilder_addVertex(struct VertexObjectBuilder* ctxp,float x,float y,float z,unsigned char cr,unsigned char cg,unsigned char cb, unsigned char ca)
+int VertexObjectBuilder_addVertex(struct VertexObjectBuilder* ctxp,float x,float y,float z,unsigned char cr,unsigned char cg,unsigned char cb, unsigned char ca, float nx, float ny, float nz)
 {
     if(ctxp->vertexObjects[ctxp->vertexObjectsCount].count + 1 >= VOVERTEXMAX)return 0;
     ctxp->gridVertices[3*ctxp->gridVerticesCount + 0] = x;
@@ -56,6 +58,9 @@ int VertexObjectBuilder_addVertex(struct VertexObjectBuilder* ctxp,float x,float
     ctxp->gridColors[4*ctxp->gridVerticesCount + 1] = cg;
     ctxp->gridColors[4*ctxp->gridVerticesCount + 2] = cb;
     ctxp->gridColors[4*ctxp->gridVerticesCount + 3] = ca;
+    ctxp->gridNormals[3*ctxp->gridVerticesCount + 0] = nx;
+    ctxp->gridNormals[3*ctxp->gridVerticesCount + 1] = ny;
+    ctxp->gridNormals[3*ctxp->gridVerticesCount + 2] = nz;
     ctxp->gridVerticesCount++;        
     ctxp->vertexObjects[ctxp->vertexObjectsCount-1].count++;
     return 1;

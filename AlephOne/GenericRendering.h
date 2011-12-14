@@ -9,6 +9,7 @@ struct PitchHandlerContext;
 
 void GenericRendering_init(struct PitchHandlerContext* phctxArg);
 
+void GenericRendering_updateLightOrientation(float x,float y, float z);
 //Done when OpenGL is initialized
 void GenericRendering_setup();
 
