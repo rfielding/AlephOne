@@ -30,21 +30,21 @@ void GenericTouchHandling_touchesInit(struct PitchHandlerContext* phctxArg)
     
     //0.0 is C
     PitchHandler_clearFrets(phctx);
-    PitchHandler_placeFret(phctx,0.0,2);
-    PitchHandler_placeFret(phctx,1.0,2);
-    PitchHandler_placeFret(phctx,2.0,2);
-    PitchHandler_placeFret(phctx,3.0,2);
-    PitchHandler_placeFret(phctx,3.5,2);
-    PitchHandler_placeFret(phctx,4.0,2);
-    PitchHandler_placeFret(phctx,5.0,2);
-    PitchHandler_placeFret(phctx,6.0,2);
-    PitchHandler_placeFret(phctx,7.0,2);
-    PitchHandler_placeFret(phctx,8.0,2);
-    PitchHandler_placeFret(phctx,8.5,2);
-    PitchHandler_placeFret(phctx,9.0,2);
-    PitchHandler_placeFret(phctx,10.0,2);
-    PitchHandler_placeFret(phctx,10.5,2);
-    PitchHandler_placeFret(phctx,11.0,2);
+    PitchHandler_placeFret(phctx,0.0,2); //C
+    PitchHandler_placeFret(phctx,1.0,2); //C#
+    PitchHandler_placeFret(phctx,2.0,4); //D
+    PitchHandler_placeFret(phctx,3.0,2); //D#
+    PitchHandler_placeFret(phctx,3.5,1); //Equarterflat
+    PitchHandler_placeFret(phctx,4.0,2); //E
+    PitchHandler_placeFret(phctx,5.0,3); //F
+    PitchHandler_placeFret(phctx,6.0,2); //F#
+    PitchHandler_placeFret(phctx,7.0,3); //G
+    PitchHandler_placeFret(phctx,8.0,2); //Aflat
+    PitchHandler_placeFret(phctx,8.5,1); //Aquarterflat
+    PitchHandler_placeFret(phctx,9.0,3); //A
+    PitchHandler_placeFret(phctx,10.0,2); //Bflat
+    PitchHandler_placeFret(phctx,10.5,1); //Bquarterflat 
+    PitchHandler_placeFret(phctx,11.0,2); //B
     
     PitchHandler_setColCount(phctx,5);
     PitchHandler_setRowCount(phctx,3);
