@@ -76,8 +76,8 @@ void PitchHandler_setNoteDiff(struct PitchHandlerContext* ctx, int noteDiff);
 
 //Moveable fret generator - this might be broken out into its own class
 void PitchHandler_clearFrets(struct PitchHandlerContext* ctx);
-void PitchHandler_placeFret(struct PitchHandlerContext* ctx, float pitch);
+void PitchHandler_placeFret(struct PitchHandlerContext* ctx, float pitch,int importance);
 void PitchHandler_getFretsBegin(struct PitchHandlerContext* ctx);
-int PitchHandler_getFret(struct PitchHandlerContext* ctx, float* pitch,float* x,float* y);
+int PitchHandler_getFret(struct PitchHandlerContext* ctx, float* pitch,float* x,float* y,int* importance);
 float PitchHandler_getTarget(struct PitchHandlerContext* ctx, float pitch);
 

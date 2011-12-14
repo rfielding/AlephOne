@@ -20,9 +20,9 @@ struct VertexObjectBuilder* voCtxDynamic;
 struct PitchHandlerContext* phctx;
 
 static float lightPosition[] = {0, 0, -1,0};
-static float specularAmount[] = {0.7,1.0,1.0,1.0};
+static float specularAmount[] = {0.0,0.0,0.0,1.0};
 static float diffuseAmount[] = {1.0,0.8,1.0,1.0};
-static float ambientAmount[] = {1.0,1.0,0.9,1.0};
+static float ambientAmount[] = {1.0,1.0,1.0,1.0};
 
 static float scale[16] = {
     1.0f, 0.0f, 0.0f, 0.0f,
@@ -38,8 +38,8 @@ void GenericRendering_init(struct PitchHandlerContext* phctxArg)
 
 void GenericRendering_updateLightOrientation(float x,float y, float z)
 {
-    lightPosition[0] = 5*x;
-    lightPosition[1] = 5*y;
+    lightPosition[0] = 5*x + 5;
+    lightPosition[1] = 5*y + 2;
     lightPosition[2] = 5*z;
     //printf("<%f,%f,%f>\n",x,y,z);
 }
@@ -60,7 +60,7 @@ void GenericRendering_camera()
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     ///*
-//    glEnable(GL_LIGHTING);
+    //glEnable(GL_LIGHTING);
     
     glEnable(GL_LIGHT0);
     glLightfv(GL_LIGHT0, GL_POSITION, lightPosition);
@@ -116,14 +116,15 @@ void GenericRendering_drawMoveableFrets()
     float pitch=0;
     float x=0;
     float y=0;
-    float dx = 0.04;
-    float dy = 0.04;
+    float dx = 0.01;
+    float dy = 0.01;
+    int importance=1;
     PitchHandler_getFretsBegin(phctx);
-    while(PitchHandler_getFret(phctx,&pitch, &x, &y))
+    while(PitchHandler_getFret(phctx,&pitch, &x, &y, &importance))
     {
-        VertexObjectBuilder_addVertex(voCtxDynamic,x, y - dy,0, 0,0,255,200,0,0,1);
-        VertexObjectBuilder_addVertex(voCtxDynamic,x + dx, y + dy,0, 0,0,255,200,0,0,1);
-        VertexObjectBuilder_addVertex(voCtxDynamic,x - dx, y + dy,0, 0,0,255,200,0,0,1);    
+        VertexObjectBuilder_addVertex(voCtxDynamic,x, y - dy*importance,0, 0,0,255,200,0,0,1);
+        VertexObjectBuilder_addVertex(voCtxDynamic,x + dx*importance, y + dy*importance,0, 0,0,255,200,0,0,1);
+        VertexObjectBuilder_addVertex(voCtxDynamic,x - dx*importance, y + dy*importance,0, 0,0,255,200,0,0,1);    
     }      
 }
 

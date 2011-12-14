@@ -22,6 +22,7 @@ struct PitchHandlerContext
     int noteDiff; //(48-1);
 
     float frets[1024];
+    int   fretImportance[1024];
     int fretsUsed;
     int fretIterator;
     float fretOffsetY;
@@ -35,7 +36,7 @@ struct PitchHandlerContext
     float   noteDiffByFinger[FINGERMAX];
     float   pitchDiffByFinger[FINGERMAX];
     float   tuneInterval[FINGERMAX];
-
+    float   tuneIntervalCumulative[FINGERMAX];
     int doOctaveRounding;
     struct FingerInfo fingers[FINGERMAX];
 };
@@ -60,8 +61,7 @@ struct PitchHandlerContext* PitchHandler_init(void* (*allocFn)(unsigned long))
     ctx->doOctaveRounding = 1;
     for(int i=0; i<FINGERMAX; i++)
     {
-        ctx->tuneInterval[i] = i*5;
-        ctx->fingers[i].isActive = 0;
+        PitchHandler_setTuneInterval(ctx, i, 5);
     }
     return ctx;
 }
@@ -89,6 +89,13 @@ float PitchHandler_getTuneInterval(struct PitchHandlerContext* ctx, int string)
 void PitchHandler_setTuneInterval(struct PitchHandlerContext* ctx, int string,float tuning)
 {
     ctx->tuneInterval[string] = tuning;
+    
+    //Set the cumulative tuning intervals
+    ctx->tuneIntervalCumulative[0] = 0;
+    for(int i=1; i<FINGERMAX; i++)
+    {
+        ctx->tuneIntervalCumulative[i] = ctx->tuneIntervalCumulative[i-1] + ctx->tuneInterval[i];        
+    }
 }
 
 float PitchHandler_getTuneSpeed(struct PitchHandlerContext* ctx)
@@ -141,7 +148,7 @@ struct FingerInfo* PitchHandler_pickPitch(struct PitchHandlerContext* ctx, int f
     ctx->fingers[finger].string = (ctx->rowCount * y);
     ctx->fingers[finger].expr = (ctx->rowCount*y) - ctx->fingers[finger].string;
     float fret = ctx->colCount*x;
-    ctx->fingers[finger].pitchRaw = (fret + ctx->tuneInterval[ctx->fingers[finger].string]); 
+    ctx->fingers[finger].pitchRaw = (fret + ctx->tuneIntervalCumulative[ctx->fingers[finger].string]); 
     
     ctx->fingers[finger].fingerX = x;
     ctx->fingers[finger].fingerY = y;
@@ -233,9 +240,10 @@ void PitchHandler_clearFrets(struct PitchHandlerContext* ctx)
 }
 
 //This must span an octave from 0 <= pitch < 12.0, or everything breaks
-void PitchHandler_placeFret(struct PitchHandlerContext* ctx, float pitch)
+void PitchHandler_placeFret(struct PitchHandlerContext* ctx, float pitch, int importance)
 {
     ctx->frets[ctx->fretsUsed] = pitch;
+    ctx->fretImportance[ctx->fretsUsed] = importance;
     ctx->fretsUsed++;
 }
 
@@ -249,7 +257,7 @@ void PitchHandler_getFretsBegin(struct PitchHandlerContext* ctx)
 float PitchHandler_getPitchFromFret(struct PitchHandlerContext* ctx, int fret)
 {
     int octave = (int)floorf(1.0 * fret / ctx->fretsUsed);
-    return 12.0 * octave + ctx->frets[(fret+10*ctx->fretsUsed) % ctx->fretsUsed];
+    return 12.0 * octave + ctx->frets[(fret+12*ctx->fretsUsed) % ctx->fretsUsed];
 }
 
 /**
@@ -274,28 +282,29 @@ float PitchHandler_getTarget(struct PitchHandlerContext* ctx, float pitch)
     return pitchVal;
 }
 
-int PitchHandler_getFret(struct PitchHandlerContext* ctx, float* pitch,float* x,float* y)
+int PitchHandler_getFret(struct PitchHandlerContext* ctx, float* pitch,float* x,float* y,int* importance)
 {
     float pitchVal = PitchHandler_getPitchFromFret(ctx,ctx->fretIterator) - ctx->noteDiff;
     
+    //If we have gone past the right edge of the screen
     if(pitchVal + ctx->fretOffsetX > ctx->colCount)
     {
-        //Move back an octave in addition to the tuning interval
-        //and move back an octave number of frets
-        ctx->fretOffsetX -= ctx->tuneInterval[(int)ctx->fretOffsetY] + 12;
-        //We went off the right edge of the screen
-        //so move up a string
+        //and shift the string while moving to the next
+        ctx->fretOffsetX -= ctx->tuneInterval[(int)ctx->fretOffsetY];
         ctx->fretOffsetY += 1;
+        
+        //go down an octave
         ctx->fretIterator -= ctx->fretsUsed;
-        //notice that we ASSUME that the screen doesn't get wider than an octave here!
+        pitchVal -= 12;
+        //ctx->fretOffsetX -= 12;
     }
     
     *pitch = pitchVal;
     *x = (pitchVal + ctx->fretOffsetX) / ctx->colCount;
     *y = (ctx->fretOffsetY) / ctx->rowCount;
-    
+    *importance = ctx->fretImportance[(ctx->fretIterator + 12*ctx->fretsUsed) % ctx->fretsUsed];
     ctx->fretIterator++;
-    return (ctx->fretOffsetY < ctx->rowCount+1);
+    return *y < 1;
 }
 
 

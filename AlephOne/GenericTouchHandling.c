@@ -30,25 +30,25 @@ void GenericTouchHandling_touchesInit(struct PitchHandlerContext* phctxArg)
     
     //0.0 is C
     PitchHandler_clearFrets(phctx);
-    PitchHandler_placeFret(phctx,0.0);
-    PitchHandler_placeFret(phctx,1.0);
-    PitchHandler_placeFret(phctx,2.0);
-    PitchHandler_placeFret(phctx,3.0);
-    PitchHandler_placeFret(phctx,3.5);
-    PitchHandler_placeFret(phctx,4.0);
-    PitchHandler_placeFret(phctx,5.0);
-    PitchHandler_placeFret(phctx,6.0);
-    PitchHandler_placeFret(phctx,7.0);
-    PitchHandler_placeFret(phctx,8.0);
-    PitchHandler_placeFret(phctx,8.5);
-    PitchHandler_placeFret(phctx,9.0);
-    PitchHandler_placeFret(phctx,10.0);
-    PitchHandler_placeFret(phctx,10.5);
-    PitchHandler_placeFret(phctx,11.0);
+    PitchHandler_placeFret(phctx,0.0,2);
+    PitchHandler_placeFret(phctx,1.0,2);
+    PitchHandler_placeFret(phctx,2.0,2);
+    PitchHandler_placeFret(phctx,3.0,2);
+    PitchHandler_placeFret(phctx,3.5,2);
+    PitchHandler_placeFret(phctx,4.0,2);
+    PitchHandler_placeFret(phctx,5.0,2);
+    PitchHandler_placeFret(phctx,6.0,2);
+    PitchHandler_placeFret(phctx,7.0,2);
+    PitchHandler_placeFret(phctx,8.0,2);
+    PitchHandler_placeFret(phctx,8.5,2);
+    PitchHandler_placeFret(phctx,9.0,2);
+    PitchHandler_placeFret(phctx,10.0,2);
+    PitchHandler_placeFret(phctx,10.5,2);
+    PitchHandler_placeFret(phctx,11.0,2);
     
     PitchHandler_setColCount(phctx,5);
     PitchHandler_setRowCount(phctx,3);
-    PitchHandler_setNoteDiff(phctx,45); //make B the bottom corner.. C is 0 in MIDI
+    PitchHandler_setNoteDiff(phctx,45); //A is bottom corner
     PitchHandler_setTuneSpeed(phctx,0.25);
     
     fretlessp = Fretless_init(CoreMIDIRenderer_midiPutch,CoreMIDIRenderer_midiFlush,malloc,CoreMIDIRenderer_midiFail,CoreMIDIRenderer_midiPassed,printf);
