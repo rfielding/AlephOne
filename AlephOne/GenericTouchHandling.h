@@ -10,7 +10,7 @@ struct PitchHandlerContext;
 
 void GenericTouchHandling_touchesInit(struct PitchHandlerContext*);
 void GenericTouchHandling_touchesUp(void* touch);
-void GenericTouchHandling_touchesDown(void* touch,int isMoving,float x,float y);
+void GenericTouchHandling_touchesDown(void* touch,int isMoving,float x,float y,float velocity,float area);
 void GenericTouchHandling_touchesFlush();
 void GenericTouchHandling_tick();    
 

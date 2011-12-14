@@ -9,6 +9,7 @@
 /* Begin PBXBuildFile section */
 		493A9D97148B32E00029F6C9 /* GenericRendering.c in Sources */ = {isa = PBXBuildFile; fileRef = 493A9D95148B32E00029F6C9 /* GenericRendering.c */; };
 		4959A8D6149702EB00D4F03B /* Transforms.c in Sources */ = {isa = PBXBuildFile; fileRef = 4959A8D4149702EA00D4F03B /* Transforms.c */; };
+		4959A8DA149842BD00D4F03B /* PressureSensor.m in Sources */ = {isa = PBXBuildFile; fileRef = 4959A8D9149842BC00D4F03B /* PressureSensor.m */; };
 		496862861481FB7600460B4B /* CoreMIDIRenderer.m in Sources */ = {isa = PBXBuildFile; fileRef = 496862851481FB7600460B4B /* CoreMIDIRenderer.m */; };
 		49B39079144914DC008C9F6E /* UIKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 49B39078144914DC008C9F6E /* UIKit.framework */; };
 		49B3907B144914DC008C9F6E /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 49B3907A144914DC008C9F6E /* Foundation.framework */; };
@@ -55,6 +56,8 @@
 		493A9D96148B32E00029F6C9 /* GenericRendering.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = GenericRendering.h; sourceTree = "<group>"; };
 		4959A8D4149702EA00D4F03B /* Transforms.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = Transforms.c; sourceTree = "<group>"; };
 		4959A8D5149702EB00D4F03B /* Transforms.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Transforms.h; sourceTree = "<group>"; };
+		4959A8D8149842BB00D4F03B /* PressureSensor.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PressureSensor.h; sourceTree = "<group>"; };
+		4959A8D9149842BC00D4F03B /* PressureSensor.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = PressureSensor.m; sourceTree = "<group>"; };
 		496862841481FB7600460B4B /* CoreMIDIRenderer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CoreMIDIRenderer.h; sourceTree = "<group>"; };
 		496862851481FB7600460B4B /* CoreMIDIRenderer.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = CoreMIDIRenderer.m; sourceTree = "<group>"; };
 		49B39074144914DC008C9F6E /* AlephOne.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = AlephOne.app; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -160,6 +163,8 @@
 		49B39082144914DC008C9F6E /* AlephOne */ = {
 			isa = PBXGroup;
 			children = (
+				4959A8D8149842BB00D4F03B /* PressureSensor.h */,
+				4959A8D9149842BC00D4F03B /* PressureSensor.m */,
 				49B390BC14491549008C9F6E /* Fretless */,
 				49B3908B144914DC008C9F6E /* AlephOneAppDelegate.h */,
 				49B3908C144914DC008C9F6E /* AlephOneAppDelegate.m */,
@@ -355,6 +360,7 @@
 				49CB0855148A8F8B003DEA9D /* VertexObjectBuilder.c in Sources */,
 				493A9D97148B32E00029F6C9 /* GenericRendering.c in Sources */,
 				4959A8D6149702EB00D4F03B /* Transforms.c in Sources */,
+				4959A8DA149842BD00D4F03B /* PressureSensor.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

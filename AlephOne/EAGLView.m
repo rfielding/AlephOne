@@ -48,6 +48,8 @@ BOOL isInitialized = FALSE;
     [self setMultipleTouchEnabled:TRUE];
     if(isInitialized==FALSE)
     {
+        pressureSensor = [[PressureSensor alloc] init];
+        
         Transforms_clockwiseOrientation();
         
         struct PitchHandlerContext* phctx = PitchHandler_init(malloc);
@@ -198,7 +200,16 @@ BOOL isInitialized = FALSE;
             float x = [touch locationInView:self].x/framebufferWidth;
             float y = 1 - [touch locationInView:self].y/framebufferHeight;
             Transforms_translate(&x, &y);
-            GenericTouchHandling_touchesDown(touch,phase == UITouchPhaseMoved,x,y); 
+            
+            //Yes, the forbidden finger area touch is back! (For now anyways)
+            float area = 1.0;
+            id valFloat = [touch valueForKey:@"pathMajorRadius"];
+            if(valFloat != nil)
+            {
+                area = ([valFloat floatValue]-4)/7.0;
+            }
+            
+            GenericTouchHandling_touchesDown(touch,phase == UITouchPhaseMoved,x,y, pressureSensor.pressure, area); 
         }
     }
     GenericTouchHandling_touchesFlush();    

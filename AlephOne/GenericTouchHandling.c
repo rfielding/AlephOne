@@ -84,7 +84,7 @@ void GenericTouchHandling_touchesUp(void* touch)
     TouchMapping_unmapFinger2(touch);    
 }
 
-void GenericTouchHandling_touchesDown(void* touch,int isMoving,float x,float y)
+void GenericTouchHandling_touchesDown(void* touch,int isMoving,float x,float y, float velocity, float area)
 {
     int finger1;
     int finger2;
@@ -114,7 +114,7 @@ void GenericTouchHandling_touchesDown(void* touch,int isMoving,float x,float y)
     }
     else
     {
-        float velocity = 1.0;
+        float velocity = 1.0*velocity*area;
         int legato = 0;
         Fretless_down(fretlessp,finger1, note-dx,polyGroup1,velocity,legato); 
         Fretless_express(fretlessp, finger1, 0, expr);
