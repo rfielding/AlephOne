@@ -30,7 +30,7 @@ void GenericTouchHandling_touchesInit(struct PitchHandlerContext* phctxArg)
     
     //0.0 is C
     PitchHandler_clearFrets(phctx);
-    PitchHandler_placeFret(phctx,0.0,2); //C
+    PitchHandler_placeFret(phctx,0.0,3); //C
     PitchHandler_placeFret(phctx,1.0,2); //C#
     PitchHandler_placeFret(phctx,2.0,4); //D
     PitchHandler_placeFret(phctx,3.0,2); //D#
