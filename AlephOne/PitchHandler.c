@@ -179,12 +179,12 @@ struct FingerInfo* PitchHandler_pickPitch(struct PitchHandlerContext* ctx, int f
  
     //Keep a histogram of fret usage
     fretPicked = (fretPicked+12*ctx->fretsUsed) % ctx->fretsUsed;
-    for(int f=0; f < ctx->fretsUsed; f++)
-    {
-        ctx->fretUsage[f] *= (1.0*(ctx->fretsUsed-1))/ctx->fretsUsed;
-    }
+    //for(int f=0; f < ctx->fretsUsed; f++)
+    //{
+    //    ctx->fretUsage[f] *= (1.0*(ctx->fretsUsed-1))/ctx->fretsUsed;
+    //}
     ctx->fretUsage[ fretPicked ] += 0.5;
-                   
+    
     float targetDrift = (ctx->fingers[finger].endPitch - thisPitch);
     if( isMoving )
     {
@@ -354,4 +354,14 @@ int PitchHandler_getFret(struct PitchHandlerContext* ctx, float* pitch,float* x,
     return *y < 1;
 }
 
+void PitchHandler_tick(struct PitchHandlerContext * ctx)
+{
+    //Keep a histogram of fret usage
+    //int fretPicked = (fretPicked+12*ctx->fretsUsed) % ctx->fretsUsed;
+    for(int f=0; f < ctx->fretsUsed; f++)
+    {
+        ctx->fretUsage[f] *= (1.0*(ctx->fretsUsed-1))/ctx->fretsUsed;
+    }
+    //ctx->fretUsage[ fretPicked ] += 0.25;    
+}
 

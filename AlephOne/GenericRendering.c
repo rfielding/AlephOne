@@ -80,8 +80,8 @@ void GenericRendering_drawBackground()
     
     float xscale = 1.0/cols;
     float yscale = 1.0/rows;
-    float halfXscale = 0.5*xscale;
-    float halfYscale = 0.5*yscale;
+    //float halfXscale = 0.5*xscale;
+    //float halfYscale = 0.5*yscale;
     
     float lx=64*lightPosition[0]+64;
     float ly=64*lightPosition[1]+64;
@@ -132,9 +132,9 @@ void GenericRendering_drawMoveableFrets()
     float dy = 1.0/PitchHandler_getRowCount(phctx);
     int importance=1;
     float usage;
-    float lx=127*lightPosition[0]+127;
-    float ly=127*lightPosition[1]+127;
-    float lz=127*lightPosition[2]+127;
+    //float lx=127*lightPosition[0]+127;
+    //float ly=127*lightPosition[1]+127;
+    //float lz=127*lightPosition[2]+127;
      
     VertexObjectBuilder_startObject(voCtxDynamic, GL_TRIANGLES);
     

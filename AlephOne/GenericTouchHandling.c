@@ -146,6 +146,7 @@ void GenericTouchHandling_tick()
         }            
     }
     Fretless_flush(fretlessp);
+    PitchHandler_tick(phctx);
 }
 
 

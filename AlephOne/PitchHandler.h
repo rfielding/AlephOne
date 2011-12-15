@@ -86,3 +86,5 @@ int PitchHandler_getFret(struct PitchHandlerContext* ctx, float* pitch,float* x,
 //Given a pitch, find the target that it wants to snap to (given the frets in use)
 float PitchHandler_getTarget(struct PitchHandlerContext* ctx, float pitch,int* fretP);
 
+void PitchHandler_tick(struct PitchHandlerContext * ctx);
+
