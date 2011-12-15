@@ -73,11 +73,16 @@ void PitchHandler_setNoteDiff(struct PitchHandlerContext* ctx, int noteDiff);
 
 
 
-
-//Moveable fret generator - this might be broken out into its own class
+//Get rid of existing frets
 void PitchHandler_clearFrets(struct PitchHandlerContext* ctx);
+
+//Frets can be placed in any order
 void PitchHandler_placeFret(struct PitchHandlerContext* ctx, float pitch,int importance);
+
+
 void PitchHandler_getFretsBegin(struct PitchHandlerContext* ctx);
 int PitchHandler_getFret(struct PitchHandlerContext* ctx, float* pitch,float* x,float* y,int* importance);
+
+//Given a pitch, find the target that it wants to snap to (given the frets in use)
 float PitchHandler_getTarget(struct PitchHandlerContext* ctx, float pitch);
 

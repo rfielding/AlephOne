@@ -177,8 +177,7 @@ struct FingerInfo* PitchHandler_pickPitch(struct PitchHandlerContext* ctx, int f
     float targetDrift = (ctx->fingers[finger].endPitch - thisPitch);
     if( isMoving )
     {
-        float pitchDiff = fabs(ctx->fingers[finger].beginPitch - ctx->fingers[finger].endPitch);
-        float tuneRate = ctx->tuneSpeed * pitchDiff;
+        float tuneRate = ctx->tuneSpeed;// * fabs(targetDrift);
         
         ctx->pitchDiffByFinger[finger] = (1 - tuneRate) * ctx->pitchDiffByFinger[finger] + tuneRate * targetDrift;                
     }
@@ -239,11 +238,39 @@ void PitchHandler_clearFrets(struct PitchHandlerContext* ctx)
     ctx->fretsUsed=0;
 }
 
-//This must span an octave from 0 <= pitch < 12.0, or everything breaks
+
 void PitchHandler_placeFret(struct PitchHandlerContext* ctx, float pitch, int importance)
 {
+    //Must be in range 0..12
+    pitch = fmod(pitch,12);
+    
+    //Don't re-add existing values, but allow importance re-assign
+    for(int f=0; f < ctx->fretsUsed; f++)
+    {
+        if(pitch == ctx->frets[f])
+        {
+            //Don't bother adding it, as it's already in here
+            //But you can re-assign the importance
+            ctx->fretImportance[f] = importance;
+            return;
+        }
+    }
+    
     ctx->frets[ctx->fretsUsed] = pitch;
     ctx->fretImportance[ctx->fretsUsed] = importance;
+    
+    int thisFret = ctx->fretsUsed;
+    while(thisFret > 0 && ctx->frets[thisFret] < ctx->frets[thisFret-1])
+    {
+        //Swap and drop down one.  Bubble sort!
+        float p = ctx->frets[thisFret];
+        int i = ctx->fretImportance[thisFret];
+        ctx->frets[thisFret] = ctx->frets[thisFret-1];
+        ctx->fretImportance[thisFret] = ctx->fretImportance[thisFret-1];
+        ctx->frets[thisFret-1] = p;
+        ctx->fretImportance[thisFret-1] = i;
+        thisFret--;
+    }
     ctx->fretsUsed++;
 }
 

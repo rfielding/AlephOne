@@ -30,26 +30,32 @@ void GenericTouchHandling_touchesInit(struct PitchHandlerContext* phctxArg)
     
     //0.0 is C
     PitchHandler_clearFrets(phctx);
-    PitchHandler_placeFret(phctx,0.0,4); //C
-    PitchHandler_placeFret(phctx,1.0,2); //C#
-    PitchHandler_placeFret(phctx,2.0,4); //D
-    PitchHandler_placeFret(phctx,3.0,2); //D#
-    PitchHandler_placeFret(phctx,3.5,1); //Equarterflat
-    PitchHandler_placeFret(phctx,4.0,3); //E
-    PitchHandler_placeFret(phctx,5.0,4); //F
-    PitchHandler_placeFret(phctx,6.0,2); //F#
-    PitchHandler_placeFret(phctx,7.0,4); //G
-    PitchHandler_placeFret(phctx,8.0,2); //Aflat
-    PitchHandler_placeFret(phctx,8.5,1); //Aquarterflat
-    PitchHandler_placeFret(phctx,9.0,4); //A
-    PitchHandler_placeFret(phctx,10.0,2); //Bflat
-    PitchHandler_placeFret(phctx,10.5,1); //Bquarterflat 
-    PitchHandler_placeFret(phctx,11.0,3); //B
+
+    float baseNote = 2.0; //D
+    //First tetrachord
+    PitchHandler_placeFret(phctx,baseNote + 0.0,4);
+    PitchHandler_placeFret(phctx,baseNote + 1.0,2);
+    PitchHandler_placeFret(phctx,baseNote + 1.5,1);
+    PitchHandler_placeFret(phctx,baseNote + 2.0,2);
+    PitchHandler_placeFret(phctx,baseNote + 3.0,3);
+    PitchHandler_placeFret(phctx,baseNote + 4.0,2);
+    //Second tetrachord
+    PitchHandler_placeFret(phctx,baseNote + 0.0 + 5,4);
+    PitchHandler_placeFret(phctx,baseNote + 1.0 + 5,2);
+    PitchHandler_placeFret(phctx,baseNote + 1.5 + 5,1);
+    //Tetrachord from fifth
+    PitchHandler_placeFret(phctx,baseNote + 0.0 + 7,3);
+    PitchHandler_placeFret(phctx,baseNote + 1.0 + 7,2);
+    
+    PitchHandler_placeFret(phctx,baseNote + 1.5 + 7,1);
+    PitchHandler_placeFret(phctx,baseNote + 2.0 + 7,2);
+    PitchHandler_placeFret(phctx,baseNote + 3.0 + 7,3);
+    PitchHandler_placeFret(phctx,baseNote + 4.0 + 7,2);
     
     PitchHandler_setColCount(phctx,5);
     PitchHandler_setRowCount(phctx,3);
     PitchHandler_setNoteDiff(phctx,45); //A is bottom corner
-    PitchHandler_setTuneSpeed(phctx,0.25);
+    PitchHandler_setTuneSpeed(phctx,0.025);
     
     fretlessp = Fretless_init(CoreMIDIRenderer_midiPutch,CoreMIDIRenderer_midiFlush,malloc,CoreMIDIRenderer_midiFail,CoreMIDIRenderer_midiPassed,printf);
     

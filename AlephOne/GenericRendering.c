@@ -12,6 +12,7 @@
 #include "Transforms.h"
 #include <OpenGLES/ES1/gl.h>
 #include <stdlib.h>
+#include <math.h>
 
 //#include <stdio.h>
 
@@ -38,10 +39,9 @@ void GenericRendering_init(struct PitchHandlerContext* phctxArg)
 
 void GenericRendering_updateLightOrientation(float x,float y, float z)
 {
-    lightPosition[0] = 5*x + 5;
-    lightPosition[1] = 5*y + 2;
-    lightPosition[2] = 5*z;
-    //printf("<%f,%f,%f>\n",x,y,z);
+    lightPosition[0] = x;
+    lightPosition[1] = y;
+    lightPosition[2] = z;
 }
 
 void GenericRendering_camera()
@@ -83,13 +83,25 @@ void GenericRendering_drawBackground()
     float halfXscale = 0.5*xscale;
     float halfYscale = 0.5*yscale;
     
+    float lx=64*lightPosition[0]+64;
+    float ly=64*lightPosition[1]+64;
+    float lz=64*lightPosition[2]+64;
+    
     VertexObjectBuilder_startObject(voCtxStatic,GL_TRIANGLE_STRIP);
     
-    VertexObjectBuilder_addVertex(voCtxStatic,0,0,0, 0,0,0,255,0,0,1);
-    VertexObjectBuilder_addVertex(voCtxStatic,1,0,0, 255,0,0,255,0,0,1);
-    VertexObjectBuilder_addVertex(voCtxStatic,0,1,0, 0,255,0,255,0,0,1);
-    VertexObjectBuilder_addVertex(voCtxStatic,1,1,0, 255,255,0,255,0,0,1);
-    
+    VertexObjectBuilder_addVertex(voCtxStatic,0,0,0, 
+                                  lx, ly, lz,
+                                  255,0,0,1);
+    VertexObjectBuilder_addVertex(voCtxStatic,1,0,0, 
+                                  lz, lx, ly,
+                                  255,0,0,1);
+    VertexObjectBuilder_addVertex(voCtxStatic,0,1,0, 
+                                  ly, lz, lx,
+                                  255,0,0,1);
+    VertexObjectBuilder_addVertex(voCtxStatic,1,1,0, 
+                                  lx, lz, ly,
+                                  255,0,0,1);
+    /*
     VertexObjectBuilder_startObject(voCtxStatic,GL_LINES);
     for(int r=0; r<rows; r++)
     {
@@ -100,75 +112,133 @@ void GenericRendering_drawBackground()
         }
         VertexObjectBuilder_addVertex(voCtxStatic,0,yscale*r + halfYscale,0, 0,0,0,255,0,0,1);
         VertexObjectBuilder_addVertex(voCtxStatic,1,yscale*r + halfYscale,0, 0,0,0,255,0,0,1);
-    }    
+    } 
+     */
 }
 
 void GenericRendering_setup()
 {
     voCtxDynamic = VertexObjectBuilder_init(malloc);    
     voCtxStatic = VertexObjectBuilder_init(malloc);
-    GenericRendering_drawBackground();
+    //GenericRendering_drawBackground();
 }
 
 void GenericRendering_drawMoveableFrets()
 {
-    VertexObjectBuilder_startObject(voCtxDynamic, GL_TRIANGLES);
     float pitch=0;
     float x=0;
     float y=0;
     float dx = 0.01;
-    float dy = 0.01;
+    float dy = 1.0/PitchHandler_getRowCount(phctx);
     int importance=1;
+    float lx=127*lightPosition[0]+127;
+    float ly=127*lightPosition[1]+127;
+    float lz=127*lightPosition[2]+127;
+     
+    VertexObjectBuilder_startObject(voCtxDynamic, GL_TRIANGLES);
+    
     PitchHandler_getFretsBegin(phctx);
     while(PitchHandler_getFret(phctx,&pitch, &x, &y, &importance))
     {
-        VertexObjectBuilder_addVertex(voCtxDynamic,x, y - dy*importance,0, 0,0,255,200,0,0,1);
-        VertexObjectBuilder_addVertex(voCtxDynamic,x + dx*importance, y + dy*importance,0, 0,0,255,200,0,0,1);
-        VertexObjectBuilder_addVertex(voCtxDynamic,x - dx*importance, y + dy*importance,0, 0,0,255,200,0,0,1);    
-    }      
+        float dxi = dx*importance;
+        VertexObjectBuilder_addVertex(voCtxDynamic,x,     y   ,0,0,  0,  255,255,0,0,1);            
+        VertexObjectBuilder_addVertex(voCtxDynamic,x-dxi, y   ,0,127,127,255,  0,0,0,1);            
+        VertexObjectBuilder_addVertex(voCtxDynamic,x    , y-dy,0,127,127,255,  0,0,0,1);            
+        
+        VertexObjectBuilder_addVertex(voCtxDynamic,x,     y   ,0,  0,  0,255,255,0,0,1);            
+        VertexObjectBuilder_addVertex(voCtxDynamic,x    , y+dy,0,127,127,255,  0,0,0,1);            
+        VertexObjectBuilder_addVertex(voCtxDynamic,x+dxi, y   ,0,127,127,255,  0,0,0,1);            
+        
+        VertexObjectBuilder_addVertex(voCtxDynamic,x,     y   ,0,  0,  0,255,255,0,0,1);            
+        VertexObjectBuilder_addVertex(voCtxDynamic,x    , y+dy,0,127,127,255,  0,0,0,1);            
+        VertexObjectBuilder_addVertex(voCtxDynamic,x-dxi, y   ,0,127,127,255,  0,0,0,1);            
+        
+        VertexObjectBuilder_addVertex(voCtxDynamic,x,     y   ,0,  0,  0,255,255,0,0,1);            
+        VertexObjectBuilder_addVertex(voCtxDynamic,x+dxi, y   ,0,127,127,255,  0,0,0,1);            
+        VertexObjectBuilder_addVertex(voCtxDynamic,x    , y-dy,0,127,127,255,  0,0,0,1);            
+    }   
+    
+   
 }
+
+
+
 
 void GenericRendering_drawFingerLocation()
 {
-    float dx = 0.035;
-    float dy = 0.035;
+    float dx = 0.05;
+    float dy = 0.3;
+    //float lx=127*lightPosition[0]+127;
+    //float ly=127*lightPosition[1]+127;
+    //float lz=127*lightPosition[2]+127;
     VertexObjectBuilder_startObject(voCtxDynamic, GL_TRIANGLES);
     for(int f=0; f<16; f++)
     {
         struct FingerInfo* fInfo = PitchHandler_fingerState(phctx,f);
         if(fInfo->isActive)
         {
-            VertexObjectBuilder_addVertex(voCtxDynamic,fInfo->fingerX, fInfo->fingerY - dy,0, 255,0,0,200,0,0,1);
-            VertexObjectBuilder_addVertex(voCtxDynamic,fInfo->fingerX + dx, fInfo->fingerY + dy,0, 255,0,0,200,0,0,1);
-            VertexObjectBuilder_addVertex(voCtxDynamic,fInfo->fingerX - dx, fInfo->fingerY + dy,0, 255,0,0,200,0,0,1);            
+            VertexObjectBuilder_addVertex(voCtxDynamic,fInfo->fingerX,    fInfo->fingerY   ,0,255,  0,  0,255,0,0,1);            
+            VertexObjectBuilder_addVertex(voCtxDynamic,fInfo->fingerX-dx, fInfo->fingerY   ,0,255,127,127,  0,0,0,1);            
+            VertexObjectBuilder_addVertex(voCtxDynamic,fInfo->fingerX   , fInfo->fingerY-dy,0,255,127,127,  0,0,0,1);            
+            
+            VertexObjectBuilder_addVertex(voCtxDynamic,fInfo->fingerX,    fInfo->fingerY   ,0,255,  0,  0,255,0,0,1);            
+            VertexObjectBuilder_addVertex(voCtxDynamic,fInfo->fingerX   , fInfo->fingerY+dy,0,255,127,127,  0,0,0,1);            
+            VertexObjectBuilder_addVertex(voCtxDynamic,fInfo->fingerX+dx, fInfo->fingerY   ,0,255,127,127,  0,0,0,1);            
+            
+            VertexObjectBuilder_addVertex(voCtxDynamic,fInfo->fingerX,    fInfo->fingerY   ,0,255,  0,  0,255,0,0,1);            
+            VertexObjectBuilder_addVertex(voCtxDynamic,fInfo->fingerX   , fInfo->fingerY+dy,0,255,127,127,  0,0,0,1);            
+            VertexObjectBuilder_addVertex(voCtxDynamic,fInfo->fingerX-dx, fInfo->fingerY   ,0,255,127,127,  0,0,0,1);            
+            
+            VertexObjectBuilder_addVertex(voCtxDynamic,fInfo->fingerX,    fInfo->fingerY   ,0,255,  0,  0,255,0,0,1);            
+            VertexObjectBuilder_addVertex(voCtxDynamic,fInfo->fingerX+dx, fInfo->fingerY   ,0,255,127,127,  0,0,0,1);            
+            VertexObjectBuilder_addVertex(voCtxDynamic,fInfo->fingerX   , fInfo->fingerY-dy,0,255,127,127,  0,0,0,1);            
+            
         }
-    }    
+    }     
 }
 
 void GenericRendering_drawPitchLocation()
 {
-    float dx = 0.03;
-    float dy = 0.03;
+    float dx = 0.05;
+    float dy = 0.3;
+    //float lx=127*lightPosition[0]+127;
+    //float ly=127*lightPosition[1]+127;
+    //float lz=127*lightPosition[2]+127;
     VertexObjectBuilder_startObject(voCtxDynamic, GL_TRIANGLES);
     for(int f=0; f<16; f++)
     {
         struct FingerInfo* fInfo = PitchHandler_fingerState(phctx,f);
         if(fInfo->isActive)
         {
-            VertexObjectBuilder_addVertex(voCtxDynamic,fInfo->pitchX, fInfo->pitchY - dy,0, 0,255,0,200,0,0,1);
-            VertexObjectBuilder_addVertex(voCtxDynamic,fInfo->pitchX + dx, fInfo->pitchY + dy,0, 0,255,0,200,0,0,1);
-            VertexObjectBuilder_addVertex(voCtxDynamic,fInfo->pitchX - dx, fInfo->pitchY + dy,0, 0,255,0,200,0,0,1);            
+            VertexObjectBuilder_addVertex(voCtxDynamic,fInfo->pitchX,    fInfo->pitchY   ,0,  0,255,  0,255,0,0,1);            
+            VertexObjectBuilder_addVertex(voCtxDynamic,fInfo->pitchX-dx, fInfo->pitchY   ,0,127,255,127,  0,0,0,1);            
+            VertexObjectBuilder_addVertex(voCtxDynamic,fInfo->pitchX   , fInfo->pitchY-dy,0,127,255,127,  0,0,0,1);            
+
+            VertexObjectBuilder_addVertex(voCtxDynamic,fInfo->pitchX,    fInfo->pitchY   ,0,  0,255,  0,255,0,0,1);            
+            VertexObjectBuilder_addVertex(voCtxDynamic,fInfo->pitchX   , fInfo->pitchY+dy,0,127,255,127,  0,0,0,1);            
+            VertexObjectBuilder_addVertex(voCtxDynamic,fInfo->pitchX+dx, fInfo->pitchY   ,0,127,255,127,  0,0,0,1);            
+            
+            VertexObjectBuilder_addVertex(voCtxDynamic,fInfo->pitchX,    fInfo->pitchY   ,0,  0,255,  0,255,0,0,1);            
+            VertexObjectBuilder_addVertex(voCtxDynamic,fInfo->pitchX   , fInfo->pitchY+dy,0,127,255,127,  0,0,0,1);            
+            VertexObjectBuilder_addVertex(voCtxDynamic,fInfo->pitchX-dx, fInfo->pitchY   ,0,127,255,127,  0,0,0,1);            
+            
+            VertexObjectBuilder_addVertex(voCtxDynamic,fInfo->pitchX,    fInfo->pitchY   ,0,  0,255,  0,255,0,0,1);            
+            VertexObjectBuilder_addVertex(voCtxDynamic,fInfo->pitchX+dx, fInfo->pitchY   ,0,127,255,127,  0,0,0,1);            
+            VertexObjectBuilder_addVertex(voCtxDynamic,fInfo->pitchX   , fInfo->pitchY-dy,0,127,255,127,  0,0,0,1);            
+            
         }
     }    
 }
 
 void GenericRendering_dynamic()
 {
-    VertexObjectBuilder_reset(voCtxDynamic);
+    VertexObjectBuilder_reset(voCtxStatic);
+    GenericRendering_drawBackground();
     
+    VertexObjectBuilder_reset(voCtxDynamic);    
     GenericRendering_drawMoveableFrets();
-    GenericRendering_drawPitchLocation();
     GenericRendering_drawFingerLocation();
+    GenericRendering_drawPitchLocation();
 }
 
 void GenericRendering_drawVO(struct VertexObjectBuilder* vobj)
@@ -195,7 +265,7 @@ void GenericRendering_drawVO(struct VertexObjectBuilder* vobj)
 
 void GenericRendering_draw()
 {
-    GenericRendering_drawVO(voCtxStatic);
     GenericRendering_dynamic();
+    GenericRendering_drawVO(voCtxStatic);
     GenericRendering_drawVO(voCtxDynamic);
 }
