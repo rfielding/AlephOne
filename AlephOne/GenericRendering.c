@@ -141,20 +141,20 @@ void GenericRendering_drawMoveableFrets()
     PitchHandler_getFretsBegin(phctx);
     while(PitchHandler_getFret(phctx,&pitch, &x, &y, &importance, &usage))
     {
-        float dxi = dx*importance*(0.25+usage);
-        VertexObjectBuilder_addVertex(voCtxDynamic,x,     y   ,0,0,  0,  255,255,0,0,1);            
+        float dxi = dx*importance*(1+usage);
+        VertexObjectBuilder_addVertex(voCtxDynamic,x,     y   ,0,0,  usage*50,  255,255,0,0,1);            
         VertexObjectBuilder_addVertex(voCtxDynamic,x-dxi, y   ,0,127,127,255,  0,0,0,1);            
         VertexObjectBuilder_addVertex(voCtxDynamic,x    , y-dy,0,127,127,255,  0,0,0,1);            
         
-        VertexObjectBuilder_addVertex(voCtxDynamic,x,     y   ,0,  0,  0,255,255,0,0,1);            
+        VertexObjectBuilder_addVertex(voCtxDynamic,x,     y   ,0,  0,   usage*50,255,255,0,0,1);            
         VertexObjectBuilder_addVertex(voCtxDynamic,x    , y+dy,0,127,127,255,  0,0,0,1);            
         VertexObjectBuilder_addVertex(voCtxDynamic,x+dxi, y   ,0,127,127,255,  0,0,0,1);            
         
-        VertexObjectBuilder_addVertex(voCtxDynamic,x,     y   ,0,  0,  0,255,255,0,0,1);            
+        VertexObjectBuilder_addVertex(voCtxDynamic,x,     y   ,0,  0,   usage*50,255,255,0,0,1);            
         VertexObjectBuilder_addVertex(voCtxDynamic,x    , y+dy,0,127,127,255,  0,0,0,1);            
         VertexObjectBuilder_addVertex(voCtxDynamic,x-dxi, y   ,0,127,127,255,  0,0,0,1);            
         
-        VertexObjectBuilder_addVertex(voCtxDynamic,x,     y   ,0,  0,  0,255,255,0,0,1);            
+        VertexObjectBuilder_addVertex(voCtxDynamic,x,     y   ,0,  0,   usage*50,255,255,0,0,1);            
         VertexObjectBuilder_addVertex(voCtxDynamic,x+dxi, y   ,0,127,127,255,  0,0,0,1);            
         VertexObjectBuilder_addVertex(voCtxDynamic,x    , y-dy,0,127,127,255,  0,0,0,1);            
     }   
