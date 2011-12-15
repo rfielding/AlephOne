@@ -131,6 +131,7 @@ void GenericRendering_drawMoveableFrets()
     float dx = 0.01;
     float dy = 1.0/PitchHandler_getRowCount(phctx);
     int importance=1;
+    float usage;
     float lx=127*lightPosition[0]+127;
     float ly=127*lightPosition[1]+127;
     float lz=127*lightPosition[2]+127;
@@ -138,9 +139,9 @@ void GenericRendering_drawMoveableFrets()
     VertexObjectBuilder_startObject(voCtxDynamic, GL_TRIANGLES);
     
     PitchHandler_getFretsBegin(phctx);
-    while(PitchHandler_getFret(phctx,&pitch, &x, &y, &importance))
+    while(PitchHandler_getFret(phctx,&pitch, &x, &y, &importance, &usage))
     {
-        float dxi = dx*importance;
+        float dxi = dx*importance*(0.25+usage);
         VertexObjectBuilder_addVertex(voCtxDynamic,x,     y   ,0,0,  0,  255,255,0,0,1);            
         VertexObjectBuilder_addVertex(voCtxDynamic,x-dxi, y   ,0,127,127,255,  0,0,0,1);            
         VertexObjectBuilder_addVertex(voCtxDynamic,x    , y-dy,0,127,127,255,  0,0,0,1);            

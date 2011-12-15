@@ -81,8 +81,8 @@ void PitchHandler_placeFret(struct PitchHandlerContext* ctx, float pitch,int imp
 
 
 void PitchHandler_getFretsBegin(struct PitchHandlerContext* ctx);
-int PitchHandler_getFret(struct PitchHandlerContext* ctx, float* pitch,float* x,float* y,int* importance);
+int PitchHandler_getFret(struct PitchHandlerContext* ctx, float* pitch,float* x,float* y,int* importance,float* usage);
 
 //Given a pitch, find the target that it wants to snap to (given the frets in use)
-float PitchHandler_getTarget(struct PitchHandlerContext* ctx, float pitch);
+float PitchHandler_getTarget(struct PitchHandlerContext* ctx, float pitch,int* fretP);
 
