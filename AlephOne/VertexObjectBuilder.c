@@ -9,7 +9,7 @@
 #include "VertexObjectBuilder.h"
 
 
-#define VOVERTEXMAX 8192
+#define VOVERTEXMAX 16384
 #define VOOBJMAX 512
 
 struct VertexObjectBuilder
@@ -50,7 +50,8 @@ int VertexObjectBuilder_startObject(struct VertexObjectBuilder* ctxp,int type)
 
 int VertexObjectBuilder_addVertex(struct VertexObjectBuilder* ctxp,float x,float y,float z,unsigned char cr,unsigned char cg,unsigned char cb, unsigned char ca, float nx, float ny, float nz)
 {
-    if(ctxp->vertexObjects[ctxp->vertexObjectsCount].count + 1 >= VOVERTEXMAX)return 0;
+    if(ctxp->vertexObjectsCount >= VOOBJMAX)return 0;
+    if(ctxp->vertexObjects[ctxp->vertexObjectsCount-1].count + 1 >= VOVERTEXMAX)return 0;
     ctxp->gridVertices[3*ctxp->gridVerticesCount + 0] = x;
     ctxp->gridVertices[3*ctxp->gridVerticesCount + 1] = y;
     ctxp->gridVertices[3*ctxp->gridVerticesCount + 2] = z;

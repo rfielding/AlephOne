@@ -183,7 +183,7 @@ struct FingerInfo* PitchHandler_pickPitch(struct PitchHandlerContext* ctx, int f
     //{
     //    ctx->fretUsage[f] *= (1.0*(ctx->fretsUsed-1))/ctx->fretsUsed;
     //}
-    ctx->fretUsage[ fretPicked ] += 0.5;
+    ctx->fretUsage[ fretPicked ] += 0.25;
     
     float targetDrift = (ctx->fingers[finger].endPitch - thisPitch);
     if( isMoving )

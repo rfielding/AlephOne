@@ -86,9 +86,9 @@ void GenericRendering_drawBackground()
     //float halfXscale = 0.5*xscale;
     //float halfYscale = 0.5*yscale;
     
-    float lx=64*lightPosition[0]+64;
-    float ly=64*lightPosition[1]+64;
-    float lz=64*lightPosition[2]+64;
+    float lx=0;//lightPosition[0]+64;
+    float ly=0;//lightPosition[1]+64;
+    float lz=0;//lightPosition[2]+64;
     
     VertexObjectBuilder_startObject(voCtxStatic,GL_TRIANGLE_STRIP);
     

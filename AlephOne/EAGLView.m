@@ -62,8 +62,16 @@ static struct Fretless_context* fctx;
     PitchHandler_placeFret(phctx,baseNote + 3.0 + 7,3);
     PitchHandler_placeFret(phctx,baseNote + 4.0 + 7,2);
     
-    PitchHandler_setColCount(phctx,5);
-    PitchHandler_setRowCount(phctx,3);
+    if (UI_USER_INTERFACE_IDIOM() == UIUserInterfaceIdiomPad)
+    {
+        PitchHandler_setColCount(phctx,12);
+        PitchHandler_setRowCount(phctx,6);                
+    }
+    else
+    {
+        PitchHandler_setColCount(phctx,5);
+        PitchHandler_setRowCount(phctx,3);        
+    }
     PitchHandler_setNoteDiff(phctx,45); //A is bottom corner
     PitchHandler_setTuneSpeed(phctx,0.25);
     Fretless_setMidiHintChannelSpan(fctx, 16);
@@ -86,7 +94,7 @@ static struct Fretless_context* fctx;
     [self setMultipleTouchEnabled:TRUE];
     if(isInitialized==FALSE)
     {        
-        PressureSensor_setup();
+        //PressureSensor_setup();
         Transforms_clockwiseOrientation();
         
         phctx = PitchHandler_init(malloc);

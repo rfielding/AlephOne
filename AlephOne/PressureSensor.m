@@ -11,10 +11,10 @@
 #import <Foundation/Foundation.h>
 #import <UIKit/UIGestureRecognizerSubclass.h>
 
-float PressureSensor_pressure;
-float PressureSensor_xNorm;
-float PressureSensor_yNorm;
-float PressureSensor_zNorm;
+float PressureSensor_pressure=1;
+float PressureSensor_xNorm=0;
+float PressureSensor_yNorm=0;
+float PressureSensor_zNorm=1;
 
 
 @interface PressureSensor : NSObject<UIAccelerometerDelegate> {
