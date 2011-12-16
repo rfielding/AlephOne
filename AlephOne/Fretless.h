@@ -37,11 +37,13 @@ struct Fretless_context* Fretless_init(
  * When we channel cycle, this is the lowest channel in that adjacent span of channels
  */
 void Fretless_setMidiHintChannelBase(struct Fretless_context* ctxp, int base);
+int Fretless_getMidiHintChannelBase(struct Fretless_context* ctxp);
 
 /*
  * This tells us how many channels to cycle across
  */
 void Fretless_setMidiHintChannelSpan(struct Fretless_context* ctxp, int span);
+int Fretless_getMidiHintChannelSpan(struct Fretless_context* ctxp);
 
 /*
  * This is the number of semitones that a maxmimized bend will span
@@ -94,3 +96,9 @@ void Fretless_up(struct Fretless_context* ctxp, int finger);
  */
 void Fretless_flush(struct Fretless_context* ctxp);
 
+/*
+ * Get some detail on how many notes live in each channel.  This is one of the few places where
+ * the fact that it's MIDI underneath are being allowed to leak through.  But I need this info
+ * in the user interface rendition.
+ */
+int Fretless_getChannelOccupancy(struct Fretless_context* ctxp, int channel);

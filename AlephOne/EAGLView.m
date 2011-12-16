@@ -15,8 +15,11 @@
 #import "Transforms.h"
 #import "GenericRendering.h"
 #import "PressureSensor.h"
+#include "CoreMIDIRenderer.h"
 
-BOOL isInitialized = FALSE;
+static BOOL isInitialized = FALSE;
+static struct PitchHandlerContext* phctx;
+static struct Fretless_context* fctx;
 
 @interface EAGLView (PrivateMethods)
 - (void)createFramebuffer;
@@ -31,6 +34,39 @@ BOOL isInitialized = FALSE;
 + (Class)layerClass
 {
     return [CAEAGLLayer class];
+}
+
+- (void)configureSurface
+{
+    //0.0 is C
+    PitchHandler_clearFrets(phctx);
+    
+    float baseNote = 2.0; //D
+    //First tetrachord
+    PitchHandler_placeFret(phctx,baseNote + 0.0,4);
+    PitchHandler_placeFret(phctx,baseNote + 1.0,2);
+    PitchHandler_placeFret(phctx,baseNote + 1.5,1);
+    PitchHandler_placeFret(phctx,baseNote + 2.0,2);
+    PitchHandler_placeFret(phctx,baseNote + 3.0,3);
+    PitchHandler_placeFret(phctx,baseNote + 4.0,2);
+    //Second tetrachord
+    PitchHandler_placeFret(phctx,baseNote + 0.0 + 5,4);
+    PitchHandler_placeFret(phctx,baseNote + 1.0 + 5,2);
+    PitchHandler_placeFret(phctx,baseNote + 1.5 + 5,1);
+    //Tetrachord from fifth
+    PitchHandler_placeFret(phctx,baseNote + 0.0 + 7,3);
+    PitchHandler_placeFret(phctx,baseNote + 1.0 + 7,2);
+    
+    PitchHandler_placeFret(phctx,baseNote + 1.5 + 7,1);
+    PitchHandler_placeFret(phctx,baseNote + 2.0 + 7,2);
+    PitchHandler_placeFret(phctx,baseNote + 3.0 + 7,3);
+    PitchHandler_placeFret(phctx,baseNote + 4.0 + 7,2);
+    
+    PitchHandler_setColCount(phctx,5);
+    PitchHandler_setRowCount(phctx,3);
+    PitchHandler_setNoteDiff(phctx,45); //A is bottom corner
+    PitchHandler_setTuneSpeed(phctx,0.25);
+    Fretless_setMidiHintChannelSpan(fctx, 16);
 }
 
 //The EAGL view is stored in the nib file. When it's unarchived it's sent -initWithCoder:.
@@ -52,9 +88,19 @@ BOOL isInitialized = FALSE;
         PressureSensor_setup();
         Transforms_clockwiseOrientation();
         
-        struct PitchHandlerContext* phctx = PitchHandler_init(malloc);
-        GenericRendering_init(phctx);
-        GenericTouchHandling_touchesInit(phctx);
+        phctx = PitchHandler_init(malloc);
+        fctx = Fretless_init(
+            CoreMIDIRenderer_midiPutch,
+            CoreMIDIRenderer_midiFlush,
+            malloc,
+            CoreMIDIRenderer_midiFail,
+            CoreMIDIRenderer_midiPassed,
+            printf
+        );
+        GenericRendering_init(phctx,fctx);
+        GenericTouchHandling_touchesInit(phctx,fctx,CoreMIDIRenderer_midiFail,printf);
+        CoreMIDIRenderer_midiInit(fctx);
+        [self configureSurface];
         
         isInitialized=TRUE;
     }

@@ -8,6 +8,7 @@
 
 #include "GenericRendering.h"
 #include "PitchHandler.h"
+#include "Fretless.h"
 #include "VertexObjectBuilder.h"
 #include "Transforms.h"
 #include <OpenGLES/ES1/gl.h>
@@ -19,6 +20,7 @@
 struct VertexObjectBuilder* voCtxStatic;
 struct VertexObjectBuilder* voCtxDynamic;
 struct PitchHandlerContext* phctx;
+struct Fretless_context* fctx;
 
 static float lightPosition[] = {0, 0, -1,0};
 static float specularAmount[] = {0.0,0.0,0.0,1.0};
@@ -32,9 +34,10 @@ static float scale[16] = {
     0.0f, 0.0f, 0.0f, 1.0f
 };
 
-void GenericRendering_init(struct PitchHandlerContext* phctxArg)
+void GenericRendering_init(struct PitchHandlerContext* phctxArg,struct Fretless_context* fctxArg)
 {
     phctx = phctxArg;
+    fctx  = fctxArg;
 }
 
 void GenericRendering_updateLightOrientation(float x,float y, float z)
@@ -75,11 +78,11 @@ void GenericRendering_camera()
 
 void GenericRendering_drawBackground()
 {
-    int rows = PitchHandler_getRowCount(phctx);
-    int cols = PitchHandler_getColCount(phctx);
+    //int rows = PitchHandler_getRowCount(phctx);
+    //int cols = PitchHandler_getColCount(phctx);
     
-    float xscale = 1.0/cols;
-    float yscale = 1.0/rows;
+    //float xscale = 1.0/cols;
+    //float yscale = 1.0/rows;
     //float halfXscale = 0.5*xscale;
     //float halfYscale = 0.5*yscale;
     
@@ -101,21 +104,67 @@ void GenericRendering_drawBackground()
     VertexObjectBuilder_addVertex(voCtxStatic,1,1,0, 
                                   lx, lz, ly,
                                   255,0,0,1);
-    /*
-    VertexObjectBuilder_startObject(voCtxStatic,GL_LINES);
-    for(int r=0; r<rows; r++)
-    {
-        for(int c=0; c<cols; c++)
-        {
-            VertexObjectBuilder_addVertex(voCtxStatic,xscale*c + halfXscale,0,0, 0,0,0,255,0,0,1);
-            VertexObjectBuilder_addVertex(voCtxStatic,xscale*c + halfXscale,1,0, 0,0,0,255,0,0,1);
-        }
-        VertexObjectBuilder_addVertex(voCtxStatic,0,yscale*r + halfYscale,0, 0,0,0,255,0,0,1);
-        VertexObjectBuilder_addVertex(voCtxStatic,1,yscale*r + halfYscale,0, 0,0,0,255,0,0,1);
-    } 
-     */
 }
 
+void drawOccupancyHandle(float cx, float cy, float diameter,float z)
+{
+    //Draw the endpoints of the channel cycle
+    float rA = (diameter*0.25+0.02);
+    float rB = (diameter*0.25-0.02);
+    float cosA = cosf(z+0.1);
+    float sinA = sinf(z+0.1);
+    float cosB = cosf(z-0.1);
+    float sinB = sinf(z-0.1);
+    float cosC = cosf(z);
+    float sinC = sinf(z);
+    VertexObjectBuilder_addVertex(voCtxStatic,cx+rB*cosC,cy+rB*sinC,0, 
+                                  0, 255, 0,255,0,0,1);        
+    VertexObjectBuilder_addVertex(voCtxStatic,cx+rA*cosA,cy+rA*sinA,0, 
+                                  0, 255, 0,255,0,0,1);        
+    VertexObjectBuilder_addVertex(voCtxStatic,cx+rA*cosB,cy+rA*sinB,0, 
+                                  0, 255, 0,255,0,0,1);        
+}
+
+void GenericRendering_drawChannelOccupancy(float cx,float cy,float diameter)
+{
+    //Draw the main radius of the channel cycle
+    VertexObjectBuilder_startObject(voCtxStatic,GL_LINE_STRIP);    
+    float r = (diameter*0.25);
+    for(int channel=0; channel<16; channel++)
+    {
+        float a = channel/16.0 * 2*M_PI;
+        float cosA = cosf(a);
+        float sinA = sinf(a);
+        VertexObjectBuilder_addVertex(voCtxStatic,cx+r*cosA,cy+r*sinA,0, 
+                                      0, 255, 0,64,0,0,1);                
+    }
+    VertexObjectBuilder_addVertex(voCtxStatic,cx+r,cy,0, 
+                                  0, 255, 0,64,0,0,1);  
+    
+    VertexObjectBuilder_startObject(voCtxStatic,GL_TRIANGLES);
+    int bottom = Fretless_getMidiHintChannelBase(fctx);
+    int top  = (bottom + Fretless_getMidiHintChannelSpan(fctx) +15)%16;
+    drawOccupancyHandle(cx,cy,diameter,bottom);
+    drawOccupancyHandle(cx,cy,diameter,top);
+    
+    //Draw activity in the channel cycle
+    for(int channel=0; channel<16; channel++)
+    {
+        float r = (diameter*0.5) * Fretless_getChannelOccupancy(fctx, channel);
+        float a = channel/16.0 * 2*M_PI;
+        float b = ((channel+1)%16)/16.0 * 2*M_PI;
+        float cosA = cosf(a+0.05);
+        float sinA = sinf(a+0.05);
+        float cosB = cosf(b-0.05);
+        float sinB = sinf(b-0.05);
+        VertexObjectBuilder_addVertex(voCtxStatic,cx,cy,0, 
+                                      0, 255, 0,127,0,0,1);        
+        VertexObjectBuilder_addVertex(voCtxStatic,cx+r*cosA,cy+r*sinA,0, 
+                                      0, 255, 0,  0,0,0,1);        
+        VertexObjectBuilder_addVertex(voCtxStatic,cx+r*cosB,cy+r*sinB,0, 
+                                      0, 255, 0,  0,0,0,1); 
+    }
+}
 void GenericRendering_setup()
 {
     voCtxDynamic = VertexObjectBuilder_init(malloc);    
@@ -235,6 +284,7 @@ void GenericRendering_dynamic()
 {
     VertexObjectBuilder_reset(voCtxStatic);
     GenericRendering_drawBackground();
+    GenericRendering_drawChannelOccupancy(0.5, 0.5, 1.0);
     
     VertexObjectBuilder_reset(voCtxDynamic);    
     GenericRendering_drawMoveableFrets();

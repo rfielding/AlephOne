@@ -7,7 +7,6 @@
 //
 
 #include "Fretless.h"
-#include "CoreMIDIRenderer.h"
 #include "GenericTouchHandling.h"
 #include "TouchMapping.h"
 #include "PitchHandler.h"
@@ -18,49 +17,26 @@ static float chorusLevel = 0.25;
 
 static struct Fretless_context* fretlessp = NULL;
 static struct PitchHandlerContext* phctx = NULL;
+int (*fail)(const char*,...);
+int (*logger)(const char*,...);
 
 void GenericTouchHandling_touchesFlush()
 {
     Fretless_flush(fretlessp);    
 }
 
-void GenericTouchHandling_touchesInit(struct PitchHandlerContext* phctxArg)
+void GenericTouchHandling_touchesInit(
+    struct PitchHandlerContext* phctxArg, 
+    struct Fretless_context* fctxArg,
+    int (*failArg)(const char*,...),
+    int (*loggerArg)(const char*,...)
+)
 {
     phctx = phctxArg;
-    
-    //0.0 is C
-    PitchHandler_clearFrets(phctx);
-
-    float baseNote = 2.0; //D
-    //First tetrachord
-    PitchHandler_placeFret(phctx,baseNote + 0.0,4);
-    PitchHandler_placeFret(phctx,baseNote + 1.0,2);
-    PitchHandler_placeFret(phctx,baseNote + 1.5,1);
-    PitchHandler_placeFret(phctx,baseNote + 2.0,2);
-    PitchHandler_placeFret(phctx,baseNote + 3.0,3);
-    PitchHandler_placeFret(phctx,baseNote + 4.0,2);
-    //Second tetrachord
-    PitchHandler_placeFret(phctx,baseNote + 0.0 + 5,4);
-    PitchHandler_placeFret(phctx,baseNote + 1.0 + 5,2);
-    PitchHandler_placeFret(phctx,baseNote + 1.5 + 5,1);
-    //Tetrachord from fifth
-    PitchHandler_placeFret(phctx,baseNote + 0.0 + 7,3);
-    PitchHandler_placeFret(phctx,baseNote + 1.0 + 7,2);
-    
-    PitchHandler_placeFret(phctx,baseNote + 1.5 + 7,1);
-    PitchHandler_placeFret(phctx,baseNote + 2.0 + 7,2);
-    PitchHandler_placeFret(phctx,baseNote + 3.0 + 7,3);
-    PitchHandler_placeFret(phctx,baseNote + 4.0 + 7,2);
-    
-    PitchHandler_setColCount(phctx,5);
-    PitchHandler_setRowCount(phctx,3);
-    PitchHandler_setNoteDiff(phctx,45); //A is bottom corner
-    PitchHandler_setTuneSpeed(phctx,0.025);
-    
-    fretlessp = Fretless_init(CoreMIDIRenderer_midiPutch,CoreMIDIRenderer_midiFlush,malloc,CoreMIDIRenderer_midiFail,CoreMIDIRenderer_midiPassed,printf);
-    
-    CoreMIDIRenderer_midiInit(fretlessp);
-    
+    fretlessp = fctxArg;
+    fail = failArg;
+    logger = loggerArg;
+        
     Fretless_boot(fretlessp);     
     
     //Here mostly as an example, and to avoid having to tell people to set it up.  
@@ -76,12 +52,12 @@ void GenericTouchHandling_touchesUp(void* touch)
     int finger  = TouchMapping_mapFinger(touch);
     if(finger < 0)
     {
-        CoreMIDIRenderer_midiFail("touch did not map to a finger1");   
+        fail("touch did not map to a finger1");   
     }
     int finger2 = TouchMapping_mapFinger2(touch);
     if(finger < 0)
     {
-        CoreMIDIRenderer_midiFail("touch did not map to a finger2");   
+        fail("touch did not map to a finger2");   
     }
     PitchHandler_unpickPitch(phctx,finger);
     Fretless_up(fretlessp, finger);
@@ -97,12 +73,12 @@ void GenericTouchHandling_touchesDown(void* touch,int isMoving,float x,float y, 
     finger1  = TouchMapping_mapFinger(touch);
     if(finger1 < 0)
     {
-        CoreMIDIRenderer_midiFail("touch did not map to a finger1");   
+        fail("touch did not map to a finger1");   
     }    
     finger2  = TouchMapping_mapFinger2(touch);
     if(finger2 < 0)
     {
-        CoreMIDIRenderer_midiFail("touch did not map to a finger2");   
+        fail("touch did not map to a finger2");   
     }    
     struct FingerInfo* fingerInfo = PitchHandler_pickPitch(phctx,finger1,isMoving,x,y);
     float note = fingerInfo->pitch;

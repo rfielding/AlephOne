@@ -249,6 +249,11 @@ void Fretless_setMidiHintChannelBase(struct Fretless_context* ctxp, int base)
     ctxp->channelBase = base;
 }
 
+int Fretless_getMidiHintChannelBase(struct Fretless_context* ctxp)
+{
+    return ctxp->channelBase;
+}
+
 void Fretless_setMidiHintChannelSpan(struct Fretless_context* ctxp, int span)
 {
     if(span < 1 || span > CHANNELMAX)
@@ -256,6 +261,11 @@ void Fretless_setMidiHintChannelSpan(struct Fretless_context* ctxp, int span)
         ctxp->fail("span < 0 || span > CHANNELMAX\n");
     }
     ctxp->channelSpan = span;
+}
+
+int Fretless_getMidiHintChannelSpan(struct Fretless_context* ctxp)
+{
+    return ctxp->channelSpan;
 }
 
 /**
@@ -401,6 +411,11 @@ static void Fretless_numTo7BitNums(int n,int* lop,int* hip)
 {
     *lop = (    n  & 0x7f);
     *hip = ((n>>7) & 0x7f);
+}
+
+int Fretless_getChannelOccupancy(struct Fretless_context* ctxp, int channel)
+{
+    return ctxp->channels[channel].useCount;
 }
 
 /**
@@ -884,6 +899,7 @@ void Fretless_selfTest(struct Fretless_context* ctxp)
         Fretless_boot(ctxp);
     }
 }
+
 
 
 

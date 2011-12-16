@@ -6,8 +6,8 @@
 //  Copyright 2011 Check Point Software. All rights reserved.
 //
 struct PitchHandlerContext;
-
-void GenericRendering_init(struct PitchHandlerContext* phctxArg);
+struct Fretless_context;
+void GenericRendering_init(struct PitchHandlerContext* phctxArg, struct Fretless_context* fctxArg);
 
 void GenericRendering_updateLightOrientation(float x,float y, float z);
 //Done when OpenGL is initialized

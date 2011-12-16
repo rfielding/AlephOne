@@ -7,8 +7,14 @@
 //
 
 struct PitchHandlerContext;
+struct Fretless_context;
 
-void GenericTouchHandling_touchesInit(struct PitchHandlerContext*);
+void GenericTouchHandling_touchesInit(
+    struct PitchHandlerContext* pctxArg,
+    struct Fretless_context* fctxArg,
+    int (*failArg)(const char*,...),
+    int (*loggerArg)(const char*,...)
+);
 void GenericTouchHandling_touchesUp(void* touch);
 void GenericTouchHandling_touchesDown(void* touch,int isMoving,float x,float y,float velocity,float area);
 void GenericTouchHandling_touchesFlush();
