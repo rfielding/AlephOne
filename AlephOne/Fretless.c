@@ -418,6 +418,11 @@ int Fretless_getChannelOccupancy(struct Fretless_context* ctxp, int channel)
     return ctxp->channels[channel].useCount;
 }
 
+float Fretless_getChannelBend(struct Fretless_context* ctxp, int channel)
+{
+    return (ctxp->channels[channel].lastBend - 8192) / 8192.0;
+}
+
 /**
  A non-exclusive alloc, that allocs in the least used channel that is in the span
  */

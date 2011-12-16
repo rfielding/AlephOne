@@ -102,3 +102,8 @@ void Fretless_flush(struct Fretless_context* ctxp);
  * in the user interface rendition.
  */
 int Fretless_getChannelOccupancy(struct Fretless_context* ctxp, int channel);
+
+/*
+ * Get detail on the bend away from the 12ET note
+ */
+float Fretless_getChannelBend(struct Fretless_context* ctxp, int channel);

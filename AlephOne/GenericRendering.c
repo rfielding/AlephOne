@@ -111,8 +111,8 @@ void drawOccupancyHandle(float cx, float cy, float diameter,float z)
     z = z/16 * 2*M_PI;
     
     //Draw the endpoints of the channel cycle
-    float rA = (diameter*0.25+0.02);
-    float rB = (diameter*0.25-0.02);
+    float rA = (diameter*0.25+0.04);
+    float rB = (diameter*0.25);
     float cosA = cosf(z+0.1);
     float sinA = sinf(z+0.1);
     float cosB = cosf(z-0.1);
@@ -148,16 +148,33 @@ void GenericRendering_drawChannelOccupancy(float cx,float cy,float diameter)
     int top  = (bottom + Fretless_getMidiHintChannelSpan(fctx) + 15)%16;
     drawOccupancyHandle(cx,cy,diameter,bottom);
     drawOccupancyHandle(cx,cy,diameter,top);
-    
+        
     //Draw activity in the channel cycle
     for(int channel=0; channel<16; channel++)
     {
         float r = (diameter*0.5) * Fretless_getChannelOccupancy(fctx, channel);
         float a = channel/16.0 * 2*M_PI;
-        float cosA = cosf(a-0.1);
-        float sinA = sinf(a-0.1);
-        float cosB = cosf(a+0.1);
-        float sinB = sinf(a+0.1);
+        float cosA = cosf(a-0.15);
+        float sinA = sinf(a-0.15);
+        float cosB = cosf(a+0.15);
+        float sinB = sinf(a+0.15);
+        float cosC = cosf(a);
+        float sinC = sinf(a);
+        
+        //Represent the current bend setting for each channel
+        float rC = r/4;
+        float b = Fretless_getChannelBend(fctx, channel);
+        float rD = rC + (r/4)*b;
+        
+        //Draw what the bend manipulation is doing
+        VertexObjectBuilder_addVertex(voCtxStatic,cx+rC*cosA,cy+rC*sinA,0, 
+                                      0, 255, 0,127,0,0,1);        
+        VertexObjectBuilder_addVertex(voCtxStatic,cx+rC*cosB,cy+rC*sinB,0, 
+                                      0, 255, 0,127,0,0,1);        
+        VertexObjectBuilder_addVertex(voCtxStatic,cx+rD*cosC,cy+rD*sinC,0, 
+                                      0, 255, 0,127,0,0,1);  
+        
+        //Draw the channel cycling
         VertexObjectBuilder_addVertex(voCtxStatic,cx,cy,0, 
                                       0, 255, 0,127,0,0,1);        
         VertexObjectBuilder_addVertex(voCtxStatic,cx+r*cosA,cy+r*sinA,0, 
@@ -166,6 +183,7 @@ void GenericRendering_drawChannelOccupancy(float cx,float cy,float diameter)
                                       0, 255, 0,  0,0,0,1); 
     }
 }
+
 void GenericRendering_setup()
 {
     voCtxDynamic = VertexObjectBuilder_init(malloc);    

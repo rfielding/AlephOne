@@ -67,7 +67,7 @@ static struct Fretless_context* fctx;
     PitchHandler_setNoteDiff(phctx,45); //A is bottom corner
     PitchHandler_setTuneSpeed(phctx,0.25);
     Fretless_setMidiHintChannelSpan(fctx, 16);
-    Fretless_setMidiHintChannelBendSemis(fctx,12);
+    Fretless_setMidiHintChannelBendSemis(fctx,2);
 }
 
 //The EAGL view is stored in the nib file. When it's unarchived it's sent -initWithCoder:.
