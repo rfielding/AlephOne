@@ -108,6 +108,8 @@ void GenericRendering_drawBackground()
 
 void drawOccupancyHandle(float cx, float cy, float diameter,float z)
 {
+    z = z/16 * 2*M_PI;
+    
     //Draw the endpoints of the channel cycle
     float rA = (diameter*0.25+0.02);
     float rB = (diameter*0.25-0.02);
@@ -118,11 +120,11 @@ void drawOccupancyHandle(float cx, float cy, float diameter,float z)
     float cosC = cosf(z);
     float sinC = sinf(z);
     VertexObjectBuilder_addVertex(voCtxStatic,cx+rB*cosC,cy+rB*sinC,0, 
-                                  0, 255, 0,255,0,0,1);        
+                                  0, 255,255,127,0,0,1);        
     VertexObjectBuilder_addVertex(voCtxStatic,cx+rA*cosA,cy+rA*sinA,0, 
-                                  0, 200, 0,200,0,0,1);        
+                                  0, 200,  0,100,0,0,1);        
     VertexObjectBuilder_addVertex(voCtxStatic,cx+rA*cosB,cy+rA*sinB,0, 
-                                  0, 200, 0,200,0,0,1);        
+                                  0, 200,  0,100,0,0,1);        
 }
 
 void GenericRendering_drawChannelOccupancy(float cx,float cy,float diameter)
@@ -143,7 +145,7 @@ void GenericRendering_drawChannelOccupancy(float cx,float cy,float diameter)
     
     VertexObjectBuilder_startObject(voCtxStatic,GL_TRIANGLES);
     int bottom = Fretless_getMidiHintChannelBase(fctx);
-    int top  = (bottom + Fretless_getMidiHintChannelSpan(fctx) +15)%16;
+    int top  = (bottom + Fretless_getMidiHintChannelSpan(fctx) + 15)%16;
     drawOccupancyHandle(cx,cy,diameter,bottom);
     drawOccupancyHandle(cx,cy,diameter,top);
     
@@ -152,11 +154,10 @@ void GenericRendering_drawChannelOccupancy(float cx,float cy,float diameter)
     {
         float r = (diameter*0.5) * Fretless_getChannelOccupancy(fctx, channel);
         float a = channel/16.0 * 2*M_PI;
-        float b = ((channel+1)%16)/16.0 * 2*M_PI;
-        float cosA = cosf(a+0.05);
-        float sinA = sinf(a+0.05);
-        float cosB = cosf(b-0.05);
-        float sinB = sinf(b-0.05);
+        float cosA = cosf(a-0.1);
+        float sinA = sinf(a-0.1);
+        float cosB = cosf(a+0.1);
+        float sinB = sinf(a+0.1);
         VertexObjectBuilder_addVertex(voCtxStatic,cx,cy,0, 
                                       0, 255, 0,127,0,0,1);        
         VertexObjectBuilder_addVertex(voCtxStatic,cx+r*cosA,cy+r*sinA,0, 
