@@ -540,6 +540,7 @@ void Fretless_setCurrentBend(struct Fretless_context* ctxp, int finger)
     struct Fretless_fingerState* fsPtr = &ctxp->fingers[finger];
     if(ctxp->channels[fsPtr->channel].lastBend != fsPtr->bend && 
        ctxp->channels[fsPtr->channel].currentFingerInChannel == finger &&
+       fsPtr->isOn &&
        ctxp->supressBends == FALSE)
     {
         ctxp->channels[fsPtr->channel].lastBend = fsPtr->bend;
