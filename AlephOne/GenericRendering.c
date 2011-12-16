@@ -120,9 +120,9 @@ void drawOccupancyHandle(float cx, float cy, float diameter,float z)
     VertexObjectBuilder_addVertex(voCtxStatic,cx+rB*cosC,cy+rB*sinC,0, 
                                   0, 255, 0,255,0,0,1);        
     VertexObjectBuilder_addVertex(voCtxStatic,cx+rA*cosA,cy+rA*sinA,0, 
-                                  0, 255, 0,255,0,0,1);        
+                                  0, 200, 0,200,0,0,1);        
     VertexObjectBuilder_addVertex(voCtxStatic,cx+rA*cosB,cy+rA*sinB,0, 
-                                  0, 255, 0,255,0,0,1);        
+                                  0, 200, 0,200,0,0,1);        
 }
 
 void GenericRendering_drawChannelOccupancy(float cx,float cy,float diameter)
