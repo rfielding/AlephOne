@@ -162,9 +162,9 @@ void GenericRendering_drawChannelOccupancy(float cx,float cy,float diameter)
         float sinC = sinf(a);
         
         //Represent the current bend setting for each channel
-        float rC = r/4;
+        float rC = (diameter*0.5)/4;
         float b = Fretless_getChannelBend(fctx, channel);
-        float rD = rC + (r/4)*b;
+        float rD = rC + (diameter*0.5/4)*b;
         
         //Draw what the bend manipulation is doing
         VertexObjectBuilder_addVertex(voCtxStatic,cx+rC*cosA,cy+rC*sinA,0, 
