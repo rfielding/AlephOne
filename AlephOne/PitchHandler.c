@@ -40,6 +40,8 @@ struct PitchHandlerContext
     float   tuneIntervalCumulative[FINGERMAX];
     int doOctaveRounding;
     struct FingerInfo fingers[FINGERMAX];
+    //Invoke this when a new note got added (pitch in midifloats,volume from 0 to 1.0)
+    void (*addedANote)(float,float);
 };
 
 struct PitchHandlerContext* PitchHandler_init(void* (*allocFn)(unsigned long))
@@ -65,7 +67,21 @@ struct PitchHandlerContext* PitchHandler_init(void* (*allocFn)(unsigned long))
         PitchHandler_setTuneInterval(ctx, i, 5);
         ctx->fretUsage[i] = 0;
     }
+    ctx->addedANote = NULL;
     return ctx;
+}
+
+void PitchHandler_registerAddedANote(struct PitchHandlerContext* ctx, void (*addedANote)(float,float))
+{
+    ctx->addedANote = addedANote;
+}
+
+void PitchHandler_addedANote(struct PitchHandlerContext* ctx,float note,float velocity)
+{
+    if(ctx->addedANote)
+    {
+        ctx->addedANote(note,velocity);
+    }
 }
 
 struct FingerInfo* PitchHandler_fingerState(struct PitchHandlerContext* ctx, int finger)

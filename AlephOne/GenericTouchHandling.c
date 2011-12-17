@@ -17,8 +17,9 @@ static float chorusLevel = 0.25;
 
 static struct Fretless_context* fretlessp = NULL;
 static struct PitchHandlerContext* phctx = NULL;
-int (*fail)(const char*,...);
-int (*logger)(const char*,...);
+static int (*fail)(const char*,...);
+static int (*logger)(const char*,...);
+static int lastNote = -1;
 
 void GenericTouchHandling_touchesFlush()
 {
@@ -66,6 +67,15 @@ void GenericTouchHandling_touchesUp(void* touch)
     TouchMapping_unmapFinger2(touch);    
 }
 
+void addIfNewNote(float note,float velocity)
+{
+    if((int)(note+0.5) != lastNote)
+    {
+        PitchHandler_addedANote(phctx,note,velocity);                    
+    }
+    lastNote = (int)(note+0.5);    
+}
+
 void GenericTouchHandling_touchesDown(void* touch,int isMoving,float x,float y, float velocity, float area)
 {
     int finger1;
@@ -93,16 +103,20 @@ void GenericTouchHandling_touchesDown(void* touch,int isMoving,float x,float y, 
         Fretless_express(fretlessp, finger1, 0, expr);
         Fretless_move(fretlessp,finger2,note+dx,polyGroup2);
         Fretless_express(fretlessp, finger2, 0, expr);        
+
+        addIfNewNote(note, velocity);
     }
     else
     {
         float velocity = 1.0*velocity*area;
-        logger("vel=%f\n",velocity);
+        //logger("vel=%f\n",velocity);
         int legato = 0;
         Fretless_down(fretlessp,finger1, note-dx,polyGroup1,velocity,legato); 
         Fretless_express(fretlessp, finger1, 0, expr);
         Fretless_down(fretlessp,finger2,note+dx,polyGroup2,velocity,legato); 
         Fretless_express(fretlessp, finger2, 0, expr);        
+        
+        addIfNewNote(note, velocity);
     }
 }
 

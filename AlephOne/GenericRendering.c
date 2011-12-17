@@ -22,6 +22,13 @@ struct VertexObjectBuilder* voCtxDynamic;
 struct PitchHandlerContext* phctx;
 struct Fretless_context* fctx;
 
+#define NOTEADDEDMAX 32
+static float noteAddedPitches[NOTEADDEDMAX];
+static float noteAddedVolumes[NOTEADDEDMAX];
+static int noteAddedHead=0;
+
+void addedANoteHandler(float pitch, float volume);
+
 static float lightPosition[] = {0, 0, -1,0};
 static float specularAmount[] = {0.0,0.0,0.0,1.0};
 static float diffuseAmount[] = {1.0,0.8,1.0,1.0};
@@ -38,6 +45,8 @@ void GenericRendering_init(struct PitchHandlerContext* phctxArg,struct Fretless_
 {
     phctx = phctxArg;
     fctx  = fctxArg;
+    
+    PitchHandler_registerAddedANote(phctx, addedANoteHandler);
 }
 
 void GenericRendering_updateLightOrientation(float x,float y, float z)
@@ -196,6 +205,151 @@ void GenericRendering_setup()
     //GenericRendering_drawBackground();
 }
 
+void addedANoteHandler(float pitch, float volume)
+{
+    //Simply write them in reverse order such that
+    //head points to the first one.  The unused ones
+    //will have volume zero.
+    noteAddedHead += (NOTEADDEDMAX-1);
+    noteAddedHead %= NOTEADDEDMAX;
+    noteAddedPitches[noteAddedHead] = pitch;
+    noteAddedVolumes[noteAddedHead] = volume;
+}
+
+
+int noteToStaff(float note,int* isSharp)
+{
+    int scaleNoOct;
+    int qnote = (int)(note+0.5);
+    int oct = qnote/12;
+    int qnoteNoOct = qnote % 12;
+    switch(qnoteNoOct)
+    {
+        case 0: *isSharp=0; scaleNoOct=0; break;//C
+        case 1: *isSharp=1; scaleNoOct=0; break;//C#
+        case 2: *isSharp=0; scaleNoOct=1; break;//D
+        case 3: *isSharp=1; scaleNoOct=1; break;//D#
+        case 4: *isSharp=0; scaleNoOct=2; break;//E
+        case 5: *isSharp=0; scaleNoOct=3; break;//F
+        case 6: *isSharp=1; scaleNoOct=3; break;//F#
+        case 7: *isSharp=0; scaleNoOct=4; break;//G
+        case 8: *isSharp=1; scaleNoOct=4; break;//G#
+        case 9: *isSharp=0; scaleNoOct=5; break;//A
+        case 10: *isSharp=1; scaleNoOct=5;break;//A#
+        case 11: *isSharp=0; scaleNoOct=6;break;//B
+    }
+    return 7*oct + scaleNoOct;
+}
+                 
+void drawStaff(float cx,float cy,float width, float height)
+{
+    VertexObjectBuilder_startObject(voCtxDynamic, GL_LINES);
+    for(int i=0; i<(70); i++)
+    {
+        float x = cx;
+        float y = cy - height/2 + height/127 * i;
+        float red = 0;
+        float green = 0;
+        float blue = 255;
+        float trans=127;
+        
+        VertexObjectBuilder_addVertex(voCtxDynamic,
+                                      x - width/2,     y   ,0,
+                                      red,green,blue,trans,
+                                      0,0,1);                        
+        VertexObjectBuilder_addVertex(voCtxDynamic,
+                                      x + width/2,     y   ,0,
+                                      red,green,blue,trans,
+                                      0,0,1);        
+    }
+        
+    VertexObjectBuilder_startObject(voCtxDynamic, GL_TRIANGLES);
+    for(int i=0; i<NOTEADDEDMAX; i++)
+    {
+        int cursor = (noteAddedHead+i)%NOTEADDEDMAX;
+        if(noteAddedVolumes[cursor] > 0)
+        {
+            float x = cx + width/2 - width/NOTEADDEDMAX * i;
+            int isSharp=0;
+            float y = cy - height/2 + height/(70) * noteToStaff(noteAddedPitches[cursor],&isSharp);
+            float red = 0;
+            float green = 0;
+            float blue = 255;
+            float trans=127;
+            float dx = 0.005;
+            float dy = 0.005;
+            VertexObjectBuilder_addVertex(voCtxDynamic,
+                                          x,     y+dy   ,0,
+                                          red,green,blue,trans,
+                                          0,0,1);                        
+            VertexObjectBuilder_addVertex(voCtxDynamic,
+                                          x-dx,     y   ,0,
+                                          red,green,blue,trans,
+                                          0,0,1);                        
+            VertexObjectBuilder_addVertex(voCtxDynamic,
+                                          x+dx,     y   ,0,
+                                          red,green,blue,trans,
+                                          0,0,1);       
+            
+            VertexObjectBuilder_addVertex(voCtxDynamic,
+                                          x,     y-dy   ,0,
+                                          red,green,blue,trans,
+                                          0,0,1);                        
+            VertexObjectBuilder_addVertex(voCtxDynamic,
+                                          x-dx,     y   ,0,
+                                          red,green,blue,trans,
+                                          0,0,1);                        
+            VertexObjectBuilder_addVertex(voCtxDynamic,
+                                          x+dx,     y   ,0,
+                                          red,green,blue,trans,
+                                          0,0,1);        
+            if(isSharp)
+            {
+                VertexObjectBuilder_startObject(voCtxDynamic, GL_LINES);  
+                
+                VertexObjectBuilder_addVertex(voCtxDynamic,
+                                              x + dx,     y+dy   ,0,
+                                              red,green,blue,trans,
+                                              0,0,1);                        
+                VertexObjectBuilder_addVertex(voCtxDynamic,
+                                              x + dx,     y-dy   ,0,
+                                              red,green,blue,trans,
+                                              0,0,1);                       
+                
+                VertexObjectBuilder_addVertex(voCtxDynamic,
+                                              x + 1.75*dx,     y+dy   ,0,
+                                              red,green,blue,trans,
+                                              0,0,1);                        
+                VertexObjectBuilder_addVertex(voCtxDynamic,
+                                              x + 1.75*dx,     y-dy   ,0,
+                                              red,green,blue,trans,
+                                              0,0,1);
+                
+                VertexObjectBuilder_addVertex(voCtxDynamic,
+                                              x + 0.5*dx,     y+0.4*dy   ,0,
+                                              red,green,blue,trans,
+                                              0,0,1);  
+            
+                VertexObjectBuilder_addVertex(voCtxDynamic,
+                                              x + 2*dx,     y+0.5*dy   ,0,
+                                              red,green,blue,trans,
+                                              0,0,1);
+                
+                VertexObjectBuilder_addVertex(voCtxDynamic,
+                                              x + 0.5*dx,     y-0.6*dy   ,0,
+                                              red,green,blue,trans,
+                                              0,0,1);  
+                
+                VertexObjectBuilder_addVertex(voCtxDynamic,
+                                              x + 2*dx,     y-0.5*dy   ,0,
+                                              red,green,blue,trans,
+                                              0,0,1);
+                VertexObjectBuilder_startObject(voCtxDynamic, GL_TRIANGLES);  
+            }
+        }
+    }
+}
+
 void GenericRendering_drawMoveableFrets()
 {
     float pitch=0;
@@ -341,6 +495,7 @@ void GenericRendering_dynamic()
     GenericRendering_drawPitchLocation();
     
     GenericRendering_drawChannelOccupancy(0.8, 0.8, 0.4);
+    //drawStaff(0.3,0.8,0.6,0.4);
 }
 
 void GenericRendering_drawVO(struct VertexObjectBuilder* vobj)
