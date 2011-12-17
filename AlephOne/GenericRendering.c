@@ -111,7 +111,7 @@ void drawOccupancyHandle(float cx, float cy, float diameter,float z)
     z = z/16 * 2*M_PI;
     
     //Draw the endpoints of the channel cycle
-    float rA = (diameter*0.25+0.04);
+    float rA = (diameter*0.25+0.02);
     float rB = (diameter*0.25);
     float cosA = cosf(z+0.1);
     float sinA = sinf(z+0.1);
@@ -120,11 +120,11 @@ void drawOccupancyHandle(float cx, float cy, float diameter,float z)
     float cosC = cosf(z);
     float sinC = sinf(z);
     VertexObjectBuilder_addVertex(voCtxStatic,cx+rB*cosC,cy+rB*sinC,0, 
-                                  0, 255,255,127,0,0,1);        
+                                  255, 255,255,127,0,0,1);        
     VertexObjectBuilder_addVertex(voCtxStatic,cx+rA*cosA,cy+rA*sinA,0, 
-                                  0, 200,  0,100,0,0,1);        
+                                  200, 200,  0,100,0,0,1);        
     VertexObjectBuilder_addVertex(voCtxStatic,cx+rA*cosB,cy+rA*sinB,0, 
-                                  0, 200,  0,100,0,0,1);        
+                                  200, 200,  0,100,0,0,1);        
 }
 
 void GenericRendering_drawChannelOccupancy(float cx,float cy,float diameter)
@@ -166,21 +166,26 @@ void GenericRendering_drawChannelOccupancy(float cx,float cy,float diameter)
         float b = Fretless_getChannelBend(fctx, channel);
         float rD = rC + (diameter*0.5/4)*b;
         
-        //Draw what the bend manipulation is doing
-        VertexObjectBuilder_addVertex(voCtxStatic,cx+rC*cosA,cy+rC*sinA,0, 
-                                      0, 255, 0,127,0,0,1);        
-        VertexObjectBuilder_addVertex(voCtxStatic,cx+rC*cosB,cy+rC*sinB,0, 
-                                      0, 255, 0,127,0,0,1);        
-        VertexObjectBuilder_addVertex(voCtxStatic,cx+rD*cosC,cy+rD*sinC,0, 
-                                      0, 255, 0,127,0,0,1);  
+        int red   = b>0 ? 255 : 0;
+        int green = 0;
+        int blue  = b>0 ? 0 : 255;
         
         //Draw the channel cycling
         VertexObjectBuilder_addVertex(voCtxStatic,cx,cy,0, 
                                       0, 255, 0,127,0,0,1);        
         VertexObjectBuilder_addVertex(voCtxStatic,cx+r*cosA,cy+r*sinA,0, 
-                                      0, 255, 0,  0,0,0,1);        
+                                      0, 200, 0,  0,0,0,1);        
         VertexObjectBuilder_addVertex(voCtxStatic,cx+r*cosB,cy+r*sinB,0, 
                                       0, 255, 0,  0,0,0,1); 
+        
+        //Draw what the bend manipulation is doing
+        VertexObjectBuilder_addVertex(voCtxStatic,cx+rC*cosA,cy+rC*sinA,0, 
+                                      red, green, blue,200,0,0,1);        
+        VertexObjectBuilder_addVertex(voCtxStatic,cx+rC*cosB,cy+rC*sinB,0, 
+                                      red*0.5, green*0.5, blue*0.5,200,0,0,1);        
+        VertexObjectBuilder_addVertex(voCtxStatic,cx+rD*cosC,cy+rD*sinC,0, 
+                                      red*0.5, green*0.5, blue*0.5,200,0,0,1);  
+        
     }
 }
 
@@ -210,21 +215,47 @@ void GenericRendering_drawMoveableFrets()
     while(PitchHandler_getFret(phctx,&pitch, &x, &y, &importance, &usage))
     {
         float dxi = dx*importance*(1+usage);
-        VertexObjectBuilder_addVertex(voCtxDynamic,x,     y   ,0,0,  usage*50,  255,255,0,0,1);            
-        VertexObjectBuilder_addVertex(voCtxDynamic,x-dxi, y   ,0,127,127,255,  0,0,0,1);            
-        VertexObjectBuilder_addVertex(voCtxDynamic,x    , y-dy,0,127,127,255,  0,0,0,1);            
+        float bCol = importance * 255.0 / 4.0;
         
-        VertexObjectBuilder_addVertex(voCtxDynamic,x,     y   ,0,  0,   usage*50,255,255,0,0,1);            
-        VertexObjectBuilder_addVertex(voCtxDynamic,x    , y+dy,0,127,127,255,  0,0,0,1);            
-        VertexObjectBuilder_addVertex(voCtxDynamic,x+dxi, y   ,0,127,127,255,  0,0,0,1);            
+        int red = 0;
+        int green = usage*50;
+        int blue = 255;
+        int trans = bCol;
         
-        VertexObjectBuilder_addVertex(voCtxDynamic,x,     y   ,0,  0,   usage*50,255,255,0,0,1);            
-        VertexObjectBuilder_addVertex(voCtxDynamic,x    , y+dy,0,127,127,255,  0,0,0,1);            
-        VertexObjectBuilder_addVertex(voCtxDynamic,x-dxi, y   ,0,127,127,255,  0,0,0,1);            
+        int rede = 127;
+        int greene = 127;
+        int bluee = 255;
+        int transe = 0;
         
-        VertexObjectBuilder_addVertex(voCtxDynamic,x,     y   ,0,  0,   usage*50,255,255,0,0,1);            
-        VertexObjectBuilder_addVertex(voCtxDynamic,x+dxi, y   ,0,127,127,255,  0,0,0,1);            
-        VertexObjectBuilder_addVertex(voCtxDynamic,x    , y-dy,0,127,127,255,  0,0,0,1);            
+        if(importance == 3)
+        {
+            red = 200;
+        }
+        else
+        {
+            if(importance == 1)
+            {
+                green = 255;  
+                trans = 64+usage*64;
+            }            
+        }
+        
+        
+        VertexObjectBuilder_addVertex(voCtxDynamic,x,     y   ,0,red,green,blue,trans,0,0,1);            
+        VertexObjectBuilder_addVertex(voCtxDynamic,x-dxi, y   ,0,rede,greene,bluee,transe,0,0,1);            
+        VertexObjectBuilder_addVertex(voCtxDynamic,x    , y-dy,0,rede,greene,bluee,transe,0,0,1);            
+        
+        VertexObjectBuilder_addVertex(voCtxDynamic,x,     y   ,0,red,green,blue,trans,0,0,1);            
+        VertexObjectBuilder_addVertex(voCtxDynamic,x    , y+dy,0,rede,greene,bluee,transe,0,0,1);            
+        VertexObjectBuilder_addVertex(voCtxDynamic,x+dxi, y   ,0,rede,greene,bluee,transe,0,0,1);            
+        
+        VertexObjectBuilder_addVertex(voCtxDynamic,x,     y   ,0,red,green,blue,trans,0,0,1);            
+        VertexObjectBuilder_addVertex(voCtxDynamic,x    , y+dy,0,rede,greene,bluee,transe,0,0,1);            
+        VertexObjectBuilder_addVertex(voCtxDynamic,x-dxi, y   ,0,rede,greene,bluee,transe,0,0,1);            
+        
+        VertexObjectBuilder_addVertex(voCtxDynamic,x,     y   ,0,red,green,blue,trans,0,0,1);            
+        VertexObjectBuilder_addVertex(voCtxDynamic,x+dxi, y   ,0,rede,greene,bluee,transe,0,0,1);            
+        VertexObjectBuilder_addVertex(voCtxDynamic,x    , y-dy,0,rede,greene,bluee,transe,0,0,1);            
     }   
     
    
@@ -303,12 +334,13 @@ void GenericRendering_dynamic()
 {
     VertexObjectBuilder_reset(voCtxStatic);
     GenericRendering_drawBackground();
-    GenericRendering_drawChannelOccupancy(0.5, 0.5, 1.0);
     
     VertexObjectBuilder_reset(voCtxDynamic);    
     GenericRendering_drawMoveableFrets();
     GenericRendering_drawFingerLocation();
     GenericRendering_drawPitchLocation();
+    
+    GenericRendering_drawChannelOccupancy(0.8, 0.8, 0.4);
 }
 
 void GenericRendering_drawVO(struct VertexObjectBuilder* vobj)

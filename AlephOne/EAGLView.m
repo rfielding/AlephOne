@@ -43,14 +43,14 @@ static struct Fretless_context* fctx;
     
     float baseNote = 2.0; //D
     //First tetrachord
-    PitchHandler_placeFret(phctx,baseNote + 0.0,4);
+    PitchHandler_placeFret(phctx,baseNote + 0.0,3);
     PitchHandler_placeFret(phctx,baseNote + 1.0,2);
     PitchHandler_placeFret(phctx,baseNote + 1.5,1);
-    PitchHandler_placeFret(phctx,baseNote + 2.0,2);
+    PitchHandler_placeFret(phctx,baseNote + 2.0,3);
     PitchHandler_placeFret(phctx,baseNote + 3.0,3);
     PitchHandler_placeFret(phctx,baseNote + 4.0,2);
     //Second tetrachord
-    PitchHandler_placeFret(phctx,baseNote + 0.0 + 5,4);
+    PitchHandler_placeFret(phctx,baseNote + 0.0 + 5,3);
     PitchHandler_placeFret(phctx,baseNote + 1.0 + 5,2);
     PitchHandler_placeFret(phctx,baseNote + 1.5 + 5,1);
     //Tetrachord from fifth
@@ -58,7 +58,7 @@ static struct Fretless_context* fctx;
     PitchHandler_placeFret(phctx,baseNote + 1.0 + 7,2);
     
     PitchHandler_placeFret(phctx,baseNote + 1.5 + 7,1);
-    PitchHandler_placeFret(phctx,baseNote + 2.0 + 7,2);
+    PitchHandler_placeFret(phctx,baseNote + 2.0 + 7,3);
     PitchHandler_placeFret(phctx,baseNote + 3.0 + 7,3);
     PitchHandler_placeFret(phctx,baseNote + 4.0 + 7,2);
     
@@ -71,6 +71,11 @@ static struct Fretless_context* fctx;
     {
         PitchHandler_setColCount(phctx,5);
         PitchHandler_setRowCount(phctx,3);        
+    }
+    for(int s=0; s<16; s++)
+    {
+        //Set to Just fourths
+        PitchHandler_setTuneInterval(phctx,s,4.9804499913461244);
     }
     PitchHandler_setNoteDiff(phctx,45); //A is bottom corner
     PitchHandler_setTuneSpeed(phctx,0.25);

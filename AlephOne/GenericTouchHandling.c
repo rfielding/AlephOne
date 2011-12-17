@@ -97,6 +97,7 @@ void GenericTouchHandling_touchesDown(void* touch,int isMoving,float x,float y, 
     else
     {
         float velocity = 1.0*velocity*area;
+        logger("vel=%f\n",velocity);
         int legato = 0;
         Fretless_down(fretlessp,finger1, note-dx,polyGroup1,velocity,legato); 
         Fretless_express(fretlessp, finger1, 0, expr);
