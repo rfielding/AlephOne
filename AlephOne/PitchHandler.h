@@ -35,10 +35,7 @@ struct FingerInfo
     float endPitch;
 };
 
-struct PitchHandlerContext* PitchHandler_init(void* (*allocFn)(unsigned long));
-
-void PitchHandler_registerAddedANote(struct PitchHandlerContext* ctx, void (*addedANote)(float,float));
-void PitchHandler_addedANote(struct PitchHandlerContext* ctx,float note,float velocity);
+struct PitchHandlerContext* PitchHandler_init(void* (*allocFn)(unsigned long),int (*fail)(const char*,...),int (*logger)(const char*,...));
 
 //With x,y that came out of PitchHandler_translate,
 struct FingerInfo* PitchHandler_pickPitchRaw(struct PitchHandlerContext* ctx, int finger,float x,float y);

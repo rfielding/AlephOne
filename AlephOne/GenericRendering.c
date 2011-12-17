@@ -15,19 +15,12 @@
 #include <stdlib.h>
 #include <math.h>
 
-//#include <stdio.h>
+#include <stdio.h>
 
 struct VertexObjectBuilder* voCtxStatic;
 struct VertexObjectBuilder* voCtxDynamic;
 struct PitchHandlerContext* phctx;
 struct Fretless_context* fctx;
-
-#define NOTEADDEDMAX 32
-static float noteAddedPitches[NOTEADDEDMAX];
-static float noteAddedVolumes[NOTEADDEDMAX];
-static int noteAddedHead=0;
-
-void addedANoteHandler(float pitch, float volume);
 
 static float lightPosition[] = {0, 0, -1,0};
 static float specularAmount[] = {0.0,0.0,0.0,1.0};
@@ -45,8 +38,6 @@ void GenericRendering_init(struct PitchHandlerContext* phctxArg,struct Fretless_
 {
     phctx = phctxArg;
     fctx  = fctxArg;
-    
-    PitchHandler_registerAddedANote(phctx, addedANoteHandler);
 }
 
 void GenericRendering_updateLightOrientation(float x,float y, float z)
@@ -99,20 +90,12 @@ void GenericRendering_drawBackground()
     float ly=0;//lightPosition[1]+64;
     float lz=0;//lightPosition[2]+64;
     
-    VertexObjectBuilder_startObject(voCtxStatic,GL_TRIANGLE_STRIP);
+    VertexObjectBuilder_startColoredObject(voCtxStatic,GL_TRIANGLE_STRIP);
     
-    VertexObjectBuilder_addVertex(voCtxStatic,0,0,0, 
-                                  lx, ly, lz,
-                                  255,0,0,1);
-    VertexObjectBuilder_addVertex(voCtxStatic,1,0,0, 
-                                  lz, lx, ly,
-                                  255,0,0,1);
-    VertexObjectBuilder_addVertex(voCtxStatic,0,1,0, 
-                                  ly, lz, lx,
-                                  255,0,0,1);
-    VertexObjectBuilder_addVertex(voCtxStatic,1,1,0, 
-                                  lx, lz, ly,
-                                  255,0,0,1);
+    VertexObjectBuilder_addColoredVertex(voCtxStatic,0,0,0,lx, ly, lz,255);
+    VertexObjectBuilder_addColoredVertex(voCtxStatic,1,0,0,lz, lx, ly,255);
+    VertexObjectBuilder_addColoredVertex(voCtxStatic,0,1,0,ly, lz, lx,255); 
+    VertexObjectBuilder_addColoredVertex(voCtxStatic,1,1,0,lx, lz, ly,255); 
 }
 
 void drawOccupancyHandle(float cx, float cy, float diameter,float z)
@@ -128,31 +111,26 @@ void drawOccupancyHandle(float cx, float cy, float diameter,float z)
     float sinB = sinf(z-0.1);
     float cosC = cosf(z);
     float sinC = sinf(z);
-    VertexObjectBuilder_addVertex(voCtxStatic,cx+rB*cosC,cy+rB*sinC,0, 
-                                  255, 255,255,127,0,0,1);        
-    VertexObjectBuilder_addVertex(voCtxStatic,cx+rA*cosA,cy+rA*sinA,0, 
-                                  200, 200,  0,100,0,0,1);        
-    VertexObjectBuilder_addVertex(voCtxStatic,cx+rA*cosB,cy+rA*sinB,0, 
-                                  200, 200,  0,100,0,0,1);        
+    VertexObjectBuilder_addColoredVertex(voCtxDynamic,cx+rB*cosC,cy+rB*sinC,0,255, 255,255,127);        
+    VertexObjectBuilder_addColoredVertex(voCtxDynamic,cx+rA*cosA,cy+rA*sinA,0,200, 200,  0,100);        
+    VertexObjectBuilder_addColoredVertex(voCtxDynamic,cx+rA*cosB,cy+rA*sinB,0,200, 200,  0,100);        
 }
 
 void GenericRendering_drawChannelOccupancy(float cx,float cy,float diameter)
 {
     //Draw the main radius of the channel cycle
-    VertexObjectBuilder_startObject(voCtxStatic,GL_LINE_STRIP);    
+    VertexObjectBuilder_startColoredObject(voCtxDynamic,GL_LINE_STRIP);    
     float r = (diameter*0.25);
     for(int channel=0; channel<16; channel++)
     {
         float a = channel/16.0 * 2*M_PI;
         float cosA = cosf(a);
         float sinA = sinf(a);
-        VertexObjectBuilder_addVertex(voCtxStatic,cx+r*cosA,cy+r*sinA,0, 
-                                      0, 255, 0,64,0,0,1);                
+        VertexObjectBuilder_addColoredVertex(voCtxDynamic,cx+r*cosA,cy+r*sinA,0,0, 255, 0,64);                
     }
-    VertexObjectBuilder_addVertex(voCtxStatic,cx+r,cy,0, 
-                                  0, 255, 0,64,0,0,1);  
+    VertexObjectBuilder_addColoredVertex(voCtxDynamic,cx+r,cy,0,0, 255, 0,64);  
     
-    VertexObjectBuilder_startObject(voCtxStatic,GL_TRIANGLES);
+    VertexObjectBuilder_startColoredObject(voCtxDynamic,GL_TRIANGLES);
     int bottom = Fretless_getMidiHintChannelBase(fctx);
     int top  = (bottom + Fretless_getMidiHintChannelSpan(fctx) + 15)%16;
     drawOccupancyHandle(cx,cy,diameter,bottom);
@@ -180,175 +158,25 @@ void GenericRendering_drawChannelOccupancy(float cx,float cy,float diameter)
         int blue  = b>0 ? 0 : 255;
         
         //Draw the channel cycling
-        VertexObjectBuilder_addVertex(voCtxStatic,cx,cy,0, 
-                                      0, 255, 0,127,0,0,1);        
-        VertexObjectBuilder_addVertex(voCtxStatic,cx+r*cosA,cy+r*sinA,0, 
-                                      0, 200, 0,  0,0,0,1);        
-        VertexObjectBuilder_addVertex(voCtxStatic,cx+r*cosB,cy+r*sinB,0, 
-                                      0, 255, 0,  0,0,0,1); 
+        VertexObjectBuilder_addColoredVertex(voCtxDynamic,cx,cy,0,0, 255, 0,127);        
+        VertexObjectBuilder_addColoredVertex(voCtxDynamic,cx+r*cosA,cy+r*sinA,0,0, 200, 0,  0);        
+        VertexObjectBuilder_addColoredVertex(voCtxDynamic,cx+r*cosB,cy+r*sinB,0,0, 255, 0,  0); 
         
         //Draw what the bend manipulation is doing
-        VertexObjectBuilder_addVertex(voCtxStatic,cx+rC*cosA,cy+rC*sinA,0, 
-                                      red, green, blue,200,0,0,1);        
-        VertexObjectBuilder_addVertex(voCtxStatic,cx+rC*cosB,cy+rC*sinB,0, 
-                                      red*0.5, green*0.5, blue*0.5,200,0,0,1);        
-        VertexObjectBuilder_addVertex(voCtxStatic,cx+rD*cosC,cy+rD*sinC,0, 
-                                      red*0.5, green*0.5, blue*0.5,200,0,0,1);  
+        VertexObjectBuilder_addColoredVertex(voCtxDynamic,cx+rC*cosA,cy+rC*sinA,0,red, green, blue,200);        
+        VertexObjectBuilder_addColoredVertex(voCtxDynamic,cx+rC*cosB,cy+rC*sinB,0,red*0.5, green*0.5, blue*0.5,200);        
+        VertexObjectBuilder_addColoredVertex(voCtxDynamic,cx+rD*cosC,cy+rD*sinC,0,red*0.5, green*0.5, blue*0.5,200);  
         
     }
 }
 
 void GenericRendering_setup()
 {
-    voCtxDynamic = VertexObjectBuilder_init(malloc);    
-    voCtxStatic = VertexObjectBuilder_init(malloc);
-    //GenericRendering_drawBackground();
+    voCtxDynamic = VertexObjectBuilder_init(malloc,printf);    
+    voCtxStatic = VertexObjectBuilder_init(malloc,printf);
 }
 
-void addedANoteHandler(float pitch, float volume)
-{
-    //Simply write them in reverse order such that
-    //head points to the first one.  The unused ones
-    //will have volume zero.
-    noteAddedHead += (NOTEADDEDMAX-1);
-    noteAddedHead %= NOTEADDEDMAX;
-    noteAddedPitches[noteAddedHead] = pitch;
-    noteAddedVolumes[noteAddedHead] = volume;
-}
-
-
-int noteToStaff(float note,int* isSharp)
-{
-    int scaleNoOct;
-    int qnote = (int)(note+0.5);
-    int oct = qnote/12;
-    int qnoteNoOct = qnote % 12;
-    switch(qnoteNoOct)
-    {
-        case 0: *isSharp=0; scaleNoOct=0; break;//C
-        case 1: *isSharp=1; scaleNoOct=0; break;//C#
-        case 2: *isSharp=0; scaleNoOct=1; break;//D
-        case 3: *isSharp=1; scaleNoOct=1; break;//D#
-        case 4: *isSharp=0; scaleNoOct=2; break;//E
-        case 5: *isSharp=0; scaleNoOct=3; break;//F
-        case 6: *isSharp=1; scaleNoOct=3; break;//F#
-        case 7: *isSharp=0; scaleNoOct=4; break;//G
-        case 8: *isSharp=1; scaleNoOct=4; break;//G#
-        case 9: *isSharp=0; scaleNoOct=5; break;//A
-        case 10: *isSharp=1; scaleNoOct=5;break;//A#
-        case 11: *isSharp=0; scaleNoOct=6;break;//B
-    }
-    return 7*oct + scaleNoOct;
-}
-                 
-void drawStaff(float cx,float cy,float width, float height)
-{
-    VertexObjectBuilder_startObject(voCtxDynamic, GL_LINES);
-    for(int i=0; i<(70); i++)
-    {
-        float x = cx;
-        float y = cy - height/2 + height/127 * i;
-        float red = 0;
-        float green = 0;
-        float blue = 255;
-        float trans=127;
-        
-        VertexObjectBuilder_addVertex(voCtxDynamic,
-                                      x - width/2,     y   ,0,
-                                      red,green,blue,trans,
-                                      0,0,1);                        
-        VertexObjectBuilder_addVertex(voCtxDynamic,
-                                      x + width/2,     y   ,0,
-                                      red,green,blue,trans,
-                                      0,0,1);        
-    }
-        
-    VertexObjectBuilder_startObject(voCtxDynamic, GL_TRIANGLES);
-    for(int i=0; i<NOTEADDEDMAX; i++)
-    {
-        int cursor = (noteAddedHead+i)%NOTEADDEDMAX;
-        if(noteAddedVolumes[cursor] > 0)
-        {
-            float x = cx + width/2 - width/NOTEADDEDMAX * i;
-            int isSharp=0;
-            float y = cy - height/2 + height/(70) * noteToStaff(noteAddedPitches[cursor],&isSharp);
-            float red = 0;
-            float green = 0;
-            float blue = 255;
-            float trans=127;
-            float dx = 0.005;
-            float dy = 0.005;
-            VertexObjectBuilder_addVertex(voCtxDynamic,
-                                          x,     y+dy   ,0,
-                                          red,green,blue,trans,
-                                          0,0,1);                        
-            VertexObjectBuilder_addVertex(voCtxDynamic,
-                                          x-dx,     y   ,0,
-                                          red,green,blue,trans,
-                                          0,0,1);                        
-            VertexObjectBuilder_addVertex(voCtxDynamic,
-                                          x+dx,     y   ,0,
-                                          red,green,blue,trans,
-                                          0,0,1);       
-            
-            VertexObjectBuilder_addVertex(voCtxDynamic,
-                                          x,     y-dy   ,0,
-                                          red,green,blue,trans,
-                                          0,0,1);                        
-            VertexObjectBuilder_addVertex(voCtxDynamic,
-                                          x-dx,     y   ,0,
-                                          red,green,blue,trans,
-                                          0,0,1);                        
-            VertexObjectBuilder_addVertex(voCtxDynamic,
-                                          x+dx,     y   ,0,
-                                          red,green,blue,trans,
-                                          0,0,1);        
-            if(isSharp)
-            {
-                VertexObjectBuilder_startObject(voCtxDynamic, GL_LINES);  
-                
-                VertexObjectBuilder_addVertex(voCtxDynamic,
-                                              x + dx,     y+dy   ,0,
-                                              red,green,blue,trans,
-                                              0,0,1);                        
-                VertexObjectBuilder_addVertex(voCtxDynamic,
-                                              x + dx,     y-dy   ,0,
-                                              red,green,blue,trans,
-                                              0,0,1);                       
-                
-                VertexObjectBuilder_addVertex(voCtxDynamic,
-                                              x + 1.75*dx,     y+dy   ,0,
-                                              red,green,blue,trans,
-                                              0,0,1);                        
-                VertexObjectBuilder_addVertex(voCtxDynamic,
-                                              x + 1.75*dx,     y-dy   ,0,
-                                              red,green,blue,trans,
-                                              0,0,1);
-                
-                VertexObjectBuilder_addVertex(voCtxDynamic,
-                                              x + 0.5*dx,     y+0.4*dy   ,0,
-                                              red,green,blue,trans,
-                                              0,0,1);  
-            
-                VertexObjectBuilder_addVertex(voCtxDynamic,
-                                              x + 2*dx,     y+0.5*dy   ,0,
-                                              red,green,blue,trans,
-                                              0,0,1);
-                
-                VertexObjectBuilder_addVertex(voCtxDynamic,
-                                              x + 0.5*dx,     y-0.6*dy   ,0,
-                                              red,green,blue,trans,
-                                              0,0,1);  
-                
-                VertexObjectBuilder_addVertex(voCtxDynamic,
-                                              x + 2*dx,     y-0.5*dy   ,0,
-                                              red,green,blue,trans,
-                                              0,0,1);
-                VertexObjectBuilder_startObject(voCtxDynamic, GL_TRIANGLES);  
-            }
-        }
-    }
-}
+          
 
 void GenericRendering_drawMoveableFrets()
 {
@@ -363,7 +191,7 @@ void GenericRendering_drawMoveableFrets()
     //float ly=127*lightPosition[1]+127;
     //float lz=127*lightPosition[2]+127;
      
-    VertexObjectBuilder_startObject(voCtxDynamic, GL_TRIANGLES);
+    VertexObjectBuilder_startColoredObject(voCtxDynamic, GL_TRIANGLES);
     
     PitchHandler_getFretsBegin(phctx);
     while(PitchHandler_getFret(phctx,&pitch, &x, &y, &importance, &usage))
@@ -395,21 +223,21 @@ void GenericRendering_drawMoveableFrets()
         }
         
         
-        VertexObjectBuilder_addVertex(voCtxDynamic,x,     y   ,0,red,green,blue,trans,0,0,1);            
-        VertexObjectBuilder_addVertex(voCtxDynamic,x-dxi, y   ,0,rede,greene,bluee,transe,0,0,1);            
-        VertexObjectBuilder_addVertex(voCtxDynamic,x    , y-dy,0,rede,greene,bluee,transe,0,0,1);            
+        VertexObjectBuilder_addColoredVertex(voCtxDynamic,x,     y   ,0,red,green,blue,trans);            
+        VertexObjectBuilder_addColoredVertex(voCtxDynamic,x-dxi, y   ,0,rede,greene,bluee,transe);            
+        VertexObjectBuilder_addColoredVertex(voCtxDynamic,x    , y-dy,0,rede,greene,bluee,transe);            
         
-        VertexObjectBuilder_addVertex(voCtxDynamic,x,     y   ,0,red,green,blue,trans,0,0,1);            
-        VertexObjectBuilder_addVertex(voCtxDynamic,x    , y+dy,0,rede,greene,bluee,transe,0,0,1);            
-        VertexObjectBuilder_addVertex(voCtxDynamic,x+dxi, y   ,0,rede,greene,bluee,transe,0,0,1);            
+        VertexObjectBuilder_addColoredVertex(voCtxDynamic,x,     y   ,0,red,green,blue,trans);            
+        VertexObjectBuilder_addColoredVertex(voCtxDynamic,x    , y+dy,0,rede,greene,bluee,transe);            
+        VertexObjectBuilder_addColoredVertex(voCtxDynamic,x+dxi, y   ,0,rede,greene,bluee,transe);            
         
-        VertexObjectBuilder_addVertex(voCtxDynamic,x,     y   ,0,red,green,blue,trans,0,0,1);            
-        VertexObjectBuilder_addVertex(voCtxDynamic,x    , y+dy,0,rede,greene,bluee,transe,0,0,1);            
-        VertexObjectBuilder_addVertex(voCtxDynamic,x-dxi, y   ,0,rede,greene,bluee,transe,0,0,1);            
+        VertexObjectBuilder_addColoredVertex(voCtxDynamic,x,     y   ,0,red,green,blue,trans);            
+        VertexObjectBuilder_addColoredVertex(voCtxDynamic,x    , y+dy,0,rede,greene,bluee,transe);            
+        VertexObjectBuilder_addColoredVertex(voCtxDynamic,x-dxi, y   ,0,rede,greene,bluee,transe);            
         
-        VertexObjectBuilder_addVertex(voCtxDynamic,x,     y   ,0,red,green,blue,trans,0,0,1);            
-        VertexObjectBuilder_addVertex(voCtxDynamic,x+dxi, y   ,0,rede,greene,bluee,transe,0,0,1);            
-        VertexObjectBuilder_addVertex(voCtxDynamic,x    , y-dy,0,rede,greene,bluee,transe,0,0,1);            
+        VertexObjectBuilder_addColoredVertex(voCtxDynamic,x,     y   ,0,red,green,blue,trans);            
+        VertexObjectBuilder_addColoredVertex(voCtxDynamic,x+dxi, y   ,0,rede,greene,bluee,transe);            
+        VertexObjectBuilder_addColoredVertex(voCtxDynamic,x    , y-dy,0,rede,greene,bluee,transe);            
     }   
     
    
@@ -425,27 +253,27 @@ void GenericRendering_drawFingerLocation()
     //float lx=127*lightPosition[0]+127;
     //float ly=127*lightPosition[1]+127;
     //float lz=127*lightPosition[2]+127;
-    VertexObjectBuilder_startObject(voCtxDynamic, GL_TRIANGLES);
+    VertexObjectBuilder_startColoredObject(voCtxDynamic, GL_TRIANGLES);
     for(int f=0; f<16; f++)
     {
         struct FingerInfo* fInfo = PitchHandler_fingerState(phctx,f);
         if(fInfo->isActive)
         {
-            VertexObjectBuilder_addVertex(voCtxDynamic,fInfo->fingerX,    fInfo->fingerY   ,0,255,  0,  0,255,0,0,1);            
-            VertexObjectBuilder_addVertex(voCtxDynamic,fInfo->fingerX-dx, fInfo->fingerY   ,0,255,127,127,  0,0,0,1);            
-            VertexObjectBuilder_addVertex(voCtxDynamic,fInfo->fingerX   , fInfo->fingerY-dy,0,255,127,127,  0,0,0,1);            
+            VertexObjectBuilder_addColoredVertex(voCtxDynamic,fInfo->fingerX,    fInfo->fingerY   ,0,255,  0,  0,255);            
+            VertexObjectBuilder_addColoredVertex(voCtxDynamic,fInfo->fingerX-dx, fInfo->fingerY   ,0,255,127,127,  0);            
+            VertexObjectBuilder_addColoredVertex(voCtxDynamic,fInfo->fingerX   , fInfo->fingerY-dy,0,255,127,127,  0);            
             
-            VertexObjectBuilder_addVertex(voCtxDynamic,fInfo->fingerX,    fInfo->fingerY   ,0,255,  0,  0,255,0,0,1);            
-            VertexObjectBuilder_addVertex(voCtxDynamic,fInfo->fingerX   , fInfo->fingerY+dy,0,255,127,127,  0,0,0,1);            
-            VertexObjectBuilder_addVertex(voCtxDynamic,fInfo->fingerX+dx, fInfo->fingerY   ,0,255,127,127,  0,0,0,1);            
+            VertexObjectBuilder_addColoredVertex(voCtxDynamic,fInfo->fingerX,    fInfo->fingerY   ,0,255,  0,  0,255);            
+            VertexObjectBuilder_addColoredVertex(voCtxDynamic,fInfo->fingerX   , fInfo->fingerY+dy,0,255,127,127,  0);            
+            VertexObjectBuilder_addColoredVertex(voCtxDynamic,fInfo->fingerX+dx, fInfo->fingerY   ,0,255,127,127,  0);            
             
-            VertexObjectBuilder_addVertex(voCtxDynamic,fInfo->fingerX,    fInfo->fingerY   ,0,255,  0,  0,255,0,0,1);            
-            VertexObjectBuilder_addVertex(voCtxDynamic,fInfo->fingerX   , fInfo->fingerY+dy,0,255,127,127,  0,0,0,1);            
-            VertexObjectBuilder_addVertex(voCtxDynamic,fInfo->fingerX-dx, fInfo->fingerY   ,0,255,127,127,  0,0,0,1);            
+            VertexObjectBuilder_addColoredVertex(voCtxDynamic,fInfo->fingerX,    fInfo->fingerY   ,0,255,  0,  0,255);            
+            VertexObjectBuilder_addColoredVertex(voCtxDynamic,fInfo->fingerX   , fInfo->fingerY+dy,0,255,127,127,  0);            
+            VertexObjectBuilder_addColoredVertex(voCtxDynamic,fInfo->fingerX-dx, fInfo->fingerY   ,0,255,127,127,  0);            
             
-            VertexObjectBuilder_addVertex(voCtxDynamic,fInfo->fingerX,    fInfo->fingerY   ,0,255,  0,  0,255,0,0,1);            
-            VertexObjectBuilder_addVertex(voCtxDynamic,fInfo->fingerX+dx, fInfo->fingerY   ,0,255,127,127,  0,0,0,1);            
-            VertexObjectBuilder_addVertex(voCtxDynamic,fInfo->fingerX   , fInfo->fingerY-dy,0,255,127,127,  0,0,0,1);            
+            VertexObjectBuilder_addColoredVertex(voCtxDynamic,fInfo->fingerX,    fInfo->fingerY   ,0,255,  0,  0,255);            
+            VertexObjectBuilder_addColoredVertex(voCtxDynamic,fInfo->fingerX+dx, fInfo->fingerY   ,0,255,127,127,  0);            
+            VertexObjectBuilder_addColoredVertex(voCtxDynamic,fInfo->fingerX   , fInfo->fingerY-dy,0,255,127,127,  0);            
             
         }
     }     
@@ -458,27 +286,27 @@ void GenericRendering_drawPitchLocation()
     //float lx=127*lightPosition[0]+127;
     //float ly=127*lightPosition[1]+127;
     //float lz=127*lightPosition[2]+127;
-    VertexObjectBuilder_startObject(voCtxDynamic, GL_TRIANGLES);
+    VertexObjectBuilder_startColoredObject(voCtxDynamic, GL_TRIANGLES);
     for(int f=0; f<16; f++)
     {
         struct FingerInfo* fInfo = PitchHandler_fingerState(phctx,f);
         if(fInfo->isActive)
         {
-            VertexObjectBuilder_addVertex(voCtxDynamic,fInfo->pitchX,    fInfo->pitchY   ,0,  0,255,  0,255,0,0,1);            
-            VertexObjectBuilder_addVertex(voCtxDynamic,fInfo->pitchX-dx, fInfo->pitchY   ,0,127,255,127,  0,0,0,1);            
-            VertexObjectBuilder_addVertex(voCtxDynamic,fInfo->pitchX   , fInfo->pitchY-dy,0,127,255,127,  0,0,0,1);            
+            VertexObjectBuilder_addColoredVertex(voCtxDynamic,fInfo->pitchX,    fInfo->pitchY   ,0,  0,255,  0,255);            
+            VertexObjectBuilder_addColoredVertex(voCtxDynamic,fInfo->pitchX-dx, fInfo->pitchY   ,0,127,255,127,  0);            
+            VertexObjectBuilder_addColoredVertex(voCtxDynamic,fInfo->pitchX   , fInfo->pitchY-dy,0,127,255,127,  0);            
 
-            VertexObjectBuilder_addVertex(voCtxDynamic,fInfo->pitchX,    fInfo->pitchY   ,0,  0,255,  0,255,0,0,1);            
-            VertexObjectBuilder_addVertex(voCtxDynamic,fInfo->pitchX   , fInfo->pitchY+dy,0,127,255,127,  0,0,0,1);            
-            VertexObjectBuilder_addVertex(voCtxDynamic,fInfo->pitchX+dx, fInfo->pitchY   ,0,127,255,127,  0,0,0,1);            
+            VertexObjectBuilder_addColoredVertex(voCtxDynamic,fInfo->pitchX,    fInfo->pitchY   ,0,  0,255,  0,255);            
+            VertexObjectBuilder_addColoredVertex(voCtxDynamic,fInfo->pitchX   , fInfo->pitchY+dy,0,127,255,127,  0);            
+            VertexObjectBuilder_addColoredVertex(voCtxDynamic,fInfo->pitchX+dx, fInfo->pitchY   ,0,127,255,127,  0);            
             
-            VertexObjectBuilder_addVertex(voCtxDynamic,fInfo->pitchX,    fInfo->pitchY   ,0,  0,255,  0,255,0,0,1);            
-            VertexObjectBuilder_addVertex(voCtxDynamic,fInfo->pitchX   , fInfo->pitchY+dy,0,127,255,127,  0,0,0,1);            
-            VertexObjectBuilder_addVertex(voCtxDynamic,fInfo->pitchX-dx, fInfo->pitchY   ,0,127,255,127,  0,0,0,1);            
+            VertexObjectBuilder_addColoredVertex(voCtxDynamic,fInfo->pitchX,    fInfo->pitchY   ,0,  0,255,  0,255);            
+            VertexObjectBuilder_addColoredVertex(voCtxDynamic,fInfo->pitchX   , fInfo->pitchY+dy,0,127,255,127,  0);            
+            VertexObjectBuilder_addColoredVertex(voCtxDynamic,fInfo->pitchX-dx, fInfo->pitchY   ,0,127,255,127,  0);            
             
-            VertexObjectBuilder_addVertex(voCtxDynamic,fInfo->pitchX,    fInfo->pitchY   ,0,  0,255,  0,255,0,0,1);            
-            VertexObjectBuilder_addVertex(voCtxDynamic,fInfo->pitchX+dx, fInfo->pitchY   ,0,127,255,127,  0,0,0,1);            
-            VertexObjectBuilder_addVertex(voCtxDynamic,fInfo->pitchX   , fInfo->pitchY-dy,0,127,255,127,  0,0,0,1);            
+            VertexObjectBuilder_addColoredVertex(voCtxDynamic,fInfo->pitchX,    fInfo->pitchY   ,0,  0,255,  0,255);            
+            VertexObjectBuilder_addColoredVertex(voCtxDynamic,fInfo->pitchX+dx, fInfo->pitchY   ,0,127,255,127,  0);            
+            VertexObjectBuilder_addColoredVertex(voCtxDynamic,fInfo->pitchX   , fInfo->pitchY-dy,0,127,255,127,  0);            
             
         }
     }    
@@ -509,12 +337,37 @@ void GenericRendering_drawVO(struct VertexObjectBuilder* vobj)
         struct VertexObject* vo = VertexObjectBuilder_getVertexObject(vobj,o);
         
         glEnableClientState(GL_VERTEX_ARRAY);
-        glEnableClientState(GL_COLOR_ARRAY);
-        glEnableClientState(GL_NORMAL_ARRAY);
-
-        glVertexPointer(3, GL_FLOAT, 0, vo->vertices);        
-        glColorPointer(4, GL_UNSIGNED_BYTE, 0, vo->colors);
-        glNormalPointer(GL_FLOAT,0, vo->normals);
+        glVertexPointer(3, GL_FLOAT, 0, vo->vertices);    
+        
+        if(vo->usingColor)
+        {
+            glEnableClientState(GL_COLOR_ARRAY);            
+            glColorPointer(4, GL_UNSIGNED_BYTE, 0, vo->colors);            
+        }
+        else
+        {
+            glDisableClientState(GL_COLOR_ARRAY);
+        }
+        
+        if(vo->usesNormals)
+        {
+            glEnableClientState(GL_NORMAL_ARRAY);            
+            glNormalPointer(GL_FLOAT,0, vo->normals);            
+        }
+        else
+        {
+            glDisableClientState(GL_NORMAL_ARRAY);                        
+        }
+        
+        if(vo->usingTexture)
+        {
+            glEnableClientState(GL_TEXTURE_COORD_ARRAY);
+            glTexCoordPointer(3,GL_FLOAT,0, vo->tex);            
+        }
+        else
+        {
+            glDisableClientState(GL_TEXTURE_COORD_ARRAY);
+        }
         
         glDrawArrays(vo->type, 0, vo->count);            
     }

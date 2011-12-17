@@ -19,13 +19,19 @@ struct VertexObjectBuilder
     float gridVertices[VOVERTEXMAX];
     unsigned char gridColors[VOVERTEXMAX];
     float gridNormals[VOVERTEXMAX];
-    int gridVerticesCount;    
+    float gridTexCoord[VOVERTEXMAX];
+    int gridVerticesCount;  
+    int usingNormalsCount;
+    int usingTextureCount;
+    int usingColorCount;
+    int (*fail)(const char*,...);
 };
 
 
-struct VertexObjectBuilder* VertexObjectBuilder_init(void* (*allocFn)(unsigned long))
+struct VertexObjectBuilder* VertexObjectBuilder_init(void* (*allocFn)(unsigned long),int (*fail)(const char*,...))
 {
     struct VertexObjectBuilder* ctxp = allocFn(sizeof(struct VertexObjectBuilder));
+    ctxp->fail = fail;
     VertexObjectBuilder_reset(ctxp);
     return ctxp;
 }
@@ -34,24 +40,76 @@ void VertexObjectBuilder_reset(struct VertexObjectBuilder* ctxp)
 {
     ctxp->gridVerticesCount=0;
     ctxp->vertexObjectsCount=0;
+    ctxp->usingNormalsCount=0;
+    ctxp->usingColorCount=0;
 }
 
-int VertexObjectBuilder_startObject(struct VertexObjectBuilder* ctxp,int type)
+int VertexObjectBuilder_startObject(struct VertexObjectBuilder* ctxp,int type,int usingColors,int usesNormals,int usingTexture)
 {
-    if(ctxp->vertexObjectsCount+1 >= VOOBJMAX)return 0;
-    ctxp->vertexObjects[ctxp->vertexObjectsCount].vertices = &ctxp->gridVertices[3*ctxp->gridVerticesCount];
-    ctxp->vertexObjects[ctxp->vertexObjectsCount].colors = &ctxp->gridColors[4*ctxp->gridVerticesCount];
+    if(ctxp->vertexObjectsCount >= VOOBJMAX)
+    {
+        ctxp->fail("trying to add too many objects!\n");
+        return 0;
+    }
+    
     ctxp->vertexObjects[ctxp->vertexObjectsCount].count = 0;
-    ctxp->vertexObjects[ctxp->vertexObjectsCount].normals = &ctxp->gridNormals[3*ctxp->gridVerticesCount];
+    
+    ctxp->vertexObjects[ctxp->vertexObjectsCount].vertices = &ctxp->gridVertices[3*ctxp->gridVerticesCount];
+    if(usingColors)
+    {
+        ctxp->vertexObjects[ctxp->vertexObjectsCount].colors = &ctxp->gridColors[4*ctxp->gridVerticesCount];
+        ctxp->vertexObjects[ctxp->vertexObjectsCount].usingColor = 1;
+        ctxp->usingColorCount++;
+    }
+    else
+    {
+        ctxp->vertexObjects[ctxp->vertexObjectsCount].usingColor = 0;
+        ctxp->vertexObjects[ctxp->vertexObjectsCount].colors = 0;
+    }
+    if(usesNormals)
+    {
+        ctxp->vertexObjects[ctxp->vertexObjectsCount].normals = &ctxp->gridNormals[3*ctxp->usingNormalsCount];   
+        ctxp->vertexObjects[ctxp->vertexObjectsCount].usesNormals = 1;
+        ctxp->usingNormalsCount++;
+    }
+    else
+    {
+        ctxp->vertexObjects[ctxp->vertexObjectsCount].normals = 0;
+        ctxp->vertexObjects[ctxp->vertexObjectsCount].usesNormals = 0;
+    }
+    if(usingTexture)
+    {
+        ctxp->vertexObjects[ctxp->vertexObjectsCount].tex = &ctxp->gridTexCoord[3*ctxp->usingTextureCount];   
+        ctxp->vertexObjects[ctxp->vertexObjectsCount].usingTexture = usingTexture;
+        ctxp->usingTextureCount++;
+    }
+    else
+    {
+        ctxp->vertexObjects[ctxp->vertexObjectsCount].tex = 0;
+        ctxp->vertexObjects[ctxp->vertexObjectsCount].usingTexture = 0;
+    }
     ctxp->vertexObjects[ctxp->vertexObjectsCount].type = type;
     ctxp->vertexObjectsCount++;
     return 1;
 }
 
-int VertexObjectBuilder_addVertex(struct VertexObjectBuilder* ctxp,float x,float y,float z,unsigned char cr,unsigned char cg,unsigned char cb, unsigned char ca, float nx, float ny, float nz)
+int VertexObjectBuilder_startColoredObject(struct VertexObjectBuilder* ctxp,int type)
 {
-    if(ctxp->vertexObjectsCount >= VOOBJMAX)return 0;
-    if(ctxp->vertexObjects[ctxp->vertexObjectsCount-1].count + 1 >= VOVERTEXMAX)return 0;
+    return VertexObjectBuilder_startObject(ctxp, type, 1, 0, 0);
+}
+
+int VertexObjectBuilder_startTexturedObject(struct VertexObjectBuilder* ctxp,int type)
+{
+    return VertexObjectBuilder_startObject(ctxp, type, 0, 0, 1);
+}
+
+int VertexObjectBuilder_addColoredVertex(struct VertexObjectBuilder* ctxp,float x,float y,float z,unsigned char cr,unsigned char cg,unsigned char cb, unsigned char ca)
+{
+    if(ctxp->vertexObjects[ctxp->vertexObjectsCount-1].count + 1 >= VOVERTEXMAX)
+    {
+        ctxp->fail("adding too many textured vertices!\n");
+        return 0;
+    }
     ctxp->gridVertices[3*ctxp->gridVerticesCount + 0] = x;
     ctxp->gridVertices[3*ctxp->gridVerticesCount + 1] = y;
     ctxp->gridVertices[3*ctxp->gridVerticesCount + 2] = z;
@@ -59,9 +117,27 @@ int VertexObjectBuilder_addVertex(struct VertexObjectBuilder* ctxp,float x,float
     ctxp->gridColors[4*ctxp->gridVerticesCount + 1] = cg;
     ctxp->gridColors[4*ctxp->gridVerticesCount + 2] = cb;
     ctxp->gridColors[4*ctxp->gridVerticesCount + 3] = ca;
-    ctxp->gridNormals[3*ctxp->gridVerticesCount + 0] = nx;
-    ctxp->gridNormals[3*ctxp->gridVerticesCount + 1] = ny;
-    ctxp->gridNormals[3*ctxp->gridVerticesCount + 2] = nz;
+    ctxp->gridVerticesCount++;        
+    ctxp->vertexObjects[ctxp->vertexObjectsCount-1].count++;
+    return 1;
+}
+
+int VertexObjectBuilder_addTexturedVertex(struct VertexObjectBuilder* ctxp,float x,float y,float z,float tx, float ty, float tz)
+{
+    if(ctxp->vertexObjects[ctxp->vertexObjectsCount-1].count + 1 >= VOVERTEXMAX)
+    {
+        ctxp->fail("adding too many textured vertices!\n");
+        return 0;
+    }
+    ctxp->gridVertices[3*ctxp->gridVerticesCount + 0] = x;
+    ctxp->gridVertices[3*ctxp->gridVerticesCount + 1] = y;
+    ctxp->gridVertices[3*ctxp->gridVerticesCount + 2] = z;
+    if(ctxp->vertexObjects[ctxp->vertexObjectsCount-1].usingTexture)
+    {
+        ctxp->gridTexCoord[3*ctxp->usingTextureCount + 0] = tx;
+        ctxp->gridTexCoord[3*ctxp->usingTextureCount + 1] = ty;
+        ctxp->gridTexCoord[3*ctxp->usingTextureCount + 2] = tz;                
+    }
     ctxp->gridVerticesCount++;        
     ctxp->vertexObjects[ctxp->vertexObjectsCount-1].count++;
     return 1;

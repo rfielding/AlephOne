@@ -102,7 +102,7 @@ static struct Fretless_context* fctx;
         //PressureSensor_setup();
         Transforms_clockwiseOrientation();
         
-        phctx = PitchHandler_init(malloc);
+        phctx = PitchHandler_init(malloc,CoreMIDIRenderer_midiFail,printf);
         fctx = Fretless_init(
             CoreMIDIRenderer_midiPutch,
             CoreMIDIRenderer_midiFlush,
