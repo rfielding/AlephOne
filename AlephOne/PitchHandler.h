@@ -57,6 +57,9 @@ void PitchHandler_setRowCount(struct PitchHandler_context* ctx, float rowCount);
 float PitchHandler_getColCount(struct PitchHandler_context* ctx);
 void PitchHandler_setColCount(struct PitchHandler_context* ctx, float colCount);
 
+void PitchHandler_setNoteDiff(struct PitchHandler_context* ctx, int noteDiffArg);
+int PitchHandler_getNoteDiff(struct PitchHandler_context* ctx);
+
 int PitchHandler_getOctaveRounding(struct PitchHandler_context* ctx);
 void PitchHandler_setOctaveRounding(struct PitchHandler_context* ctx, int octRound);
 
@@ -69,10 +72,6 @@ void PitchHandler_unpickPitch(struct PitchHandler_context* ctx, int finger);
 //The rate at which we drift to endPitch
 float PitchHandler_getTuneSpeed(struct PitchHandler_context* ctx);
 void PitchHandler_setTuneSpeed(struct PitchHandler_context* ctx, float tuneSpeed);
-
-//Move interface 12ET notes
-int PitchHandler_getNoteDiff(struct PitchHandler_context* ctx);
-void PitchHandler_setNoteDiff(struct PitchHandler_context* ctx, int noteDiff);
 
 void PitchHandler_tick(struct PitchHandler_context * ctx);
 
