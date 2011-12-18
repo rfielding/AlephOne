@@ -128,7 +128,7 @@ int VertexObjectBuilder_addTexturedVertex(struct VertexObjectBuilder* ctxp,float
     ctxp->gridColors  [4*vert + 0] = 0;
     ctxp->gridColors  [4*vert + 1] = 255;
     ctxp->gridColors  [4*vert + 2] = 0;
-    ctxp->gridColors  [4*vert + 3] = 255;
+    ctxp->gridColors  [4*vert + 3] = 127;
     ctxp->gridTexCoord[2*vert + 0] = tx;
     ctxp->gridTexCoord[2*vert + 1] = ty;
     ctxp->gridNormals [3*vert + 0] = 0;

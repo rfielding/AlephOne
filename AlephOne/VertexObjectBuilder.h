@@ -6,6 +6,28 @@
 //  Copyright 2011 Check Point Software. All rights reserved.
 //
 
+/**
+   Use this to build vertices for use with OpenGL.  There are no actual OpenGL dependencies, so
+   this can be easily unit tested.  Usage is like this:
+ 
+     //Each vob is essentially an independent layer of drawn objects, like OpenGL1.1 display lists
+     vob = VertexObjectBuilder_init(malloc,printf);
+     ....
+     //Flush everything out of this layer
+     VertexObjectBuilder_reset(vob);
+     ....
+     //Begin creating a new object
+     VertexObjectBuilder_startColoredObject(vob,GL_TRIANGLES);
+     ....
+     VertexObjectBuilder_addColoredVertex(vob, ....);
+ 
+   Using the API is a matter of doing a reset on every frame, a startObject before each
+   new primitive type, and adding vertices.  Then the data that gets generated is easily
+   drawn in the caller's OpenGL code by looking at the types, iterating, and drawing in order.
+ 
+   This object is kind of like a layer, or a primitive for making scene graphs.
+ */
+
 struct VertexObjectBuilder;
 
 struct VertexObject {

@@ -56,8 +56,8 @@
 /* Begin PBXFileReference section */
 		493A9D95148B32E00029F6C9 /* GenericRendering.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = GenericRendering.c; sourceTree = "<group>"; };
 		493A9D96148B32E00029F6C9 /* GenericRendering.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = GenericRendering.h; sourceTree = "<group>"; };
-		49400BC1149D510800F5B7C0 /* ashmedi.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = ashmedi.png; path = ../AlephOne/ashmedi.png; sourceTree = "<group>"; };
-		49400BCC149D7D9200F5B7C0 /* tutorial.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = tutorial.png; path = ../AlephOne/tutorial.png; sourceTree = "<group>"; };
+		49400BC1149D510800F5B7C0 /* ashmedi.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = ashmedi.png; sourceTree = "<group>"; };
+		49400BCC149D7D9200F5B7C0 /* tutorial.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = tutorial.png; sourceTree = "<group>"; };
 		4959A8D4149702EA00D4F03B /* Transforms.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = Transforms.c; sourceTree = "<group>"; };
 		4959A8D5149702EB00D4F03B /* Transforms.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Transforms.h; sourceTree = "<group>"; };
 		4959A8D8149842BB00D4F03B /* PressureSensor.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PressureSensor.h; sourceTree = "<group>"; };
@@ -132,11 +132,55 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		49400BCE149DB22300F5B7C0 /* iOSCode */ = {
+			isa = PBXGroup;
+			children = (
+				49400BD0149DB3CC00F5B7C0 /* ProjectAgnostic */,
+				49B390A9144914DC008C9F6E /* AlephOneTests */,
+				49B39088144914DC008C9F6E /* AlephOne-Prefix.pch */,
+				49B3908E144914DC008C9F6E /* MainWindow.xib */,
+				49B39089144914DC008C9F6E /* main.m */,
+				49B39098144914DC008C9F6E /* AlephOneViewController.h */,
+				49B39099144914DC008C9F6E /* AlephOneViewController.m */,
+				49B3909B144914DC008C9F6E /* AlephOneViewController.xib */,
+				49B39095144914DC008C9F6E /* EAGLView.h */,
+				49B39096144914DC008C9F6E /* EAGLView.m */,
+				49B3908B144914DC008C9F6E /* AlephOneAppDelegate.h */,
+				49B3908C144914DC008C9F6E /* AlephOneAppDelegate.m */,
+			);
+			name = iOSCode;
+			sourceTree = "<group>";
+		};
+		49400BCF149DB3A800F5B7C0 /* ProjectAgnostic */ = {
+			isa = PBXGroup;
+			children = (
+				49CB084214888E55003DEA9D /* TouchMapping.c */,
+				49CB084314888E55003DEA9D /* TouchMapping.h */,
+				4959A8D4149702EA00D4F03B /* Transforms.c */,
+				4959A8D5149702EB00D4F03B /* Transforms.h */,
+				49CB0853148A8F8B003DEA9D /* VertexObjectBuilder.c */,
+				49CB0854148A8F8B003DEA9D /* VertexObjectBuilder.h */,
+				49B390BD144915CB008C9F6E /* Fretless.c */,
+				49B390BE144915CB008C9F6E /* Fretless.h */,
+			);
+			name = ProjectAgnostic;
+			sourceTree = "<group>";
+		};
+		49400BD0149DB3CC00F5B7C0 /* ProjectAgnostic */ = {
+			isa = PBXGroup;
+			children = (
+				4959A8D8149842BB00D4F03B /* PressureSensor.h */,
+				4959A8D9149842BC00D4F03B /* PressureSensor.m */,
+				496862841481FB7600460B4B /* CoreMIDIRenderer.h */,
+				496862851481FB7600460B4B /* CoreMIDIRenderer.m */,
+			);
+			name = ProjectAgnostic;
+			sourceTree = "<group>";
+		};
 		49B39069144914DB008C9F6E = {
 			isa = PBXGroup;
 			children = (
 				49B39082144914DC008C9F6E /* AlephOne */,
-				49B390A9144914DC008C9F6E /* AlephOneTests */,
 				49B39077144914DC008C9F6E /* Frameworks */,
 				49B39075144914DC008C9F6E /* Products */,
 			);
@@ -167,31 +211,9 @@
 		49B39082144914DC008C9F6E /* AlephOne */ = {
 			isa = PBXGroup;
 			children = (
-				4959A8D8149842BB00D4F03B /* PressureSensor.h */,
-				4959A8D9149842BC00D4F03B /* PressureSensor.m */,
-				49B390BC14491549008C9F6E /* Fretless */,
-				49B3908B144914DC008C9F6E /* AlephOneAppDelegate.h */,
-				49B3908C144914DC008C9F6E /* AlephOneAppDelegate.m */,
-				49B3908E144914DC008C9F6E /* MainWindow.xib */,
-				49B39091144914DC008C9F6E /* Shader.fsh */,
-				49B39093144914DC008C9F6E /* Shader.vsh */,
-				49B39095144914DC008C9F6E /* EAGLView.h */,
-				49B39096144914DC008C9F6E /* EAGLView.m */,
-				49B39098144914DC008C9F6E /* AlephOneViewController.h */,
-				49B39099144914DC008C9F6E /* AlephOneViewController.m */,
-				49B3909B144914DC008C9F6E /* AlephOneViewController.xib */,
-				49B39089144914DC008C9F6E /* main.m */,
+				49400BCE149DB22300F5B7C0 /* iOSCode */,
+				49B390BC14491549008C9F6E /* PortableCode */,
 				49B39083144914DC008C9F6E /* Supporting Files */,
-				49CB084514889D4B003DEA9D /* ControlRegistry.c */,
-				49CB084614889D4C003DEA9D /* ControlRegistry.h */,
-				493A9D95148B32E00029F6C9 /* GenericRendering.c */,
-				493A9D96148B32E00029F6C9 /* GenericRendering.h */,
-				496862841481FB7600460B4B /* CoreMIDIRenderer.h */,
-				496862851481FB7600460B4B /* CoreMIDIRenderer.m */,
-				49CB08481488C119003DEA9D /* GenericTouchHandling.c */,
-				49CB08491488C11A003DEA9D /* GenericTouchHandling.h */,
-				49CB0853148A8F8B003DEA9D /* VertexObjectBuilder.c */,
-				49CB0854148A8F8B003DEA9D /* VertexObjectBuilder.h */,
 			);
 			path = AlephOne;
 			sourceTree = "<group>";
@@ -199,9 +221,12 @@
 		49B39083144914DC008C9F6E /* Supporting Files */ = {
 			isa = PBXGroup;
 			children = (
+				49400BCC149D7D9200F5B7C0 /* tutorial.png */,
+				49400BC1149D510800F5B7C0 /* ashmedi.png */,
+				49B39091144914DC008C9F6E /* Shader.fsh */,
+				49B39093144914DC008C9F6E /* Shader.vsh */,
 				49B39084144914DC008C9F6E /* AlephOne-Info.plist */,
 				49B39085144914DC008C9F6E /* InfoPlist.strings */,
-				49B39088144914DC008C9F6E /* AlephOne-Prefix.pch */,
 			);
 			name = "Supporting Files";
 			sourceTree = "<group>";
@@ -214,13 +239,11 @@
 				49B390AA144914DC008C9F6E /* Supporting Files */,
 			);
 			path = AlephOneTests;
-			sourceTree = "<group>";
+			sourceTree = SOURCE_ROOT;
 		};
 		49B390AA144914DC008C9F6E /* Supporting Files */ = {
 			isa = PBXGroup;
 			children = (
-				49400BCC149D7D9200F5B7C0 /* tutorial.png */,
-				49400BC1149D510800F5B7C0 /* ashmedi.png */,
 				49B390AB144914DC008C9F6E /* AlephOneTests-Info.plist */,
 				49B390AC144914DC008C9F6E /* InfoPlist.strings */,
 				49B390AF144914DC008C9F6E /* AlephOneTests-Prefix.pch */,
@@ -228,19 +251,20 @@
 			name = "Supporting Files";
 			sourceTree = "<group>";
 		};
-		49B390BC14491549008C9F6E /* Fretless */ = {
+		49B390BC14491549008C9F6E /* PortableCode */ = {
 			isa = PBXGroup;
 			children = (
-				49B390BD144915CB008C9F6E /* Fretless.c */,
-				49B390BE144915CB008C9F6E /* Fretless.h */,
+				49400BCF149DB3A800F5B7C0 /* ProjectAgnostic */,
+				49CB08481488C119003DEA9D /* GenericTouchHandling.c */,
+				49CB08491488C11A003DEA9D /* GenericTouchHandling.h */,
+				49CB084514889D4B003DEA9D /* ControlRegistry.c */,
+				49CB084614889D4C003DEA9D /* ControlRegistry.h */,
+				493A9D95148B32E00029F6C9 /* GenericRendering.c */,
+				493A9D96148B32E00029F6C9 /* GenericRendering.h */,
 				49CB083E14888CA3003DEA9D /* PitchHandler.c */,
 				49CB083F14888CA3003DEA9D /* PitchHandler.h */,
-				49CB084214888E55003DEA9D /* TouchMapping.c */,
-				49CB084314888E55003DEA9D /* TouchMapping.h */,
-				4959A8D4149702EA00D4F03B /* Transforms.c */,
-				4959A8D5149702EB00D4F03B /* Transforms.h */,
 			);
-			name = Fretless;
+			name = PortableCode;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */

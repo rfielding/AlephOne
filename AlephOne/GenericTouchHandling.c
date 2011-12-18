@@ -39,12 +39,7 @@ void GenericTouchHandling_touchesInit(
         
     Fretless_boot(fretlessp);     
     
-    //Here mostly as an example, and to avoid having to tell people to set it up.  
-    //12 should work just fine
-    //Fretless_setMidiHintChannelBendSemis(fretlessp, 2);
-
-    GenericTouchHandling_setChorusLevel(0.25);
-    
+    GenericTouchHandling_setChorusLevel(0.25);    
 }
 
 void GenericTouchHandling_touchesUp(void* touch)

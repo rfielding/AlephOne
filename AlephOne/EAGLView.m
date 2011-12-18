@@ -43,6 +43,7 @@ static struct Fretless_context* fctx;
     unsigned int textures[1];
     //Cause our call to glTexImage2D to bind to the result in textures[0]
     glGenTextures(1, textures);
+    NSLog(@"binding to %d",textures[0]);
     glBindTexture(GL_TEXTURE_2D, textures[0]);
     
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
@@ -346,8 +347,10 @@ static struct Fretless_context* fctx;
             {
                 area = ([valFloat floatValue]-4)/7.0;
                 area *= area*area;
+                area *= 2;
             }
             //NSLog(@"%f",PressureSensor_pressure);
+            //NSLog(@"area=%f",area);
             GenericTouchHandling_touchesDown(touch,phase == UITouchPhaseMoved,x,y, PressureSensor_pressure, area); 
         }
     }

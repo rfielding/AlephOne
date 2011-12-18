@@ -5,6 +5,14 @@
 //  Created by Robert Fielding on 12/2/11.
 //  Copyright 2011 Check Point Software. All rights reserved.
 //
+/**
+   This code is the intermediary between the UIView and the PitchHandler and Fretless modules.
+   It mostly forwards touch handling into the PitchHandler API, and does transformations
+   like chorus as it does so.
+ 
+   PitchHandler turns raw gestures into intentions that need information on scales and fretting patterns.
+   When it gets this information, it gives it to Fretless to render the actual raw pitches.
+ */
 
 struct PitchHandler_context;
 struct Fretless_context;

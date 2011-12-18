@@ -6,9 +6,10 @@
 //  Copyright 2011 Check Point Software. All rights reserved.
 //
 
-//
-//The putch/flush is all that is required for a synth to be embeddable in our API
-//
+/*  
+  The putch/flush is all that is required for a synth to be embeddable in our API.
+  An interface with these functions on a synth is sufficient to embed it into this app.
+ */
 
 struct Fretless_context;
 

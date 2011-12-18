@@ -13,6 +13,20 @@
 #define FINGERMAX 16
 #define NOBODY -1
 #define FRETMAX 1024
+
+struct Fret
+{
+    float cents[FRETMAX];
+    int   importance[FRETMAX];
+    float usage[FRETMAX];
+    int used;
+    int iterator;
+    float offsetY;
+    float offsetX;
+    float offsetYInitial;
+    float offsetXInitial;
+};
+
 struct PitchHandler_context
 {
     //static float tuneInterval = 5; //4.9804499913461244;  //12*log2f(4.0/3); //is Just intonation btw
@@ -20,16 +34,6 @@ struct PitchHandler_context
     float rowCount;
     float colCount;
     int noteDiff; //(48-1);
-
-    float frets[FRETMAX];
-    int   fretImportance[FRETMAX];
-    float fretUsage[FRETMAX];
-    int fretsUsed;
-    int fretIterator;
-    float fretOffsetY;
-    float fretOffsetX;
-    float fretOffsetYInitial;
-    float fretOffsetXInitial;
 
     int   lastFingerDown;
     float lastNoteDown;
@@ -42,6 +46,8 @@ struct PitchHandler_context
     struct FingerInfo fingers[FINGERMAX];
     int (*fail)(const char*,...);
     int (*logger)(const char*,...);
+    
+    struct Fret fret;
 };
 
 struct PitchHandler_context* PitchHandler_init(void* (*allocFn)(unsigned long),int (*fail)(const char*,...),int (*logger)(const char*,...))
@@ -52,12 +58,12 @@ struct PitchHandler_context* PitchHandler_init(void* (*allocFn)(unsigned long),i
     ctx->rowCount = 3;
     ctx->colCount = 5;
     ctx->noteDiff = 48;
-    ctx->fretsUsed = 0;
-    ctx->fretIterator = 0;
-    ctx->fretOffsetX = 0;
-    ctx->fretOffsetY = 0;
-    ctx->fretOffsetXInitial = 0.5;
-    ctx->fretOffsetYInitial = 0.5;
+    ctx->fret.used = 0;
+    ctx->fret.iterator = 0;
+    ctx->fret.offsetX = 0;
+    ctx->fret.offsetY = 0;
+    ctx->fret.offsetXInitial = 0.5;
+    ctx->fret.offsetYInitial = 0.5;
     ctx->lastFingerDown = NOBODY;
     ctx->lastNoteDown = 0;
     ctx->noteDiffOurs = 0;
@@ -67,7 +73,7 @@ struct PitchHandler_context* PitchHandler_init(void* (*allocFn)(unsigned long),i
     for(int i=0; i<FINGERMAX; i++)
     {
         PitchHandler_setTuneInterval(ctx, i, 5);
-        ctx->fretUsage[i] = 0;
+        ctx->fret.usage[i] = 0;
     }
     return ctx;
 }
@@ -182,12 +188,12 @@ struct FingerInfo* PitchHandler_pickPitch(struct PitchHandler_context* ctx, int 
     ctx->fingers[finger].endPitch = PitchHandler_getTarget(ctx,thisPitch,&fretPicked);
  
     //Keep a histogram of fret usage
-    fretPicked = (fretPicked+12*ctx->fretsUsed) % ctx->fretsUsed;
+    fretPicked = (fretPicked+12*ctx->fret.used) % ctx->fret.used;
     //for(int f=0; f < ctx->fretsUsed; f++)
     //{
     //    ctx->fretUsage[f] *= (1.0*(ctx->fretsUsed-1))/ctx->fretsUsed;
     //}
-    ctx->fretUsage[ fretPicked ] += 0.25;
+    ctx->fret.usage[ fretPicked ] += 0.25;
     
     float targetDrift = (ctx->fingers[finger].endPitch - thisPitch);
     if( isMoving )
@@ -245,11 +251,21 @@ struct FingerInfo* PitchHandler_pickPitch(struct PitchHandler_context* ctx, int 
     return &ctx->fingers[finger];
 }
 
+void PitchHandler_tick(struct PitchHandler_context * ctx)
+{
+    //Keep a histogram of fret usage
+    //int fretPicked = (fretPicked+12*ctx->fretsUsed) % ctx->fretsUsed;
+    for(int f=0; f < ctx->fret.used; f++)
+    {
+        ctx->fret.usage[f] *= (1.0*(ctx->fret.used-1))/ctx->fret.used;
+    }
+    //ctx->fretUsage[ fretPicked ] += 0.25;    
+}
 
 //Moveable fret generator
 void PitchHandler_clearFrets(struct PitchHandler_context* ctx)
 {
-    ctx->fretsUsed=0;
+    ctx->fret.used=0;
 }
 
 
@@ -259,50 +275,50 @@ void PitchHandler_placeFret(struct PitchHandler_context* ctx, float pitch, int i
     pitch = fmod(pitch,12);
     
     //Don't re-add existing values, but allow importance re-assign
-    for(int f=0; f < ctx->fretsUsed; f++)
+    for(int f=0; f < ctx->fret.used; f++)
     {
-        if(pitch == ctx->frets[f])
+        if(pitch == ctx->fret.cents[f])
         {
             //Don't bother adding it, as it's already in here
             //But you can re-assign the importance
-            ctx->fretImportance[f] = importance;
+            ctx->fret.importance[f] = importance;
             return;
         }
     }
     
-    ctx->frets[ctx->fretsUsed] = pitch;
-    ctx->fretImportance[ctx->fretsUsed] = importance;
+    ctx->fret.cents[ctx->fret.used] = pitch;
+    ctx->fret.importance[ctx->fret.used] = importance;
     
-    int thisFret = ctx->fretsUsed;
-    while(thisFret > 0 && ctx->frets[thisFret] < ctx->frets[thisFret-1])
+    int thisFret = ctx->fret.used;
+    while(thisFret > 0 && ctx->fret.cents[thisFret] < ctx->fret.cents[thisFret-1])
     {
         //Swap and drop down one.  Bubble sort!
-        float p = ctx->frets[thisFret];
-        int i = ctx->fretImportance[thisFret];
-        ctx->frets[thisFret] = ctx->frets[thisFret-1];
-        ctx->fretImportance[thisFret] = ctx->fretImportance[thisFret-1];
-        ctx->frets[thisFret-1] = p;
-        ctx->fretImportance[thisFret-1] = i;
+        float p = ctx->fret.cents[thisFret];
+        int i = ctx->fret.importance[thisFret];
+        ctx->fret.cents[thisFret] = ctx->fret.cents[thisFret-1];
+        ctx->fret.importance[thisFret] = ctx->fret.importance[thisFret-1];
+        ctx->fret.cents[thisFret-1] = p;
+        ctx->fret.importance[thisFret-1] = i;
         thisFret--;
     }
-    for(int f=0; f < ctx->fretsUsed; f++)
+    for(int f=0; f < ctx->fret.used; f++)
     {
-        ctx->fretUsage[f] = 1.0/ctx->fretImportance[f];
+        ctx->fret.usage[f] = 1.0/ctx->fret.importance[f];
     }
-    ctx->fretsUsed++;
+    ctx->fret.used++;
 }
 
 void PitchHandler_getFretsBegin(struct PitchHandler_context* ctx)
 {
-    ctx->fretIterator = -ctx->fretsUsed;
-    ctx->fretOffsetY = ctx->fretOffsetYInitial;
-    ctx->fretOffsetX = ctx->fretOffsetXInitial;
+    ctx->fret.iterator = -ctx->fret.used;
+    ctx->fret.offsetY = ctx->fret.offsetYInitial;
+    ctx->fret.offsetX = ctx->fret.offsetXInitial;
 }
 
 float PitchHandler_getPitchFromFret(struct PitchHandler_context* ctx, int fret)
 {
-    int octave = (int)floorf(1.0 * fret / ctx->fretsUsed);
-    return 12.0 * octave + ctx->frets[(fret+12*ctx->fretsUsed) % ctx->fretsUsed];
+    int octave = (int)floorf(1.0 * fret / ctx->fret.used);
+    return 12.0 * octave + ctx->fret.cents[(fret+12*ctx->fret.used) % ctx->fret.used];
 }
 
 /**
@@ -311,15 +327,15 @@ float PitchHandler_getPitchFromFret(struct PitchHandler_context* ctx, int fret)
  */
 float PitchHandler_getTarget(struct PitchHandler_context* ctx, float pitch, int* fretP)
 {
-    int octaveEst = ctx->fretsUsed*floorf(pitch / 12.0);
+    int octaveEst = ctx->fret.used*floorf(pitch / 12.0);
     float pitchVal = pitch;
     float bestDistance=48;
     int fret;
     int bestFret;
-    for(fret=octaveEst - ctx->fretsUsed; fret <= octaveEst + ctx->fretsUsed; fret++)
+    for(fret=octaveEst - ctx->fret.used; fret <= octaveEst + ctx->fret.used; fret++)
     {
         float p = PitchHandler_getPitchFromFret(ctx,fret);
-        float dist = fabs(pitch - ctx->fretOffsetXInitial - p);
+        float dist = fabs(pitch - ctx->fret.offsetXInitial - p);
         if(dist < bestDistance)
         {
             bestDistance = dist;
@@ -333,39 +349,33 @@ float PitchHandler_getTarget(struct PitchHandler_context* ctx, float pitch, int*
 
 int PitchHandler_getFret(struct PitchHandler_context* ctx, float* pitch,float* x,float* y,int* importance,float* usage)
 {
-    float pitchVal = PitchHandler_getPitchFromFret(ctx,ctx->fretIterator) - ctx->noteDiff;
+    float pitchVal = PitchHandler_getPitchFromFret(ctx,ctx->fret.iterator) - ctx->noteDiff;
     
     //If we have gone past the right edge of the screen
-    if(pitchVal + ctx->fretOffsetX > ctx->colCount)
+    if(pitchVal + ctx->fret.offsetX > ctx->colCount)
     {
         //and shift the string while moving to the next
-        ctx->fretOffsetX -= ctx->tuneInterval[(int)ctx->fretOffsetY];
-        ctx->fretOffsetY += 1;
+        ctx->fret.offsetX -= ctx->tuneInterval[(int)ctx->fret.offsetY];
+        ctx->fret.offsetY += 1;
         
         //go down an octave
-        ctx->fretIterator -= ctx->fretsUsed;
+        ctx->fret.iterator -= ctx->fret.used;
         pitchVal -= 12;
         //ctx->fretOffsetX -= 12;
     }
     
     *pitch = pitchVal;
-    *x = (pitchVal + ctx->fretOffsetX) / ctx->colCount;
-    *y = (ctx->fretOffsetY) / ctx->rowCount;
-    int ourFret = (ctx->fretIterator + 12*ctx->fretsUsed) % ctx->fretsUsed;
-    *importance = ctx->fretImportance[ourFret];
-    *usage = ctx->fretUsage[ourFret];
-    ctx->fretIterator++;
+    *x = (pitchVal + ctx->fret.offsetX) / ctx->colCount;
+    *y = (ctx->fret.offsetY) / ctx->rowCount;
+    int ourFret = (ctx->fret.iterator + 12*ctx->fret.used) % ctx->fret.used;
+    *importance = ctx->fret.importance[ourFret];
+    *usage = ctx->fret.usage[ourFret];
+    ctx->fret.iterator++;
     return *y < 1;
 }
 
-void PitchHandler_tick(struct PitchHandler_context * ctx)
-{
-    //Keep a histogram of fret usage
-    //int fretPicked = (fretPicked+12*ctx->fretsUsed) % ctx->fretsUsed;
-    for(int f=0; f < ctx->fretsUsed; f++)
-    {
-        ctx->fretUsage[f] *= (1.0*(ctx->fretsUsed-1))/ctx->fretsUsed;
-    }
-    //ctx->fretUsage[ fretPicked ] += 0.25;    
-}
 
+
+/************
+  Fretting subsection
+ ************/
