@@ -69,14 +69,13 @@ static struct Fretless_context* fctx;
     
     CGContextRef context = CGBitmapContextCreate( imageData, width, height, 8, 4 * width, colorSpace, kCGImageAlphaPremultipliedLast | kCGBitmapByteOrder32Big );
     CGColorSpaceRelease( colorSpace );
+
     CGContextClearRect( context, CGRectMake( 0, 0, width, height ) );
     CGContextTranslateCTM( context, 0, height - height );
 
     CGContextDrawImage( context, CGRectMake( 0, 0, width, height ), image.CGImage );   
         
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, imageData);
-    
-    NSLog(@"GenericRendering_textures[%d]=%d: (%d,%d)",bindId,textures[0],width,height);
     
     CGContextRelease(context);
     
@@ -153,7 +152,7 @@ static struct Fretless_context* fctx;
         //PressureSensor_setup();
         Transforms_clockwiseOrientation();
         
-        phctx = PitchHandler_init(malloc,CoreMIDIRenderer_midiFail,printf);
+        phctx = PitchHandler_init(malloc,printf,printf);
         fctx = Fretless_init(
             CoreMIDIRenderer_midiPutch,
             CoreMIDIRenderer_midiFlush,
@@ -167,6 +166,7 @@ static struct Fretless_context* fctx;
         GenericRendering_init(phctx,fctx);
         
         //Assign opengl texture id for each image that the rendering code needs
+        
         int imageIdx = 0;
         char* currentImage = NULL;
         while( (currentImage = GenericRendering_getRequiredTexture(imageIdx)) != 0 ) {
@@ -175,8 +175,9 @@ static struct Fretless_context* fctx;
             GenericRendering_assignRequiredTexture(imageIdx,val);
             imageIdx++;
         }
+         
         
-        GenericTouchHandling_touchesInit(phctx,fctx,CoreMIDIRenderer_midiFail,printf);
+        GenericTouchHandling_touchesInit(phctx,fctx,printf,printf);
         CoreMIDIRenderer_midiInit(fctx);
         [self configureSurface];
         

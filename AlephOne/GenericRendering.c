@@ -17,7 +17,6 @@
 
 #include <stdio.h>
 
-struct VertexObjectBuilder* voCtxStatic;
 struct VertexObjectBuilder* voCtxDynamic;
 struct PitchHandlerContext* phctx;
 struct Fretless_context* fctx;
@@ -37,11 +36,14 @@ static float scale[16] = {
 };
 
 static char* requiredTexture[] = {
+    "tutorial",
     "ashmedi",
-    "ashmedi"
+    "tutorial"
 };
-#define PIC0_ASHMEDI 0
-#define PIC1_MOLOCH 1
+
+#define PIC_TUTORIAL 0
+#define PIC_MOLOCH 1
+#define PIC_ASHMEDI 2
 
 unsigned int textures[256];
 
@@ -51,6 +53,10 @@ void GenericRendering_init(struct PitchHandlerContext* phctxArg,struct Fretless_
     fctx  = fctxArg;
 }
 
+void GenericRendering_setup()
+{
+    voCtxDynamic = VertexObjectBuilder_init(malloc,printf);    
+}
 
 char* GenericRendering_getRequiredTexture(int idx)
 {
@@ -59,6 +65,7 @@ char* GenericRendering_getRequiredTexture(int idx)
 
 void  GenericRendering_assignRequiredTexture(int idx,int val)
 {
+    printf("textures[%d] = %d\n",idx,val);
     textures[idx] = val;
 }
 
@@ -112,12 +119,12 @@ void GenericRendering_drawBackground()
     float ly=0;//lightPosition[1]+64;
     float lz=0;//lightPosition[2]+64;
     
-    VertexObjectBuilder_startColoredObject(voCtxStatic,GL_TRIANGLE_STRIP);
+    VertexObjectBuilder_startColoredObject(voCtxDynamic,GL_TRIANGLE_STRIP);
     
-    VertexObjectBuilder_addColoredVertex(voCtxStatic,0,0,0,lx, ly, lz,255);
-    VertexObjectBuilder_addColoredVertex(voCtxStatic,1,0,0,lz, lx, ly,255);
-    VertexObjectBuilder_addColoredVertex(voCtxStatic,0,1,0,ly, lz, lx,255); 
-    VertexObjectBuilder_addColoredVertex(voCtxStatic,1,1,0,lx, lz, ly,255); 
+    VertexObjectBuilder_addColoredVertex(voCtxDynamic,0,0,0,lx, ly, lz,255);
+    VertexObjectBuilder_addColoredVertex(voCtxDynamic,1,0,0,lz, lx, ly,255);
+    VertexObjectBuilder_addColoredVertex(voCtxDynamic,0,1,0,ly, lz, lx,255); 
+    VertexObjectBuilder_addColoredVertex(voCtxDynamic,1,1,0,lx, lz, ly,255); 
 }
 
 void drawOccupancyHandle(float cx, float cy, float diameter,float z)
@@ -192,11 +199,6 @@ void GenericRendering_drawChannelOccupancy(float cx,float cy,float diameter)
     }
 }
 
-void GenericRendering_setup()
-{
-    voCtxDynamic = VertexObjectBuilder_init(malloc,printf);    
-    voCtxStatic = VertexObjectBuilder_init(malloc,printf);
-}
 
           
 
@@ -336,19 +338,18 @@ void GenericRendering_drawPitchLocation()
 
 void testImage()
 {
-    VertexObjectBuilder_startTexturedObject(voCtxDynamic,GL_TRIANGLE_STRIP,PIC0_ASHMEDI);
+    VertexObjectBuilder_startTexturedObject(voCtxDynamic,GL_TRIANGLE_STRIP,PIC_TUTORIAL);
     VertexObjectBuilder_addTexturedVertex(voCtxDynamic, 0, 0, 0, 0,0);
-    VertexObjectBuilder_addTexturedVertex(voCtxDynamic, 0.1, 0, 0, 1,0);
-    VertexObjectBuilder_addTexturedVertex(voCtxDynamic, 0, 0.1, 0, 0,1);
-    VertexObjectBuilder_addTexturedVertex(voCtxDynamic, 0.1, 0.1, 0, 1,1);
+    VertexObjectBuilder_addTexturedVertex(voCtxDynamic, 0.2, 0, 0, 1,0);
+    VertexObjectBuilder_addTexturedVertex(voCtxDynamic, 0, 0.2, 0, 0,1);
+    VertexObjectBuilder_addTexturedVertex(voCtxDynamic, 0.2, 0.2, 0, 1,1);
 }
 
 void GenericRendering_dynamic()
 {
-    VertexObjectBuilder_reset(voCtxStatic);
-    GenericRendering_drawBackground();
-    
     VertexObjectBuilder_reset(voCtxDynamic);    
+
+    GenericRendering_drawBackground();    
     GenericRendering_drawMoveableFrets();
     GenericRendering_drawFingerLocation();
     GenericRendering_drawPitchLocation();
@@ -356,11 +357,13 @@ void GenericRendering_dynamic()
     GenericRendering_drawChannelOccupancy(0.8, 0.8, 0.4);
     //drawStaff(0.3,0.8,0.6,0.4);
     
-    //testImage();
+    testImage();
 }
 
 void GenericRendering_drawVO(struct VertexObjectBuilder* vobj)
 {
+    static int dumped=0;
+    
     int voCount = VertexObjectBuilder_getVertexObjectsCount(vobj);
     /*
     glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, specularAmount );
@@ -398,14 +401,39 @@ void GenericRendering_drawVO(struct VertexObjectBuilder* vobj)
         
         if(vo->usingTexture)
         {
+            glEnable(GL_TEXTURE_2D);
+            glEnable(GL_BLEND);
             glBlendFunc(GL_ONE, GL_SRC_COLOR);
             glEnableClientState(GL_TEXTURE_COORD_ARRAY);
-            glTexCoordPointer(3,GL_FLOAT,0, vo->tex);    
-            glBindTexture(GL_TEXTURE_2D, textures[vo->textureId]);
+            glTexCoordPointer(3,GL_FLOAT,0, vo->tex);  
+            int texture = textures[vo->textureId];
+            glBindTexture(GL_TEXTURE_2D, texture);
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);            
             glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_LINEAR); 
             glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_LINEAR);
+            
+            if(!dumped)
+            {
+                dumped=1;
+                for(int i=0;i<vo->count;i++)
+                {
+                    printf("%f,%f,%f   %f,%f   %f,%f,%f   %d,%d,%d,%d\n\n",
+                           vo->vertices[3*i+0],
+                           vo->vertices[3*i+1],
+                           vo->vertices[3*i+2],
+                           vo->tex[2*i+0],
+                           vo->tex[2*i+1],
+                           vo->normals[3*i+0],
+                           vo->normals[3*i+1],
+                           vo->normals[3*i+2],
+                           vo->colors[4*i+0],
+                           vo->colors[4*i+1],
+                           vo->colors[4*i+2],
+                           vo->colors[4*i+3]
+                           );
+                }
+            }
         }
         else
         {
@@ -419,6 +447,5 @@ void GenericRendering_drawVO(struct VertexObjectBuilder* vobj)
 void GenericRendering_draw()
 {
     GenericRendering_dynamic();
-    GenericRendering_drawVO(voCtxStatic);
     GenericRendering_drawVO(voCtxDynamic);    
 }
