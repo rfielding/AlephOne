@@ -244,7 +244,7 @@ void Fretless_setMidiHintChannelBase(struct Fretless_context* ctxp, int base)
 {
     if(base < 0 || base >= CHANNELMAX)
     {
-        ctxp->fail("base > 0 || base >= CHANNELMAX\n");
+        ctxp->fail("%d: base > 0 || base >= CHANNELMAX\n",base);
     }
     ctxp->channelBase = base;
 }
@@ -258,7 +258,7 @@ void Fretless_setMidiHintChannelSpan(struct Fretless_context* ctxp, int span)
 {
     if(span < 1 || span > CHANNELMAX)
     {
-        ctxp->fail("span < 0 || span > CHANNELMAX\n");
+        ctxp->fail("%d: span < 0 || span > CHANNELMAX\n",span);
     }
     ctxp->channelSpan = span;
 }
@@ -277,7 +277,7 @@ void Fretless_setMidiHintChannelBendSemis(struct Fretless_context* ctxp, int sem
 {
     if(semitones < 1 || semitones > 24)
     {
-        ctxp->fail("span < 1 || span > 24 -- MIDI spec limits to 24\n");
+        ctxp->fail("%d: semitones < 1 || semitones > 24 -- MIDI spec limits to 24\n",semitones);
     }
     ctxp->channelBendSemis = semitones;
     if(ctxp->ctxState == CTXSTATE_BOOTED)
@@ -360,11 +360,11 @@ void Fretless_boot(struct Fretless_context* ctxp)
     
     //Ensure that channels are in some consistent state
     if(ctxp->channelSpan == 0)ctxp->fail("Fretless_state.channelSpan == 0\n");
-    if(ctxp->channelBase < 0)ctxp->fail("Fretless_state.channelBase < 0\n");
+    if(ctxp->channelBase < 0)ctxp->fail("%d: Fretless_state.channelBase < 0\n", ctxp->channelBase);
     if(ctxp->channelBase >= CHANNELMAX)ctxp->fail("Fretless_state.channelBase >= CHANNELMAX\n");
     if(ctxp->channelSpan + ctxp->channelBase >= CHANNELMAX)
     {
-        ctxp->fail("Fretless_state.channelSpan + Fretless_state.channelBase >= CHANNELMAX\n");
+        ctxp->fail("Fretless_state.channelSpan:%d + Fretless_state.channelBase:%d >= CHANNELMAX\n",ctxp->channelSpan, ctxp->channelBase);
     }
     ctxp->ctxState=CTXSTATE_BOOTED;
     Fretless_setMidiHintChannelBendSemis(ctxp,ctxp->channelBendSemis);
@@ -616,7 +616,7 @@ void Fretless_down(struct Fretless_context* ctxp, int finger,float fnote,int pol
     struct Fretless_fingerState* fsPtr = &ctxp->fingers[finger];
     if(fsPtr->isOn == TRUE)
     {
-        ctxp->fail("Fretless_down && fsPtr->isOn == TRUE\n");
+        ctxp->fail("finger %d: Fretless_down && fsPtr->isOn == TRUE\n",finger);
     }
     fsPtr->isOn = TRUE;
     
@@ -688,7 +688,7 @@ void Fretless_up(struct Fretless_context* ctxp, int finger)
     struct Fretless_fingerState* fsPtr = &ctxp->fingers[finger];
     if(fsPtr->isOn == FALSE)
     {
-        ctxp->fail("Fretless_up && fsPtr->isOn == FALSE\n");
+        ctxp->fail("finger %d: Fretless_up && fsPtr->isOn == FALSE\n",finger);
     }
     
     int fingerWasSupressed = fsPtr->isSupressed;
@@ -772,7 +772,7 @@ float Fretless_move(struct Fretless_context* ctxp, int finger,float fnote,int po
     struct Fretless_fingerState* fsPtr = &ctxp->fingers[finger];
     if(fsPtr->isOn == FALSE)
     {
-        ctxp->fail("Fretless_down && fsPtr->isOn == FALSE\n");
+        ctxp->fail("finger %d: Fretless_down && fsPtr->isOn == FALSE\n",finger);
     }
     int newNote;
     int newBend;
@@ -815,14 +815,14 @@ void Fretless_selfTest(struct Fretless_context* ctxp)
             int useCount = ctxp->channels[c].useCount;
             if(useCount != 0)
             {
-                ctxp->fail("Fretless_selfTest() Fretless_state.fingersDownCount==0 && useCount != 0\n");
+                ctxp->fail("%d: Fretless_selfTest() Fretless_state.fingersDownCount==0 && useCount != 0\n", useCount);
                 passed = FALSE;
             }
             for(int n=0; n<NOTEMAX; n++)
             {
                 if(ctxp->noteChannelDownCount[n][c] != 0)
                 {
-                    ctxp->fail("Fretless_state.noteChannelDownCount[0x%d][0x%d] != 0\n",n,c);
+                    ctxp->fail("Fretless_state.noteChannelDownCount[0x%d][0x%d] == %d\n",n,c, ctxp->noteChannelDownCount[n][c]);
                     passed = FALSE;
                 }
                 

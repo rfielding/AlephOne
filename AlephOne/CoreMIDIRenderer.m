@@ -62,6 +62,11 @@ void CoreMIDIRenderer_midiInit(struct Fretless_context* ctxp)
 
 void CoreMIDIRenderer_midiPutch(char c)
 {
+    if(midiBufferCount + 1 >= MIDIBUFFERSIZE)
+    {
+        NSLog(@"refusing to overflow midi buffer in midiPutch");
+        return;
+    }
     //overflows possible!
     midiBuffer[midiBufferCount] = c;
     midiBufferCount++;

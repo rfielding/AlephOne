@@ -70,6 +70,14 @@ static struct Fretless_context* fctx;
     CGContextRef context = CGBitmapContextCreate( imageData, width, height, 8, 4 * width, colorSpace, kCGImageAlphaPremultipliedLast | kCGBitmapByteOrder32Big );
     CGColorSpaceRelease( colorSpace );
 
+    switch(width) {
+        case 2: case 4: case 8: case 16: case 32: case 64: case 128: case 256: case 512: case 1024: break;
+        default: NSLog(@"width %d is not a power of 2!",width);
+    }
+    switch(height) {
+        case 2: case 4: case 8: case 16: case 32: case 64: case 128: case 256: case 512: case 1024: break;
+        default: NSLog(@"height %d is not a power of 2!",height);
+    }
     CGContextClearRect( context, CGRectMake( 0, 0, width, height ) );
     CGContextTranslateCTM( context, 0, height - height );
 
@@ -166,7 +174,7 @@ static struct Fretless_context* fctx;
         GenericRendering_init(phctx,fctx);
         
         //Assign opengl texture id for each image that the rendering code needs
-        /*
+        
         int imageIdx = 0;
         char* currentImage = NULL;
         while( (currentImage = GenericRendering_getRequiredTexture(imageIdx)) != 0 ) {
@@ -175,7 +183,7 @@ static struct Fretless_context* fctx;
             GenericRendering_assignRequiredTexture(imageIdx,val);
             imageIdx++;
         }
-         */
+        
         
         GenericTouchHandling_touchesInit(phctx,fctx,printf,printf);
         CoreMIDIRenderer_midiInit(fctx);

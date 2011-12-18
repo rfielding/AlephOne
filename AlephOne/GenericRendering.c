@@ -90,31 +90,11 @@ void GenericRendering_camera()
     
     glMultMatrixf(scale);
     glScalef(2,2,1);
-    glTranslatef(-0.5,-0.5,0);
-    
-    /*  TODO: i could not get lighting to work for some reason
-    //glEnable(GL_LIGHTING);
-    
-    glEnable(GL_LIGHT0);
-    glLightfv(GL_LIGHT0, GL_POSITION, lightPosition);
-    glLightfv(GL_LIGHT0, GL_DIFFUSE, diffuseAmount);
-    glLightfv(GL_LIGHT0, GL_AMBIENT, ambientAmount);
-    glLightfv(GL_LIGHT0, GL_SPECULAR, specularAmount);
-     */ 
-    
-//    glClearColor(0.9,0.8,0.3,1.0);
+    glTranslatef(-0.5,-0.5,0);    
 } 
 
 void GenericRendering_drawBackground()
-{
-    //int rows = PitchHandler_getRowCount(phctx);
-    //int cols = PitchHandler_getColCount(phctx);
-    
-    //float xscale = 1.0/cols;
-    //float yscale = 1.0/rows;
-    //float halfXscale = 0.5*xscale;
-    //float halfYscale = 0.5*yscale;
-    
+{    
     float lx=0;//lightPosition[0]+64;
     float ly=0;//lightPosition[1]+64;
     float lz=0;//lightPosition[2]+64;
@@ -211,9 +191,6 @@ void GenericRendering_drawMoveableFrets()
     float dy = 1.0/PitchHandler_getRowCount(phctx);
     int importance=1;
     float usage;
-    //float lx=127*lightPosition[0]+127;
-    //float ly=127*lightPosition[1]+127;
-    //float lz=127*lightPosition[2]+127;
      
     VertexObjectBuilder_startColoredObject(voCtxDynamic, GL_TRIANGLES);
     
@@ -274,9 +251,7 @@ void GenericRendering_drawFingerLocation()
 {
     float dx = 0.05;
     float dy = 0.3;
-    //float lx=127*lightPosition[0]+127;
-    //float ly=127*lightPosition[1]+127;
-    //float lz=127*lightPosition[2]+127;
+
     VertexObjectBuilder_startColoredObject(voCtxDynamic, GL_TRIANGLES);
     for(int f=0; f<16; f++)
     {
@@ -307,9 +282,7 @@ void GenericRendering_drawPitchLocation()
 {
     float dx = 0.05;
     float dy = 0.3;
-    //float lx=127*lightPosition[0]+127;
-    //float ly=127*lightPosition[1]+127;
-    //float lz=127*lightPosition[2]+127;
+
     VertexObjectBuilder_startColoredObject(voCtxDynamic, GL_TRIANGLES);
     for(int f=0; f<16; f++)
     {
@@ -340,9 +313,9 @@ void testImage()
 {
     VertexObjectBuilder_startTexturedObject(voCtxDynamic,GL_TRIANGLE_STRIP,PIC_TUTORIAL);
     VertexObjectBuilder_addTexturedVertex(voCtxDynamic, 0, 0, 0, 0,0);
-    VertexObjectBuilder_addTexturedVertex(voCtxDynamic, 0.2, 0, 0, 1,0);
-    VertexObjectBuilder_addTexturedVertex(voCtxDynamic, 0, 0.2, 0, 0,1);
-    VertexObjectBuilder_addTexturedVertex(voCtxDynamic, 0.2, 0.2, 0, 1,1);
+    VertexObjectBuilder_addTexturedVertex(voCtxDynamic, 0.1, 0, 0, 1,0);
+    VertexObjectBuilder_addTexturedVertex(voCtxDynamic, 0, 0.1, 0, 0,1);
+    VertexObjectBuilder_addTexturedVertex(voCtxDynamic, 0.1, 0.1, 0, 1,1);
 }
 
 void GenericRendering_dynamic()
@@ -355,19 +328,14 @@ void GenericRendering_dynamic()
     GenericRendering_drawPitchLocation();
     
     GenericRendering_drawChannelOccupancy(0.8, 0.8, 0.4);
-    //drawStaff(0.3,0.8,0.6,0.4);
     
-    //testImage();
+    testImage();
 }
 
 void GenericRendering_drawVO(struct VertexObjectBuilder* vobj)
 {    
     int voCount = VertexObjectBuilder_getVertexObjectsCount(vobj);
-    /*
-    glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, specularAmount );
-    glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, diffuseAmount );
-    glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT, ambientAmount );
-     */
+
     for(int o=0; o<voCount;o++)
     {
         struct VertexObject* vo = VertexObjectBuilder_getVertexObject(vobj,o);

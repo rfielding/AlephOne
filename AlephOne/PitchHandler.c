@@ -12,7 +12,7 @@
 
 #define FINGERMAX 16
 #define NOBODY -1
-
+#define FRETMAX 1024
 struct PitchHandler_context
 {
     //static float tuneInterval = 5; //4.9804499913461244;  //12*log2f(4.0/3); //is Just intonation btw
@@ -21,9 +21,9 @@ struct PitchHandler_context
     float colCount;
     int noteDiff; //(48-1);
 
-    float frets[1024];
-    int   fretImportance[1024];
-    float fretUsage[1024];
+    float frets[FRETMAX];
+    int   fretImportance[FRETMAX];
+    float fretUsage[FRETMAX];
     int fretsUsed;
     int fretIterator;
     float fretOffsetY;
