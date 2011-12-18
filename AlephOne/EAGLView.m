@@ -179,7 +179,7 @@ static struct Fret_context* frctx;
         GenericRendering_init(phctx,fctx);
         
         //Assign opengl texture id for each image that the rendering code needs
-        /*
+        ///*
         int imageIdx = 0;
         char* currentImage = NULL;
         while( (currentImage = GenericRendering_getRequiredTexture(imageIdx)) != 0 ) {
@@ -188,7 +188,7 @@ static struct Fret_context* frctx;
             GenericRendering_assignRequiredTexture(imageIdx,val);
             imageIdx++;
         }
-        */
+        //*/
         
         GenericTouchHandling_touchesInit(phctx,fctx,printf,printf);
         CoreMIDIRenderer_midiInit(fctx);
