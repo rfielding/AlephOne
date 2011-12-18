@@ -90,7 +90,7 @@ int VertexObjectBuilder_addColoredVertex(struct VertexObjectBuilder* ctxp,float 
 {
     int obj = ctxp->vertexObjectsCount-1;
     int vert = ctxp->gridVerticesCount;
-    if(ctxp->vertexObjects[obj].count + 1 >= VOVERTEXMAX)
+    if((4*ctxp->vertexObjects[obj].count + 4) >= VOVERTEXMAX)
     {
         ctxp->fail("adding too many textured vertices!\n");
         return 0;
@@ -117,7 +117,7 @@ int VertexObjectBuilder_addTexturedVertex(struct VertexObjectBuilder* ctxp,float
 {
     int obj = ctxp->vertexObjectsCount-1;
     int vert = ctxp->gridVerticesCount;
-    if(ctxp->vertexObjects[obj].count + 1 >= VOVERTEXMAX)
+    if(4*ctxp->vertexObjects[obj].count + 4 >= VOVERTEXMAX)
     {
         ctxp->fail("adding too many textured vertices!\n");
         return 0;
@@ -134,6 +134,7 @@ int VertexObjectBuilder_addTexturedVertex(struct VertexObjectBuilder* ctxp,float
     ctxp->gridNormals [3*vert + 0] = 0;
     ctxp->gridNormals [3*vert + 1] = 0;
     ctxp->gridNormals [3*vert + 2] = 1;
+    
     ctxp->gridVerticesCount++;        
     ctxp->vertexObjects[obj].count++;
     return 1;

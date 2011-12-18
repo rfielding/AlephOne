@@ -13,7 +13,7 @@
 #define FINGERMAX 16
 #define NOBODY -1
 
-struct PitchHandlerContext
+struct PitchHandler_context
 {
     //static float tuneInterval = 5; //4.9804499913461244;  //12*log2f(4.0/3); //is Just intonation btw
     float tuneSpeed;
@@ -44,10 +44,10 @@ struct PitchHandlerContext
     int (*logger)(const char*,...);
 };
 
-struct PitchHandlerContext* PitchHandler_init(void* (*allocFn)(unsigned long),int (*fail)(const char*,...),int (*logger)(const char*,...))
+struct PitchHandler_context* PitchHandler_init(void* (*allocFn)(unsigned long),int (*fail)(const char*,...),int (*logger)(const char*,...))
 {
-    struct PitchHandlerContext* ctx = 
-        (struct PitchHandlerContext*)allocFn(sizeof(struct PitchHandlerContext));
+    struct PitchHandler_context* ctx = 
+        (struct PitchHandler_context*)allocFn(sizeof(struct PitchHandler_context));
     ctx->tuneSpeed = 0.1;
     ctx->rowCount = 3;
     ctx->colCount = 5;
@@ -72,27 +72,27 @@ struct PitchHandlerContext* PitchHandler_init(void* (*allocFn)(unsigned long),in
     return ctx;
 }
 
-struct FingerInfo* PitchHandler_fingerState(struct PitchHandlerContext* ctx, int finger)
+struct FingerInfo* PitchHandler_fingerState(struct PitchHandler_context* ctx, int finger)
 {
     return &ctx->fingers[finger];
 }
 
-int PitchHandler_getOctaveRounding(struct PitchHandlerContext* ctx)
+int PitchHandler_getOctaveRounding(struct PitchHandler_context* ctx)
 {
     return ctx->doOctaveRounding;
 }
 
-void PitchHandler_setOctaveRounding(struct PitchHandlerContext* ctx, int octRound)
+void PitchHandler_setOctaveRounding(struct PitchHandler_context* ctx, int octRound)
 {
     ctx->doOctaveRounding = octRound;
 }
 
-float PitchHandler_getTuneInterval(struct PitchHandlerContext* ctx, int string)
+float PitchHandler_getTuneInterval(struct PitchHandler_context* ctx, int string)
 {
     return ctx->tuneInterval[string];
 }
 
-void PitchHandler_setTuneInterval(struct PitchHandlerContext* ctx, int string,float tuning)
+void PitchHandler_setTuneInterval(struct PitchHandler_context* ctx, int string,float tuning)
 {
     ctx->tuneInterval[string] = tuning;
     
@@ -104,52 +104,52 @@ void PitchHandler_setTuneInterval(struct PitchHandlerContext* ctx, int string,fl
     }
 }
 
-float PitchHandler_getTuneSpeed(struct PitchHandlerContext* ctx)
+float PitchHandler_getTuneSpeed(struct PitchHandler_context* ctx)
 {
     return ctx->tuneSpeed;
 }
 
-void PitchHandler_setTuneSpeed(struct PitchHandlerContext* ctx, float tuneSpeedArg)
+void PitchHandler_setTuneSpeed(struct PitchHandler_context* ctx, float tuneSpeedArg)
 {
     ctx->tuneSpeed = tuneSpeedArg;
 }
 
-float PitchHandler_getRowCount(struct PitchHandlerContext* ctx)
+float PitchHandler_getRowCount(struct PitchHandler_context* ctx)
 {
     return ctx->rowCount;
 }
 
-void PitchHandler_setRowCount(struct PitchHandlerContext* ctx, float rowCountArg)
+void PitchHandler_setRowCount(struct PitchHandler_context* ctx, float rowCountArg)
 {
     ctx->rowCount = rowCountArg;
 }
         
-float PitchHandler_getColCount(struct PitchHandlerContext* ctx)
+float PitchHandler_getColCount(struct PitchHandler_context* ctx)
 {
     return ctx->colCount;
 }
 
-void PitchHandler_setColCount(struct PitchHandlerContext* ctx, float colCountArg)
+void PitchHandler_setColCount(struct PitchHandler_context* ctx, float colCountArg)
 {
     ctx->colCount = colCountArg;
 }
 
-int PitchHandler_getNoteDiff(struct PitchHandlerContext* ctx)
+int PitchHandler_getNoteDiff(struct PitchHandler_context* ctx)
 {
     return ctx->noteDiff;
 }
 
-void PitchHandler_setNoteDiff(struct PitchHandlerContext* ctx, int noteDiffArg)
+void PitchHandler_setNoteDiff(struct PitchHandler_context* ctx, int noteDiffArg)
 {
     ctx->noteDiff = noteDiffArg;
 }
 
-void PitchHandler_unpickPitch(struct PitchHandlerContext* ctx, int finger)
+void PitchHandler_unpickPitch(struct PitchHandler_context* ctx, int finger)
 {
     ctx->fingers[finger].isActive = 0;
 }
 
-struct FingerInfo* PitchHandler_pickPitch(struct PitchHandlerContext* ctx, int finger,int isMoving,float x,float y)
+struct FingerInfo* PitchHandler_pickPitch(struct PitchHandler_context* ctx, int finger,int isMoving,float x,float y)
 {
     ctx->fingers[finger].string = (ctx->rowCount * y);
     ctx->fingers[finger].expr = (ctx->rowCount*y) - ctx->fingers[finger].string;
@@ -247,13 +247,13 @@ struct FingerInfo* PitchHandler_pickPitch(struct PitchHandlerContext* ctx, int f
 
 
 //Moveable fret generator
-void PitchHandler_clearFrets(struct PitchHandlerContext* ctx)
+void PitchHandler_clearFrets(struct PitchHandler_context* ctx)
 {
     ctx->fretsUsed=0;
 }
 
 
-void PitchHandler_placeFret(struct PitchHandlerContext* ctx, float pitch, int importance)
+void PitchHandler_placeFret(struct PitchHandler_context* ctx, float pitch, int importance)
 {
     //Must be in range 0..12
     pitch = fmod(pitch,12);
@@ -292,14 +292,14 @@ void PitchHandler_placeFret(struct PitchHandlerContext* ctx, float pitch, int im
     ctx->fretsUsed++;
 }
 
-void PitchHandler_getFretsBegin(struct PitchHandlerContext* ctx)
+void PitchHandler_getFretsBegin(struct PitchHandler_context* ctx)
 {
     ctx->fretIterator = -ctx->fretsUsed;
     ctx->fretOffsetY = ctx->fretOffsetYInitial;
     ctx->fretOffsetX = ctx->fretOffsetXInitial;
 }
 
-float PitchHandler_getPitchFromFret(struct PitchHandlerContext* ctx, int fret)
+float PitchHandler_getPitchFromFret(struct PitchHandler_context* ctx, int fret)
 {
     int octave = (int)floorf(1.0 * fret / ctx->fretsUsed);
     return 12.0 * octave + ctx->frets[(fret+12*ctx->fretsUsed) % ctx->fretsUsed];
@@ -309,7 +309,7 @@ float PitchHandler_getPitchFromFret(struct PitchHandlerContext* ctx, int fret)
  * TODO: this is inappropriate if we have a large number of frets per octave.
  * It should be a binary search in that case.
  */
-float PitchHandler_getTarget(struct PitchHandlerContext* ctx, float pitch, int* fretP)
+float PitchHandler_getTarget(struct PitchHandler_context* ctx, float pitch, int* fretP)
 {
     int octaveEst = ctx->fretsUsed*floorf(pitch / 12.0);
     float pitchVal = pitch;
@@ -331,7 +331,7 @@ float PitchHandler_getTarget(struct PitchHandlerContext* ctx, float pitch, int* 
     return pitchVal;
 }
 
-int PitchHandler_getFret(struct PitchHandlerContext* ctx, float* pitch,float* x,float* y,int* importance,float* usage)
+int PitchHandler_getFret(struct PitchHandler_context* ctx, float* pitch,float* x,float* y,int* importance,float* usage)
 {
     float pitchVal = PitchHandler_getPitchFromFret(ctx,ctx->fretIterator) - ctx->noteDiff;
     
@@ -358,7 +358,7 @@ int PitchHandler_getFret(struct PitchHandlerContext* ctx, float* pitch,float* x,
     return *y < 1;
 }
 
-void PitchHandler_tick(struct PitchHandlerContext * ctx)
+void PitchHandler_tick(struct PitchHandler_context * ctx)
 {
     //Keep a histogram of fret usage
     //int fretPicked = (fretPicked+12*ctx->fretsUsed) % ctx->fretsUsed;

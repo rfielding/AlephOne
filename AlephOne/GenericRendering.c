@@ -18,7 +18,7 @@
 #include <stdio.h>
 
 struct VertexObjectBuilder* voCtxDynamic;
-struct PitchHandlerContext* phctx;
+struct PitchHandler_context* phctx;
 struct Fretless_context* fctx;
 
 
@@ -47,7 +47,7 @@ static char* requiredTexture[] = {
 
 unsigned int textures[256];
 
-void GenericRendering_init(struct PitchHandlerContext* phctxArg,struct Fretless_context* fctxArg)
+void GenericRendering_init(struct PitchHandler_context* phctxArg,struct Fretless_context* fctxArg)
 {
     phctx = phctxArg;
     fctx  = fctxArg;

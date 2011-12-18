@@ -18,7 +18,7 @@
 #include "CoreMIDIRenderer.h"
 
 static BOOL isInitialized = FALSE;
-static struct PitchHandlerContext* phctx;
+static struct PitchHandler_context* phctx;
 static struct Fretless_context* fctx;
 
 @interface EAGLView (PrivateMethods)
@@ -166,7 +166,7 @@ static struct Fretless_context* fctx;
         GenericRendering_init(phctx,fctx);
         
         //Assign opengl texture id for each image that the rendering code needs
-        
+        /*
         int imageIdx = 0;
         char* currentImage = NULL;
         while( (currentImage = GenericRendering_getRequiredTexture(imageIdx)) != 0 ) {
@@ -175,7 +175,7 @@ static struct Fretless_context* fctx;
             GenericRendering_assignRequiredTexture(imageIdx,val);
             imageIdx++;
         }
-         
+         */
         
         GenericTouchHandling_touchesInit(phctx,fctx,printf,printf);
         CoreMIDIRenderer_midiInit(fctx);

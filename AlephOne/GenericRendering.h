@@ -7,9 +7,9 @@
 //
 
 
-struct PitchHandlerContext;
+struct PitchHandler_context;
 struct Fretless_context;
-void GenericRendering_init(struct PitchHandlerContext* phctxArg, struct Fretless_context* fctxArg);
+void GenericRendering_init(struct PitchHandler_context* phctxArg, struct Fretless_context* fctxArg);
 
 void GenericRendering_updateLightOrientation(float x,float y, float z);
 //Done when OpenGL is initialized

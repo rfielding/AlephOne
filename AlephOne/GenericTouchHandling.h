@@ -6,11 +6,11 @@
 //  Copyright 2011 Check Point Software. All rights reserved.
 //
 
-struct PitchHandlerContext;
+struct PitchHandler_context;
 struct Fretless_context;
 
 void GenericTouchHandling_touchesInit(
-    struct PitchHandlerContext* pctxArg,
+    struct PitchHandler_context* pctxArg,
     struct Fretless_context* fctxArg,
     int (*failArg)(const char*,...),
     int (*loggerArg)(const char*,...)

@@ -16,7 +16,7 @@
 static float chorusLevel = 0.25;
 
 static struct Fretless_context* fretlessp = NULL;
-static struct PitchHandlerContext* phctx = NULL;
+static struct PitchHandler_context* phctx = NULL;
 static int (*fail)(const char*,...);
 static int (*logger)(const char*,...);
 
@@ -26,7 +26,7 @@ void GenericTouchHandling_touchesFlush()
 }
 
 void GenericTouchHandling_touchesInit(
-    struct PitchHandlerContext* phctxArg, 
+    struct PitchHandler_context* phctxArg, 
     struct Fretless_context* fctxArg,
     int (*failArg)(const char*,...),
     int (*loggerArg)(const char*,...)
