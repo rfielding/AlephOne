@@ -11,6 +11,8 @@
 #import "EAGLView.h"
 #import "GenericTouchHandling.h"
 #import "PitchHandler.h"
+#import "Fret.h"
+
 #import "Fretless.h"
 #import "Transforms.h"
 #import "GenericRendering.h"
@@ -20,6 +22,7 @@
 static BOOL isInitialized = FALSE;
 static struct PitchHandler_context* phctx;
 static struct Fretless_context* fctx;
+static struct Fret_context* frctx;
 
 @interface EAGLView (PrivateMethods)
 - (void)createFramebuffer;
@@ -98,28 +101,29 @@ static struct Fretless_context* fctx;
 - (void)configureSurface
 {
     //0.0 is C
-    PitchHandler_clearFrets(phctx);
+    struct Fret_context* frctx = PitchHandler_frets(phctx);
+    Fret_clearFrets(frctx);
     
     float baseNote = 2.0; //D
     //First tetrachord
-    PitchHandler_placeFret(phctx,baseNote + 0.0,3);
-    PitchHandler_placeFret(phctx,baseNote + 1.0,2);
-    PitchHandler_placeFret(phctx,baseNote + 1.5,1);
-    PitchHandler_placeFret(phctx,baseNote + 2.0,3);
-    PitchHandler_placeFret(phctx,baseNote + 3.0,3);
-    PitchHandler_placeFret(phctx,baseNote + 4.0,2);
+    Fret_placeFret(frctx,baseNote + 0.0,3);
+    Fret_placeFret(frctx,baseNote + 1.0,2);
+    Fret_placeFret(frctx,baseNote + 1.5,1);
+    Fret_placeFret(frctx,baseNote + 2.0,3);
+    Fret_placeFret(frctx,baseNote + 3.0,3);
+    Fret_placeFret(frctx,baseNote + 4.0,2);
     //Second tetrachord
-    PitchHandler_placeFret(phctx,baseNote + 0.0 + 5,3);
-    PitchHandler_placeFret(phctx,baseNote + 1.0 + 5,2);
-    PitchHandler_placeFret(phctx,baseNote + 1.5 + 5,1);
+    Fret_placeFret(frctx,baseNote + 0.0 + 5,3);
+    Fret_placeFret(frctx,baseNote + 1.0 + 5,2);
+    Fret_placeFret(frctx,baseNote + 1.5 + 5,1);
     //Tetrachord from fifth
-    PitchHandler_placeFret(phctx,baseNote + 0.0 + 7,3);
-    PitchHandler_placeFret(phctx,baseNote + 1.0 + 7,2);
+    Fret_placeFret(frctx,baseNote + 0.0 + 7,3);
+    Fret_placeFret(frctx,baseNote + 1.0 + 7,2);
     
-    PitchHandler_placeFret(phctx,baseNote + 1.5 + 7,1);
-    PitchHandler_placeFret(phctx,baseNote + 2.0 + 7,3);
-    PitchHandler_placeFret(phctx,baseNote + 3.0 + 7,3);
-    PitchHandler_placeFret(phctx,baseNote + 4.0 + 7,2);
+    Fret_placeFret(frctx,baseNote + 1.5 + 7,1);
+    Fret_placeFret(frctx,baseNote + 2.0 + 7,3);
+    Fret_placeFret(frctx,baseNote + 3.0 + 7,3);
+    Fret_placeFret(frctx,baseNote + 4.0 + 7,2);
     
     if (UI_USER_INTERFACE_IDIOM() == UIUserInterfaceIdiomPad)
     {
@@ -160,8 +164,8 @@ static struct Fretless_context* fctx;
     {        
         //PressureSensor_setup();
         Transforms_clockwiseOrientation();
-        
-        phctx = PitchHandler_init(malloc,printf,printf);
+        frctx = Fret_init(malloc);
+        phctx = PitchHandler_init(frctx,malloc,printf,printf);
         fctx = Fretless_init(
             CoreMIDIRenderer_midiPutch,
             CoreMIDIRenderer_midiFlush,

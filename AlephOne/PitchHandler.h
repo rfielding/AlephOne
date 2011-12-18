@@ -17,6 +17,7 @@
  */
 
 struct PitchHandler_context;
+struct Fret_context;
 
 struct FingerInfo
 {
@@ -35,12 +36,14 @@ struct FingerInfo
     float endPitch;
 };
 
-struct PitchHandler_context* PitchHandler_init(void* (*allocFn)(unsigned long),int (*fail)(const char*,...),int (*logger)(const char*,...));
+struct PitchHandler_context* PitchHandler_init(struct Fret_context* fctx,void* (*allocFn)(unsigned long),int (*fail)(const char*,...),int (*logger)(const char*,...));
 
 //With x,y that came out of PitchHandler_translate,
 struct FingerInfo* PitchHandler_pickPitchRaw(struct PitchHandler_context* ctx, int finger,float x,float y);
 //Re-retrieve what pickPitchRaw created
 struct FingerInfo* PitchHandler_fingerState(struct PitchHandler_context* ctx, int finger);
+
+struct Fret_context* PitchHandler_frets(struct PitchHandler_context* ctx);
 
 //Tuning between strings
 float PitchHandler_getTuneInterval(struct PitchHandler_context* ctx, int string);
@@ -76,11 +79,7 @@ void PitchHandler_tick(struct PitchHandler_context * ctx);
 
 
 
-//Get rid of existing frets
-void PitchHandler_clearFrets(struct PitchHandler_context* ctx);
 
-//Frets can be placed in any order
-void PitchHandler_placeFret(struct PitchHandler_context* ctx, float pitch,int importance);
 
 void PitchHandler_getFretsBegin(struct PitchHandler_context* ctx);
 
@@ -89,7 +88,5 @@ void PitchHandler_getFretsBegin(struct PitchHandler_context* ctx);
  */
 int PitchHandler_getFret(struct PitchHandler_context* ctx, float* pitch,float* x,float* y,int* importance,float* usage);
 
-//Given a pitch, find the target that it wants to snap to (given the frets in use)
-float PitchHandler_getTarget(struct PitchHandler_context* ctx, float pitch,int* fretP);
 
 
