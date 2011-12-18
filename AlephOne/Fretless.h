@@ -28,10 +28,13 @@ struct Fretless_context;
 struct Fretless_context* Fretless_init(
                                        void (*midiPutch)(char),void (*midiFlush)(), 
                                        void* (*fretlessAlloc)(unsigned long), 
+                                       void (*fretlessFree)(void*),
                                        int (*fail)(const char*,...), 
                                        void (*passed)(),
                                        int (*logger)(const char*,...)
                                        );
+
+void Fretless_free(struct Fretless_context* ctxp);
 
 /*
  * When we channel cycle, this is the lowest channel in that adjacent span of channels

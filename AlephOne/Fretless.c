@@ -180,6 +180,7 @@ struct Fretless_context
     //Where we write fail messages. 
     int (*fail)(const char*,...);
     void* (*fretlessAlloc)(unsigned long size);
+    void (*fretlessFree)(void*);
     int (*logger)(const char*,...);
     void (*passed)();
 };
@@ -196,6 +197,7 @@ struct Fretless_context* Fretless_init(
                                         void (*midiPutch)(char), 
                                         void (*midiFlush)(),
                                         void* (*fretlessAlloc)(unsigned long),
+                                        void (*fretlessFree)(void*),
                                         int (*fail)(const char*,...),
                                         void (*passed)(),
                                         int (*logger)(const char*,...)
@@ -213,9 +215,15 @@ struct Fretless_context* Fretless_init(
     ctxp->midiPutch = midiPutch;
     ctxp->midiFlush = midiFlush;
     ctxp->fretlessAlloc = fretlessAlloc;
+    ctxp->fretlessFree = fretlessFree;
     ctxp->logger = logger;
     ctxp->passed = passed;
     return ctxp;
+}
+
+void Fretless_free(struct Fretless_context* ctxp)
+{
+    ctxp->fretlessFree(ctxp);
 }
 
 void Fretless_reset_FingerState(struct Fretless_fingerState* fsPtr)
@@ -772,7 +780,7 @@ float Fretless_move(struct Fretless_context* ctxp, int finger,float fnote,int po
     struct Fretless_fingerState* fsPtr = &ctxp->fingers[finger];
     if(fsPtr->isOn == FALSE)
     {
-        ctxp->fail("finger %d: Fretless_down && fsPtr->isOn == FALSE\n",finger);
+        ctxp->fail("finger %d: Fretless_move && fsPtr->isOn == FALSE\n",finger);
     }
     int newNote;
     int newBend;
