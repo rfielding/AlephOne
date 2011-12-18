@@ -18,6 +18,7 @@ struct VertexObject {
     int usesNormals;
     int usingTexture;
     int usingColor;
+    int textureId;
 };
 
 //Invoke this first to get a handle on a builder for making vertex arrays
@@ -29,10 +30,10 @@ void VertexObjectBuilder_reset(struct VertexObjectBuilder* ctxp);
 
 //Start creating a vertex object with type GL_LINES, GL_TRIANGLES, etc.
 int VertexObjectBuilder_startColoredObject(struct VertexObjectBuilder* ctxp,int type);
-int VertexObjectBuilder_startTexturedObject(struct VertexObjectBuilder* ctxp,int type);
+int VertexObjectBuilder_startTexturedObject(struct VertexObjectBuilder* ctxp,int type,int textureId);
 
 int VertexObjectBuilder_addColoredVertex(struct VertexObjectBuilder* ctxp,float x,float y,float z,unsigned char cr,unsigned char cg,unsigned char cb, unsigned char ca);
-int VertexObjectBuilder_addTexturedVertex(struct VertexObjectBuilder* ctxp,float x,float y,float z,float tx,float ty, float tz);
+int VertexObjectBuilder_addTexturedVertex(struct VertexObjectBuilder* ctxp,float x,float y,float z,float tx,float ty);
 
 
 //When iterating objects, here is how you get an object to draw it

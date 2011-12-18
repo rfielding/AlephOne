@@ -28,12 +28,14 @@
     GLuint defaultFramebuffer, colorRenderbuffer;
 }
 
-@property (nonatomic, retain) EAGLContext *context;
+@property (nonatomic, retain) EAGLContext *eaglcontext;
 
 - (void)setFramebuffer;
 - (BOOL)presentFramebuffer;
 - (void)tick;
 - (void)setup:(EAGLContext*)newContext;
 - (void)drawFrame;
+- (void)setContext:(EAGLContext *)newContext;
+- (int)loadImage:(int)bindId withPath:(NSString*)imagePath ofType:(NSString*)imageType;
 
 @end

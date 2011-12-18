@@ -28,12 +28,59 @@ static struct Fretless_context* fctx;
 
 @implementation EAGLView
 
-@synthesize context;
+@synthesize eaglcontext;
 
 // You must implement this method
 + (Class)layerClass
 {
     return [CAEAGLLayer class];
+}
+
+- (int)loadImage:(int)bindId withPath:(NSString*)imagePath ofType:(NSString*)imageType
+{    
+    glEnable(GL_TEXTURE_2D);
+    
+    unsigned int textureId = 0;
+    glGenTextures(1, &textureId);
+    glBindTexture(GL_TEXTURE_2D, textureId);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);            
+    glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_LINEAR); 
+    glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_LINEAR);
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_ONE, GL_SRC_COLOR);
+    
+    void* imageData = NULL;
+    unsigned int width=0;
+    unsigned int height=0;
+
+    NSString *path = [[NSBundle mainBundle] pathForResource:imagePath ofType:imageType];  
+    NSData *texData = [[NSData alloc] initWithContentsOfFile:path];
+    UIImage *image = [[UIImage alloc] initWithData:texData];
+    if (image == nil)
+        NSLog(@"Do real error checking here");
+    
+    width = CGImageGetWidth(image.CGImage);
+    height = CGImageGetHeight(image.CGImage);
+    CGColorSpaceRef colorSpace = CGColorSpaceCreateDeviceRGB();
+    imageData = malloc( height * width * 4 );
+    
+    CGContextRef context = CGBitmapContextCreate( imageData, width, height, 8, 4 * width, colorSpace, kCGImageAlphaPremultipliedLast | kCGBitmapByteOrder32Big );
+    CGColorSpaceRelease( colorSpace );
+    CGContextClearRect( context, CGRectMake( 0, 0, width, height ) );
+    CGContextTranslateCTM( context, 0, height - height );
+
+    CGContextDrawImage( context, CGRectMake( 0, 0, width, height ), image.CGImage );   
+    
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, imageData);
+    
+    CGContextRelease(context);
+    
+    free(imageData);
+    [image release];
+    [texData release];
+    
+    return textureId;
 }
 
 - (void)configureSurface
@@ -111,7 +158,12 @@ static struct Fretless_context* fctx;
             CoreMIDIRenderer_midiPassed,
             printf
         );
+        
+        
         GenericRendering_init(phctx,fctx);
+        int textureId = [self loadImage:1 withPath:@"ashmedi" ofType:@"png"];
+        NSLog(@"loaded texture %d",textureId);
+        
         GenericTouchHandling_touchesInit(phctx,fctx,CoreMIDIRenderer_midiFail,printf);
         CoreMIDIRenderer_midiInit(fctx);
         [self configureSurface];
@@ -124,7 +176,7 @@ static struct Fretless_context* fctx;
 - (void)dealloc
 {
     [self deleteFramebuffer];    
-    [context release];
+    [eaglcontext release];
     
     [super dealloc];
 }
@@ -151,11 +203,11 @@ static struct Fretless_context* fctx;
 
 - (void)setContext:(EAGLContext *)newContext
 {
-    if (context != newContext) {
+    if (eaglcontext != newContext) {
         [self deleteFramebuffer];
         
-        [context release];
-        context = [newContext retain];
+        [eaglcontext release];
+        eaglcontext = [newContext retain];
         
         [EAGLContext setCurrentContext:nil];
     }
@@ -163,8 +215,8 @@ static struct Fretless_context* fctx;
 
 - (void)createFramebuffer
 {
-    if (context && !defaultFramebuffer) {
-        [EAGLContext setCurrentContext:context];
+    if (eaglcontext && !defaultFramebuffer) {
+        [EAGLContext setCurrentContext:eaglcontext];
         
         // Create default framebuffer object.
         glGenFramebuffers(1, &defaultFramebuffer);
@@ -173,7 +225,7 @@ static struct Fretless_context* fctx;
         // Create color render buffer and allocate backing store.
         glGenRenderbuffers(1, &colorRenderbuffer);
         glBindRenderbuffer(GL_RENDERBUFFER, colorRenderbuffer);
-        [context renderbufferStorage:GL_RENDERBUFFER fromDrawable:(CAEAGLLayer *)self.layer];
+        [eaglcontext renderbufferStorage:GL_RENDERBUFFER fromDrawable:(CAEAGLLayer *)self.layer];
         glGetRenderbufferParameteriv(GL_RENDERBUFFER, GL_RENDERBUFFER_WIDTH, &framebufferWidth);
         glGetRenderbufferParameteriv(GL_RENDERBUFFER, GL_RENDERBUFFER_HEIGHT, &framebufferHeight);
         
@@ -186,8 +238,8 @@ static struct Fretless_context* fctx;
 
 - (void)deleteFramebuffer
 {
-    if (context) {
-        [EAGLContext setCurrentContext:context];
+    if (eaglcontext) {
+        [EAGLContext setCurrentContext:eaglcontext];
         
         if (defaultFramebuffer) {
             glDeleteFramebuffers(1, &defaultFramebuffer);
@@ -203,8 +255,8 @@ static struct Fretless_context* fctx;
 
 - (void)setFramebuffer
 {
-    if (context) {
-        [EAGLContext setCurrentContext:context];
+    if (eaglcontext) {
+        [EAGLContext setCurrentContext:eaglcontext];
         
         if (!defaultFramebuffer)
             [self createFramebuffer];
@@ -219,12 +271,12 @@ static struct Fretless_context* fctx;
 {
     BOOL success = FALSE;
     
-    if (context) {
-        [EAGLContext setCurrentContext:context];
+    if (eaglcontext) {
+        [EAGLContext setCurrentContext:eaglcontext];
         
         glBindRenderbuffer(GL_RENDERBUFFER, colorRenderbuffer);
         
-        success = [context presentRenderbuffer:GL_RENDERBUFFER];
+        success = [eaglcontext presentRenderbuffer:GL_RENDERBUFFER];
     }
     
     return success;
