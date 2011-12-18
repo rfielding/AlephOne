@@ -357,13 +357,11 @@ void GenericRendering_dynamic()
     GenericRendering_drawChannelOccupancy(0.8, 0.8, 0.4);
     //drawStaff(0.3,0.8,0.6,0.4);
     
-    testImage();
+    //testImage();
 }
 
 void GenericRendering_drawVO(struct VertexObjectBuilder* vobj)
-{
-    static int dumped=0;
-    
+{    
     int voCount = VertexObjectBuilder_getVertexObjectsCount(vobj);
     /*
     glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, specularAmount );
@@ -412,28 +410,6 @@ void GenericRendering_drawVO(struct VertexObjectBuilder* vobj)
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);            
             glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_LINEAR); 
             glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_LINEAR);
-            
-            if(!dumped)
-            {
-                dumped=1;
-                for(int i=0;i<vo->count;i++)
-                {
-                    printf("%f,%f,%f   %f,%f   %f,%f,%f   %d,%d,%d,%d\n\n",
-                           vo->vertices[3*i+0],
-                           vo->vertices[3*i+1],
-                           vo->vertices[3*i+2],
-                           vo->tex[2*i+0],
-                           vo->tex[2*i+1],
-                           vo->normals[3*i+0],
-                           vo->normals[3*i+1],
-                           vo->normals[3*i+2],
-                           vo->colors[4*i+0],
-                           vo->colors[4*i+1],
-                           vo->colors[4*i+2],
-                           vo->colors[4*i+3]
-                           );
-                }
-            }
         }
         else
         {
