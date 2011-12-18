@@ -36,10 +36,30 @@ static float scale[16] = {
     0.0f, 0.0f, 0.0f, 1.0f
 };
 
+static char* requiredTexture[] = {
+    "ashmedi",
+    "ashmedi"
+};
+#define PIC0_ASHMEDI 0
+#define PIC1_MOLOCH 1
+
+unsigned int textures[256];
+
 void GenericRendering_init(struct PitchHandlerContext* phctxArg,struct Fretless_context* fctxArg)
 {
     phctx = phctxArg;
     fctx  = fctxArg;
+}
+
+
+char* GenericRendering_getRequiredTexture(int idx)
+{
+    return requiredTexture[idx];
+}
+
+void  GenericRendering_assignRequiredTexture(int idx,int val)
+{
+    textures[idx] = val;
 }
 
 void GenericRendering_updateLightOrientation(float x,float y, float z)
@@ -51,6 +71,9 @@ void GenericRendering_updateLightOrientation(float x,float y, float z)
 
 void GenericRendering_camera()
 {
+    glEnable(GL_TEXTURE_2D);
+    glEnable(GL_BLEND);
+    
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
     glMatrixMode(GL_MODELVIEW);
@@ -313,7 +336,7 @@ void GenericRendering_drawPitchLocation()
 
 void testImage()
 {
-    VertexObjectBuilder_startTexturedObject(voCtxDynamic,GL_TRIANGLE_STRIP,0);
+    VertexObjectBuilder_startTexturedObject(voCtxDynamic,GL_TRIANGLE_STRIP,PIC0_ASHMEDI);
     VertexObjectBuilder_addTexturedVertex(voCtxDynamic, 0, 0, 0, 0,0);
     VertexObjectBuilder_addTexturedVertex(voCtxDynamic, 0.1, 0, 0, 1,0);
     VertexObjectBuilder_addTexturedVertex(voCtxDynamic, 0, 0.1, 0, 0,1);
@@ -333,7 +356,7 @@ void GenericRendering_dynamic()
     GenericRendering_drawChannelOccupancy(0.8, 0.8, 0.4);
     //drawStaff(0.3,0.8,0.6,0.4);
     
-//    testImage();
+    //testImage();
 }
 
 void GenericRendering_drawVO(struct VertexObjectBuilder* vobj)
@@ -375,12 +398,10 @@ void GenericRendering_drawVO(struct VertexObjectBuilder* vobj)
         
         if(vo->usingTexture)
         {
-            glEnable(GL_TEXTURE_2D);
-            glEnable(GL_BLEND);
             glBlendFunc(GL_ONE, GL_SRC_COLOR);
             glEnableClientState(GL_TEXTURE_COORD_ARRAY);
             glTexCoordPointer(3,GL_FLOAT,0, vo->tex);    
-            glBindTexture(GL_TEXTURE_2D, vo->textureId);
+            glBindTexture(GL_TEXTURE_2D, textures[vo->textureId]);
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);            
             glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_LINEAR); 

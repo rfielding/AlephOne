@@ -39,10 +39,12 @@ static struct Fretless_context* fctx;
 - (int)loadImage:(int)bindId withPath:(NSString*)imagePath ofType:(NSString*)imageType
 {    
     glEnable(GL_TEXTURE_2D);
+
+    unsigned int textures[1];
+    //Cause our call to glTexImage2D to bind to the result in textures[0]
+    glGenTextures(1, textures);
+    glBindTexture(GL_TEXTURE_2D, textures[0]);
     
-    unsigned int textureId = 0;
-    glGenTextures(1, &textureId);
-    glBindTexture(GL_TEXTURE_2D, textureId);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);            
     glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_LINEAR); 
@@ -71,8 +73,10 @@ static struct Fretless_context* fctx;
     CGContextTranslateCTM( context, 0, height - height );
 
     CGContextDrawImage( context, CGRectMake( 0, 0, width, height ), image.CGImage );   
-    
+        
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, imageData);
+    
+    NSLog(@"GenericRendering_textures[%d]=%d: (%d,%d)",bindId,textures[0],width,height);
     
     CGContextRelease(context);
     
@@ -80,7 +84,7 @@ static struct Fretless_context* fctx;
     [image release];
     [texData release];
     
-    return textureId;
+    return textures[0];
 }
 
 - (void)configureSurface
@@ -161,8 +165,16 @@ static struct Fretless_context* fctx;
         
         
         GenericRendering_init(phctx,fctx);
-        int textureId = [self loadImage:1 withPath:@"ashmedi" ofType:@"png"];
-        NSLog(@"loaded texture %d",textureId);
+        
+        //Assign opengl texture id for each image that the rendering code needs
+        int imageIdx = 0;
+        char* currentImage = NULL;
+        while( (currentImage = GenericRendering_getRequiredTexture(imageIdx)) != 0 ) {
+            NSString* currentImageStr = [ NSString stringWithUTF8String:currentImage ];
+            int val = [self loadImage:imageIdx withPath:currentImageStr  ofType:@"png"]; 
+            GenericRendering_assignRequiredTexture(imageIdx,val);
+            imageIdx++;
+        }
         
         GenericTouchHandling_touchesInit(phctx,fctx,CoreMIDIRenderer_midiFail,printf);
         CoreMIDIRenderer_midiInit(fctx);
