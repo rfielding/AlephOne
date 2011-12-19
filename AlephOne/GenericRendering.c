@@ -97,8 +97,9 @@ void GenericRendering_drawVO(struct VertexObjectBuilder* vobj)
         
         if(vo->usingColor)
         {
+            glDisable(GL_TEXTURE_2D);
             glEnable(GL_BLEND);
-            glBlendFunc(GL_DST_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+            glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
             glEnableClientState(GL_COLOR_ARRAY);            
             glColorPointer(4, GL_UNSIGNED_BYTE, 0, vo->colors);            
         }
