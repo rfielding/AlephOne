@@ -127,9 +127,9 @@ void drawOccupancyHandle(float cx, float cy, float diameter,float z)
     float sinB = sinf(z-0.1);
     float cosC = cosf(z);
     float sinC = sinf(z);
-    VertexObjectBuilder_addColoredVertex(voCtxDynamic,cx+rB*sinC,cy+rB*cosC,0,255, 255,255,127);        
-    VertexObjectBuilder_addColoredVertex(voCtxDynamic,cx+rA*sinA,cy+rA*cosA,0,200, 200,  0,100);        
-    VertexObjectBuilder_addColoredVertex(voCtxDynamic,cx+rA*sinB,cy+rA*cosB,0,200, 200,  0,100);        
+    VertexObjectBuilder_addColoredVertex(voCtxDynamic,cx+rB*sinC,cy+rB*cosC,0,255, 255,255,255);        
+    VertexObjectBuilder_addColoredVertex(voCtxDynamic,cx+rA*sinA,cy+rA*cosA,0,200, 200,  0,255);        
+    VertexObjectBuilder_addColoredVertex(voCtxDynamic,cx+rA*sinB,cy+rA*cosB,0,200, 200,  0,255);        
 }
 
 void GenericRendering_drawChannelOccupancy(float cx,float cy,float diameter)
@@ -142,9 +142,9 @@ void GenericRendering_drawChannelOccupancy(float cx,float cy,float diameter)
         float a = channel/16.0 * 2*M_PI;
         float cosA = cosf(a);
         float sinA = sinf(a);
-        VertexObjectBuilder_addColoredVertex(voCtxDynamic,cx+r*sinA,cy+r*cosA,0,0, 255, 0,64);                
+        VertexObjectBuilder_addColoredVertex(voCtxDynamic,cx+r*sinA,cy+r*cosA,0,0, 255, 0,255);                
     }
-    VertexObjectBuilder_addColoredVertex(voCtxDynamic,cx,cy+r,0,0, 255, 0,64);  
+    VertexObjectBuilder_addColoredVertex(voCtxDynamic,cx,cy+r,0,0, 255, 0,255);  
     
     VertexObjectBuilder_startColoredObject(voCtxDynamic,triangles);
     int bottom = Fretless_getMidiHintChannelBase(fctx);
@@ -174,14 +174,14 @@ void GenericRendering_drawChannelOccupancy(float cx,float cy,float diameter)
         int blue  = b>0 ? 0 : 255;
         
         //Draw the channel cycling
-        VertexObjectBuilder_addColoredVertex(voCtxDynamic,cx,cy,0,0, 255, 0,127);        
+        VertexObjectBuilder_addColoredVertex(voCtxDynamic,cx,cy,0,0, 255, 0,255);        
         VertexObjectBuilder_addColoredVertex(voCtxDynamic,cx+r*sinA,cy+r*cosA,0,0, 200, 0,  0);        
         VertexObjectBuilder_addColoredVertex(voCtxDynamic,cx+r*sinB,cy+r*cosB,0,0, 255, 0,  0); 
         
         //Draw what the bend manipulation is doing
-        VertexObjectBuilder_addColoredVertex(voCtxDynamic,cx+rC*sinA,cy+rC*cosA,0,red, green, blue,200);        
-        VertexObjectBuilder_addColoredVertex(voCtxDynamic,cx+rC*sinB,cy+rC*cosB,0,red*0.5, green*0.5, blue*0.5,200);        
-        VertexObjectBuilder_addColoredVertex(voCtxDynamic,cx+rD*sinC,cy+rD*cosC,0,red*0.5, green*0.5, blue*0.5,200);  
+        VertexObjectBuilder_addColoredVertex(voCtxDynamic,cx+rC*sinA,cy+rC*cosA,0,red, green, blue,255);        
+        VertexObjectBuilder_addColoredVertex(voCtxDynamic,cx+rC*sinB,cy+rC*cosB,0,red*0.5, green*0.5, blue*0.5,255);        
+        VertexObjectBuilder_addColoredVertex(voCtxDynamic,cx+rD*sinC,cy+rD*cosC,0,red*0.5, green*0.5, blue*0.5,255);  
         
     }
     VertexObjectBuilder_startTexturedObject(voCtxDynamic,trianglestrip,PIC_CHANNELCYCLING);
@@ -215,10 +215,10 @@ void GenericRendering_drawMoveableFrets()
         int red = 0;
         int green = usage*50;
         int blue = 255;
-        int trans = bCol;
+        int trans = 255;
         
-        int rede = 127;
-        int greene = 127;
+        int rede = 255;
+        int greene = 255;
         int bluee = 255;
         int transe = 0;
         
@@ -330,7 +330,7 @@ void GenericRendering_dynamic()
     GenericRendering_drawFingerLocation();
     GenericRendering_drawPitchLocation();
     
-    GenericRendering_drawChannelOccupancy(0.8, 0.8, 0.4);
+    GenericRendering_drawChannelOccupancy(0.5, 0.5, 0.6);
     
 }
 

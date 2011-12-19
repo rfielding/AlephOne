@@ -78,6 +78,8 @@ void GenericRendering_camera()
     glMultMatrixf(scale);
     glScalef(2,2,1);
     glTranslatef(-0.5,-0.5,0);    
+    
+    glClearColor(255,255,255,255);
 } 
 
 
@@ -96,7 +98,7 @@ void GenericRendering_drawVO(struct VertexObjectBuilder* vobj)
         if(vo->usingColor)
         {
             glEnable(GL_BLEND);
-            glBlendFunc(GL_ONE, GL_DST_ALPHA);
+            glBlendFunc(GL_DST_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
             glEnableClientState(GL_COLOR_ARRAY);            
             glColorPointer(4, GL_UNSIGNED_BYTE, 0, vo->colors);            
         }
