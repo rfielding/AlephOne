@@ -329,7 +329,7 @@ void GenericRendering_dynamic()
     
     GenericRendering_drawChannelOccupancy(0.8, 0.8, 0.4);
     
-    //testImage();
+    testImage();
 }
 
 void GenericRendering_drawVO(struct VertexObjectBuilder* vobj)

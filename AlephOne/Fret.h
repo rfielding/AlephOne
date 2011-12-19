@@ -6,6 +6,11 @@
 //  Copyright 2011 Check Point Software. All rights reserved.
 //
 
+/**
+ This code is the basis for making moveable frets.  It stays out of the business
+ of how the screen is laid out and just sticks to pitches and away from implying any
+ (x,y) coordinates.  This should allow this code to remain relevant for piano-like layouts.
+ */
 #define FRETMAX 1024
 
 struct Fret_context
@@ -14,7 +19,6 @@ struct Fret_context
     int   importance[FRETMAX];
     float usage[FRETMAX];
     int used;
-
 };
 
 struct Fret_context* Fret_init(void* (*allocFn)(unsigned long));

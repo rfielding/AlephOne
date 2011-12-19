@@ -178,18 +178,6 @@ static struct Fret_context* frctx;
         
         GenericRendering_init(phctx,fctx);
         
-        //Assign opengl texture id for each image that the rendering code needs
-        ///*
-        int imageIdx = 0;
-        char* currentImage = NULL;
-        while( (currentImage = GenericRendering_getRequiredTexture(imageIdx)) != 0 ) {
-            NSString* currentImageStr = [ NSString stringWithUTF8String:currentImage ];
-            int val = [self loadImage:imageIdx withPath:currentImageStr  ofType:@"png"]; 
-            GenericRendering_assignRequiredTexture(imageIdx,val);
-            imageIdx++;
-        }
-        //*/
-        
         GenericTouchHandling_touchesInit(phctx,fctx,printf,printf);
         CoreMIDIRenderer_midiInit(fctx);
         [self configureSurface];
@@ -212,6 +200,14 @@ static struct Fret_context* frctx;
     [self setContext:newContext];
     [self setFramebuffer];    
     
+    int imageIdx = 0;
+    char* currentImage = NULL;
+    while( (currentImage = GenericRendering_getRequiredTexture(imageIdx)) != 0 ) {
+        NSString* currentImageStr = [ NSString stringWithUTF8String:currentImage ];
+        int val = [self loadImage:imageIdx withPath:currentImageStr  ofType:@"png"]; 
+        GenericRendering_assignRequiredTexture(imageIdx,val);
+        imageIdx++;
+    }
     GenericRendering_setup();    
     
 }
