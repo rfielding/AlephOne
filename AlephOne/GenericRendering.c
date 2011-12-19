@@ -18,7 +18,6 @@
 
 #include "ObjectRendering.h"
 
-static float lightPosition[3];
 
 static float scale[16] = {
     1.0f, 0.0f, 0.0f, 0.0f,
@@ -59,13 +58,13 @@ void GenericRendering_setup()
 
 void GenericRendering_updateLightOrientation(float x,float y, float z)
 {
-    lightPosition[0] = x;
-    lightPosition[1] = y;
-    lightPosition[2] = z;
+    ObjectRendering_updateLightOrientation(x,y,z);
 }
 
 void GenericRendering_camera()
 {
+    glDisable(GL_LIGHTING);
+    
     glEnable(GL_TEXTURE_2D);
     glEnable(GL_BLEND);
     
@@ -97,7 +96,7 @@ void GenericRendering_drawVO(struct VertexObjectBuilder* vobj)
         if(vo->usingColor)
         {
             glEnable(GL_BLEND);
-            glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+            glBlendFunc(GL_ONE, GL_DST_ALPHA);
             glEnableClientState(GL_COLOR_ARRAY);            
             glColorPointer(4, GL_UNSIGNED_BYTE, 0, vo->colors);            
         }

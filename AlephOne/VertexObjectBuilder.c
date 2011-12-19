@@ -83,7 +83,7 @@ int VertexObjectBuilder_startColoredObject(struct VertexObjectBuilder* ctxp,int 
 
 int VertexObjectBuilder_startTexturedObject(struct VertexObjectBuilder* ctxp,int type,int textureId)
 {
-    return VertexObjectBuilder_startObject(ctxp, type, 0, 1, 1,textureId);
+    return VertexObjectBuilder_startObject(ctxp, type, 1, 1, 1,textureId);
 }
 
 int VertexObjectBuilder_addColoredVertex(struct VertexObjectBuilder* ctxp,float x,float y,float z,unsigned char cr,unsigned char cg,unsigned char cb, unsigned char ca)
@@ -125,10 +125,10 @@ int VertexObjectBuilder_addTexturedVertex(struct VertexObjectBuilder* ctxp,float
     ctxp->gridVertices[3*vert + 0] = x;
     ctxp->gridVertices[3*vert + 1] = y;
     ctxp->gridVertices[3*vert + 2] = z;
-    ctxp->gridColors  [4*vert + 0] = 0;
+    ctxp->gridColors  [4*vert + 0] = 255;
     ctxp->gridColors  [4*vert + 1] = 255;
-    ctxp->gridColors  [4*vert + 2] = 0;
-    ctxp->gridColors  [4*vert + 3] = 127;
+    ctxp->gridColors  [4*vert + 2] = 255;
+    ctxp->gridColors  [4*vert + 3] = 255;
     ctxp->gridTexCoord[2*vert + 0] = tx;
     ctxp->gridTexCoord[2*vert + 1] = ty;
     ctxp->gridNormals [3*vert + 0] = 0;

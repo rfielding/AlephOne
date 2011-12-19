@@ -28,4 +28,5 @@ void ObjectRendering_loadImages();
 
 int ObjectRendering_getTexture(int idx);
 
+void ObjectRendering_updateLightOrientation(float x,float y, float z);
 

@@ -33,17 +33,29 @@ static struct Fretless_context* fctx;
 static char* requiredTexture[] = {
     "tutorial",
     "ashmedi",
-    "tutorial"
+    "stars",
+    "channelcycling"
 };
+
+#define IMAGECOUNT 4
 
 #define PIC_TUTORIAL 0
 #define PIC_ASHMEDI 1
-#define PIC_MOLOCH 2
+#define PIC_STARS 2
+#define PIC_CHANNELCYCLING 3
 
 static unsigned int textures[256];
 static float textureWidth[256];
 static float textureHeight[256];
+static float lightPosition[3];
 
+
+void ObjectRendering_updateLightOrientation(float x,float y, float z)
+{
+    lightPosition[0] = x;
+    lightPosition[1] = y;
+    lightPosition[2] = z;
+}
 
 void ObjectRendering_init(
                            struct VertexObjectBuilder* voCtxDynamicArg,
@@ -72,7 +84,7 @@ void ObjectRendering_init(
 
 void ObjectRendering_loadImages()
 {
-    for(int i=0; i < 3; i++)
+    for(int i=0; i < IMAGECOUNT; i++)
     {
         ObjectRendering_imageRender(
             ObjectRendering_imageContext,
@@ -91,16 +103,15 @@ int ObjectRendering_getTexture(int idx)
 
 void GenericRendering_drawBackground()
 {    
-    float lx=0;
-    float ly=0;
-    float lz=0;
-    
-    VertexObjectBuilder_startColoredObject(voCtxDynamic,trianglestrip);
-    
-    VertexObjectBuilder_addColoredVertex(voCtxDynamic,0,0,0,lx, ly, lz,255);
-    VertexObjectBuilder_addColoredVertex(voCtxDynamic,1,0,0,lz, lx, ly,255);
-    VertexObjectBuilder_addColoredVertex(voCtxDynamic,0,1,0,ly, lz, lx,255); 
-    VertexObjectBuilder_addColoredVertex(voCtxDynamic,1,1,0,lx, lz, ly,255); 
+    float left  = 0 + lightPosition[0]*0.1 + 0.2;
+    float right = 1 + lightPosition[0]*0.1 - 0.2;
+    float top   = 1 + lightPosition[1]*0.1 - 0.2;
+    float bottom= 0 + lightPosition[1]*0.1 + 0.2;
+    VertexObjectBuilder_startTexturedObject(voCtxDynamic,trianglestrip,PIC_STARS);
+    VertexObjectBuilder_addTexturedVertex(voCtxDynamic, 0, 0, 0, left,bottom);
+    VertexObjectBuilder_addTexturedVertex(voCtxDynamic, 0, 1, 0, left,top);
+    VertexObjectBuilder_addTexturedVertex(voCtxDynamic, 1, 0, 0, right,bottom);
+    VertexObjectBuilder_addTexturedVertex(voCtxDynamic, 1, 1, 0, right,top);
 }
 
 void drawOccupancyHandle(float cx, float cy, float diameter,float z)
@@ -173,6 +184,11 @@ void GenericRendering_drawChannelOccupancy(float cx,float cy,float diameter)
         VertexObjectBuilder_addColoredVertex(voCtxDynamic,cx+rD*sinC,cy+rD*cosC,0,red*0.5, green*0.5, blue*0.5,200);  
         
     }
+    VertexObjectBuilder_startTexturedObject(voCtxDynamic,trianglestrip,PIC_CHANNELCYCLING);
+    VertexObjectBuilder_addTexturedVertex(voCtxDynamic, cx-diameter/2, cy+diameter/8 - diameter/4, 0, 0,0);
+    VertexObjectBuilder_addTexturedVertex(voCtxDynamic, cx-diameter/2, cy-diameter/8 - diameter/4, 0, 0,1);
+    VertexObjectBuilder_addTexturedVertex(voCtxDynamic, cx+diameter/2, cy+diameter/8 - diameter/4, 0, 1,0);
+    VertexObjectBuilder_addTexturedVertex(voCtxDynamic, cx+diameter/2, cy-diameter/8 - diameter/4, 0, 1,1);
 }
 
 
@@ -305,15 +321,6 @@ void GenericRendering_drawPitchLocation()
     }    
 }
 
-void testImage()
-{
-    VertexObjectBuilder_startTexturedObject(voCtxDynamic,trianglestrip,PIC_ASHMEDI);
-    VertexObjectBuilder_addTexturedVertex(voCtxDynamic,   0,   0, 0, 0,0);
-    VertexObjectBuilder_addTexturedVertex(voCtxDynamic,   0, 0.1, 0, 0,1);
-    VertexObjectBuilder_addTexturedVertex(voCtxDynamic, 0.1,   0, 0, 1,0);
-    VertexObjectBuilder_addTexturedVertex(voCtxDynamic, 0.1, 0.1, 0, 1,1);
-}
-
 void GenericRendering_dynamic()
 {
     VertexObjectBuilder_reset(voCtxDynamic);    
@@ -325,7 +332,6 @@ void GenericRendering_dynamic()
     
     GenericRendering_drawChannelOccupancy(0.8, 0.8, 0.4);
     
-    testImage();
 }
 
 void GenericRendering_draw()

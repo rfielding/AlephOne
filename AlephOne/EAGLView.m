@@ -206,6 +206,7 @@ void stringRender(void* ctx,char* str,unsigned int* textureName,float* width,flo
     [self setMultipleTouchEnabled:TRUE];
     if(isInitialized==FALSE)
     {        
+        PressureSensor_setup();
         Transforms_clockwiseOrientation();
         frctx = Fret_init(malloc);
         phctx = PitchHandler_init(frctx,malloc,printf,printf);
@@ -350,9 +351,12 @@ void stringRender(void* ctx,char* str,unsigned int* textureName,float* width,flo
     tickClock%=4;
     if(tickClock==0)
     {
+        float x = PressureSensor_xNorm;
+        float y = PressureSensor_yNorm;
+        Transforms_translate(&x,&y);
         GenericRendering_updateLightOrientation(
-            PressureSensor_xNorm,
-            PressureSensor_yNorm,
+            x,
+            y,
             PressureSensor_zNorm
         );
         GenericTouchHandling_tick();                    

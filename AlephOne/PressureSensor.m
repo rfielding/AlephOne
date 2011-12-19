@@ -29,7 +29,7 @@ float PressureSensor_zNorm=1;
 -(void)accelerometer:(UIAccelerometer *)accelerometer didAccelerate:(UIAcceleration *)acceleration; 
 @end
 
-#define kUpdateFrequency            30.0f
+#define kUpdateFrequency            20.0f
 #define KNumberOfPressureSamples    3
 
 
