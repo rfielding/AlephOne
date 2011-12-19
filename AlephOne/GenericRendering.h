@@ -15,7 +15,14 @@
 
 struct PitchHandler_context;
 struct Fretless_context;
-void GenericRendering_init(struct PitchHandler_context* phctxArg, struct Fretless_context* fctxArg);
+
+void GenericRendering_init(
+    struct PitchHandler_context* phctxArg, 
+    struct Fretless_context* fctxArg, 
+    void* imageContext,
+    void (*imageRender)(void*,char*,unsigned int*),
+    void (*stringRender)(void*,char*,unsigned int*)
+);
 
 void GenericRendering_updateLightOrientation(float x,float y, float z);
 //Done when OpenGL is initialized
@@ -25,7 +32,3 @@ void GenericRendering_setup();
 void GenericRendering_camera();
 void GenericRendering_draw();
 
-//The OS invokes this to figure out what texture files it needs to load.
-//I assume png, and that they are from 0 to n, and returns NULL when no more.
-char* GenericRendering_getRequiredTexture(int idx);
-void  GenericRendering_assignRequiredTexture(int idx,int val);

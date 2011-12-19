@@ -17,11 +17,13 @@
 
 #include <stdio.h>
 
-struct VertexObjectBuilder* voCtxDynamic;
-struct PitchHandler_context* phctx;
-struct Fretless_context* fctx;
+static struct VertexObjectBuilder* voCtxDynamic;
+static struct PitchHandler_context* phctx;
+static struct Fretless_context* fctx;
 
-
+static void* imageContext;
+static void (*imageRender)(void*,char*,unsigned int*);
+static void (*stringRender)(void*,char*,unsigned int*);
 
 static float lightPosition[] = {0, 0, -1,0};
 //static float specularAmount[] = {0.0,0.0,0.0,1.0};
@@ -47,14 +49,27 @@ static char* requiredTexture[] = {
 
 unsigned int textures[256];
 
-void GenericRendering_init(struct PitchHandler_context* phctxArg,struct Fretless_context* fctxArg)
+void GenericRendering_init(
+                           struct PitchHandler_context* phctxArg, 
+                           struct Fretless_context* fctxArg, 
+                           void* imageContextArg,
+                           void (*imageRenderArg)(void*,char*,unsigned int*),
+                           void (*stringRenderArg)(void*,char*,unsigned int*)
+                           )
 {
     phctx = phctxArg;
     fctx  = fctxArg;
+    imageContext = imageContextArg;
+    imageRender  = imageRenderArg;
+    stringRender = stringRenderArg;
 }
 
 void GenericRendering_setup()
 {
+    for(int i=0; i < 3; i++)
+    {
+        imageRender(imageContext,requiredTexture[i],&textures[i]);
+    }
     voCtxDynamic = VertexObjectBuilder_init(malloc,printf);    
 }
 
@@ -312,9 +327,9 @@ void GenericRendering_drawPitchLocation()
 void testImage()
 {
     VertexObjectBuilder_startTexturedObject(voCtxDynamic,GL_TRIANGLE_STRIP,PIC_ASHMEDI);
-    VertexObjectBuilder_addTexturedVertex(voCtxDynamic, 0, 0, 0, 0,0);
-    VertexObjectBuilder_addTexturedVertex(voCtxDynamic, 0.1, 0, 0, 0,1);
-    VertexObjectBuilder_addTexturedVertex(voCtxDynamic, 0, 0.1, 0, 1,0);
+    VertexObjectBuilder_addTexturedVertex(voCtxDynamic,   0,   0, 0, 0,0);
+    VertexObjectBuilder_addTexturedVertex(voCtxDynamic,   0, 0.1, 0, 0,1);
+    VertexObjectBuilder_addTexturedVertex(voCtxDynamic, 0.1,   0, 0, 1,0);
     VertexObjectBuilder_addTexturedVertex(voCtxDynamic, 0.1, 0.1, 0, 1,1);
 }
 

@@ -39,7 +39,7 @@ static struct Fret_context* frctx;
     return [CAEAGLLayer class];
 }
 
-- (int)loadImage:(int)bindId withPath:(NSString*)imagePath ofType:(NSString*)imageType
+- (int)loadImage:(NSString*)imagePath ofType:(NSString*)imageType
 {    
     glEnable(GL_TEXTURE_2D);
 
@@ -139,6 +139,18 @@ static struct Fret_context* frctx;
     Fretless_setMidiHintChannelBendSemis(fctx,2);
 }
 
+void imageRender(void* ctx,char* imagePath,unsigned int* textureName)
+{
+    NSString* currentImageStr = [ NSString stringWithUTF8String:imagePath ];
+    *textureName = [(EAGLView*)ctx loadImage:currentImageStr  ofType:@"png"]; 
+}
+
+
+void stringRender(void* ctx,char* str,unsigned int* textureName)
+{
+    
+}
+
 //The EAGL view is stored in the nib file. When it's unarchived it's sent -initWithCoder:.
 - (id)initWithCoder:(NSCoder*)coder
 {
@@ -155,7 +167,6 @@ static struct Fret_context* frctx;
     [self setMultipleTouchEnabled:TRUE];
     if(isInitialized==FALSE)
     {        
-        //PressureSensor_setup();
         Transforms_clockwiseOrientation();
         frctx = Fret_init(malloc);
         phctx = PitchHandler_init(frctx,malloc,printf,printf);
@@ -168,7 +179,7 @@ static struct Fret_context* frctx;
             printf
         );
         
-        GenericRendering_init(phctx,fctx);
+        GenericRendering_init(phctx,fctx,self,imageRender,stringRender);
         
         GenericTouchHandling_touchesInit(phctx,fctx,printf,printf);
         CoreMIDIRenderer_midiInit(fctx);
@@ -192,14 +203,6 @@ static struct Fret_context* frctx;
     [self setContext:newContext];
     [self setFramebuffer];    
     
-    int imageIdx = 0;
-    char* currentImage = NULL;
-    while( (currentImage = GenericRendering_getRequiredTexture(imageIdx)) != 0 ) {
-        NSString* currentImageStr = [ NSString stringWithUTF8String:currentImage ];
-        int val = [self loadImage:imageIdx withPath:currentImageStr  ofType:@"png"]; 
-        GenericRendering_assignRequiredTexture(imageIdx,val);
-        imageIdx++;
-    }
     GenericRendering_setup();    
     
 }
