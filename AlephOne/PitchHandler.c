@@ -15,8 +15,6 @@
 #define FINGERMAX 16
 #define NOBODY -1
 
-
-
 struct PitchHandler_context
 {
     //static float tuneInterval = 5; //4.9804499913461244;  //12*log2f(4.0/3); //is Just intonation btw
@@ -300,9 +298,3 @@ int PitchHandler_getFret(struct PitchHandler_context* ctx, float* pitch,float* x
     ctx->fretiterator++;
     return *y < 1;
 }
-
-
-
-/************
-  Fretting subsection
- ************/

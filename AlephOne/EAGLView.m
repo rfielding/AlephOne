@@ -39,7 +39,7 @@ static struct Fret_context* frctx;
     return [CAEAGLLayer class];
 }
 
-- (int)loadImage:(NSString*)imagePath ofType:(NSString*)imageType
+- (int)loadImage:(NSString*)imagePath ofType:(NSString*)imageType wasWidth:(float*)w wasHeight:(float*)h
 {    
     glEnable(GL_TEXTURE_2D);
 
@@ -82,6 +82,12 @@ static struct Fret_context* frctx;
         
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, imageData);
     
+    //Put it in the OpenGL world coordinates of ((0,0),(1,1)) with (0,0) in the bottom
+    //TODO: may be wrong still
+    *w = width;
+    *h = height;
+    Transforms_translate(w,h);
+    
     CGContextRelease(context);
     
     free(imageData);
@@ -89,6 +95,39 @@ static struct Fret_context* frctx;
     [texData release];
     
     return textures[0];
+}
+
+- (int)loadString:(NSString*)str ofType:(NSString*)imageType wasWidth:(int*)w wasHeight:(int*)h
+{
+    /*
+    glEnable(GL_TEXTURE_2D);
+    
+    unsigned int textures[1];
+    //Cause our call to glTexImage2D to bind to the result in textures[0]
+    glGenTextures(1, textures);
+    NSLog(@"binding to %d",textures[0]);
+    glBindTexture(GL_TEXTURE_2D, textures[0]);
+    
+    void* imageData = NULL;
+    unsigned int width=0;
+    unsigned int height=0;
+    
+ 
+    
+    
+    
+    
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, imageData);
+    
+    CGContextRelease(context);
+    
+    free(imageData);
+    [image release];
+    [texData release];
+    
+    return textures[0];  
+     */
+    return 0;
 }
 
 - (void)configureSurface
@@ -139,14 +178,14 @@ static struct Fret_context* frctx;
     Fretless_setMidiHintChannelBendSemis(fctx,2);
 }
 
-void imageRender(void* ctx,char* imagePath,unsigned int* textureName)
+void imageRender(void* ctx,char* imagePath,unsigned int* textureName,float* width,float* height)
 {
     NSString* currentImageStr = [ NSString stringWithUTF8String:imagePath ];
-    *textureName = [(EAGLView*)ctx loadImage:currentImageStr  ofType:@"png"]; 
+    *textureName = [(EAGLView*)ctx loadImage:currentImageStr  ofType:@"png" wasWidth:width wasHeight:height]; 
 }
 
 
-void stringRender(void* ctx,char* str,unsigned int* textureName)
+void stringRender(void* ctx,char* str,unsigned int* textureName,float* width,float* height)
 {
     
 }

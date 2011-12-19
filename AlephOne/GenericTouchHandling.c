@@ -10,8 +10,8 @@
 #include "GenericTouchHandling.h"
 #include "TouchMapping.h"
 #include "PitchHandler.h"
-#include <stdio.h>
-#include <stdlib.h>
+
+#define NULL ((void*)0)
 
 static float chorusLevel = 0.25;
 
