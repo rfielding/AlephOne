@@ -42,8 +42,8 @@ static char* requiredTexture[] = {
 };
 
 #define PIC_TUTORIAL 0
-#define PIC_MOLOCH 1
-#define PIC_ASHMEDI 2
+#define PIC_ASHMEDI 1
+#define PIC_MOLOCH 2
 
 unsigned int textures[256];
 
@@ -313,8 +313,8 @@ void testImage()
 {
     VertexObjectBuilder_startTexturedObject(voCtxDynamic,GL_TRIANGLE_STRIP,PIC_ASHMEDI);
     VertexObjectBuilder_addTexturedVertex(voCtxDynamic, 0, 0, 0, 0,0);
-    VertexObjectBuilder_addTexturedVertex(voCtxDynamic, 0.1, 0, 0, 1,0);
-    VertexObjectBuilder_addTexturedVertex(voCtxDynamic, 0, 0.1, 0, 0,1);
+    VertexObjectBuilder_addTexturedVertex(voCtxDynamic, 0.1, 0, 0, 0,1);
+    VertexObjectBuilder_addTexturedVertex(voCtxDynamic, 0, 0.1, 0, 1,0);
     VertexObjectBuilder_addTexturedVertex(voCtxDynamic, 0.1, 0.1, 0, 1,1);
 }
 
@@ -371,13 +371,8 @@ void GenericRendering_drawVO(struct VertexObjectBuilder* vobj)
             glEnable(GL_BLEND);
             glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
             glEnableClientState(GL_TEXTURE_COORD_ARRAY);
-            float tex[] = {
-                0,0,
-                0,1,
-                1,0,
-                1,1
-            };
-            glTexCoordPointer(2,GL_FLOAT,0, tex);  
+
+            glTexCoordPointer(2,GL_FLOAT,0, vo->tex);  
             int texture = textures[vo->textureId];
             glBindTexture(GL_TEXTURE_2D, texture);
             glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_LINEAR); 
