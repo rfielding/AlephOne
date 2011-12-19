@@ -142,9 +142,9 @@ void GenericRendering_drawChannelOccupancy(float cx,float cy,float diameter)
         float a = channel/16.0 * 2*M_PI;
         float cosA = cosf(a);
         float sinA = sinf(a);
-        VertexObjectBuilder_addColoredVertex(voCtxDynamic,cx+r*sinA,cy+r*cosA,0,0, 255, 0,255);                
+        VertexObjectBuilder_addColoredVertex(voCtxDynamic,cx+r*sinA,cy+r*cosA,0,0, 255, 0,127);                
     }
-    VertexObjectBuilder_addColoredVertex(voCtxDynamic,cx,cy+r,0,0, 255, 0,255);  
+    VertexObjectBuilder_addColoredVertex(voCtxDynamic,cx,cy+r,0,0, 255, 0,127);  
     
     VertexObjectBuilder_startColoredObject(voCtxDynamic,triangles);
     int bottom = Fretless_getMidiHintChannelBase(fctx);
@@ -214,10 +214,10 @@ void GenericRendering_drawMoveableFrets()
         
         int red = 0;
         int green = usage*50;
-        int blue = 255;
+        int blue = bCol;
         int trans = 255;
         
-        int rede = 255;
+        int rede = 0;
         int greene = 255;
         int bluee = 255;
         int transe = 0;
