@@ -12,6 +12,7 @@ Conventions
 
 Because the point of this project is to start building up reuseable components, and try to influence the MIDI standard (as MIDI HD is being defined) as practiced on mobile devices, I follow rules like this where I can:
 
+* Most modules are DETERMINISTIC BUFFER GENERATORS that INVOKE CALLBACKS with no dependencies on anything else.  The point of this is that unit testing becomes very easy, because dependencies can be mocked for the test.  This includes OpenGL rendering and MIDI code.
 * No includes in either the header or in the implementation of the module is ideal.  If you have dependencies, injecting function pointers that use predefined types through the interface is usually sufficient.
 
 * I favor pure C code everywhere that it is possible, because requiring C++ or ObjectiveC can be a pretty invasive requirement where it's not already justified.
