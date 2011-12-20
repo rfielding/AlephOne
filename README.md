@@ -48,6 +48,7 @@ These are the main components roughly in order from most portable to least porta
 * GenericTouchHandling -- This library has a few dependencies on our C libraries, but still doesn't make any references into any ObjectiveC or Apple libraries.  It is the portable parts of code that handle touches going up and down, only assuming that we got some kind of pointer for the touch.
 
 * CoreMIDIRenderer -- The Fretless MIDI API invokes function pointers like putchar/flush to generate MIDI packets.  Either a synthesizer, or a proxy for a synthesizer can implement this interface.  CoreMIDIRenderer is just such a proxy, and only depends on Fretless and CoreMIDI.  The interface is C, but the implementation is Objective-C, and is the first thing in this list that won't be useable on Android for sure (though it's a small piece of code that would have an equivalent there.) It is the simplest implementation of an object that looks like a synthesizer to Fretless.  If we embed an internal sound engine, it should have a similar interface.  Doing things this way yields an incredible number of advantages.  The primary advantage is that it becomes easy to both test MIDI synths locally, and allow for synth engines to be per-patch (sampling based versus subtractive versus just sending the messages on to somewhere else).  Most people wanting to quickly build an app will use this along with Fretless to get the app up and running.
-![Alt text](dependencies.png)
+
+![Dependency Graph](dependencies.png)
 
  
