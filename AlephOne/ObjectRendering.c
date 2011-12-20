@@ -34,7 +34,14 @@ static char* requiredTexture[] = {
     "tutorial",
     "ashmedi",
     "stars",
-    "channelcycling"
+    "channelcycling",
+    "A",
+    "B",
+    "C",
+    "D",
+    "E",
+    "F",
+    "G"
 };
 
 #define IMAGECOUNT 4
@@ -43,6 +50,13 @@ static char* requiredTexture[] = {
 #define PIC_ASHMEDI 1
 #define PIC_STARS 2
 #define PIC_CHANNELCYCLING 3
+#define PIC_A 4
+#define PIC_B 5
+#define PIC_C 6
+#define PIC_D 7
+#define PIC_E 8
+#define PIC_F 9
+#define PIC_G 10
 
 static unsigned int textures[256];
 static float textureWidth[256];
@@ -203,11 +217,12 @@ void GenericRendering_drawMoveableFrets()
     float dy = 1.0/PitchHandler_getRowCount(phctx);
     int importance=1;
     float usage;
+    int ourFret;
     
     VertexObjectBuilder_startColoredObject(voCtxDynamic, triangles);
     
     PitchHandler_getFretsBegin(phctx);
-    while(PitchHandler_getFret(phctx,&pitch, &x, &y, &importance, &usage))
+    while(PitchHandler_getFret(phctx,&pitch, &x, &y, &importance, &usage,&ourFret))
     {
         float dxi = dx*importance*(1+usage);
         float bCol = importance * 255.0 / 4.0;
@@ -330,7 +345,7 @@ void GenericRendering_dynamic()
     GenericRendering_drawFingerLocation();
     GenericRendering_drawPitchLocation();
     
-    GenericRendering_drawChannelOccupancy(0.5, 0.5, 0.6);
+    GenericRendering_drawChannelOccupancy(0.7, 0.7, 0.6);
     
 }
 

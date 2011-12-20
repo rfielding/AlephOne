@@ -271,7 +271,7 @@ void PitchHandler_getFretsBegin(struct PitchHandler_context* ctx)
     ctx->fretoffsetX = ctx->fretoffsetXInitial;
 }
 
-int PitchHandler_getFret(struct PitchHandler_context* ctx, float* pitch,float* x,float* y,int* importance,float* usage)
+int PitchHandler_getFret(struct PitchHandler_context* ctx, float* pitch,float* x,float* y,int* importance,float* usage,int* fretval)
 {
     struct Fret_context* fctx = ctx->fret;
     float pitchVal = Fret_getPitchFromFret(fctx,ctx->fretiterator) - ctx->noteDiff;
@@ -295,6 +295,7 @@ int PitchHandler_getFret(struct PitchHandler_context* ctx, float* pitch,float* x
     int ourFret = (ctx->fretiterator + 12*fctx->used) % fctx->used;
     *importance = fctx->importance[ourFret];
     *usage = fctx->usage[ourFret];
+    *fretval = ourFret;
     ctx->fretiterator++;
     return *y < 1;
 }

@@ -85,7 +85,7 @@ void PitchHandler_getFretsBegin(struct PitchHandler_context* ctx);
 /*
    Iterate the frets after a getFretsBegin call, which assumes a screen geometry
  */
-int PitchHandler_getFret(struct PitchHandler_context* ctx, float* pitch,float* x,float* y,int* importance,float* usage);
+int PitchHandler_getFret(struct PitchHandler_context* ctx, float* pitch,float* x,float* y,int* importance,float* usage,int* fretval);
 
 
 

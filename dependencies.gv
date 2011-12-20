@@ -1,0 +1,53 @@
+digraph depends {
+  size="9,9";
+  ratio=fill;
+
+  EAGLView[];
+  putCharFlush[style=dotted];
+  OpenGL[shape=box];
+  UIKit[shape=box];
+  CoreMIDI[shape=box];
+  iOS[shape=box];
+
+  OpenGL -> iOS
+  UIKit -> iOS
+  CoreMIDI -> iOS
+
+  AlephOneAppDelegate -> EAGLView [style="bold"]
+  PressureSensor -> UIKit
+  EAGLView -> OpenGL
+  EAGLView -> UIKit
+  EAGLView -> Fretless [style="bold"]
+  EAGLView -> Transforms
+  EAGLView -> PressureSensor
+  EAGLView -> CoreMIDIRenderer
+  EAGLView -> GenericTouchHandling
+  EAGLView -> GenericRendering
+  EAGLView -> PitchHandler [style="bold"]
+  EAGLView -> Fret [style="bold"]
+  GenericTouchHandling -> Fretless
+  GenericTouchHandling -> PitchHandler
+  GenericTouchHandling -> TouchMapping
+  GenericTouchHandling -> iOS
+  PitchHandler -> Fretless
+  PitchHandler -> Fret
+  CoreMIDIRenderer -> CoreMIDI
+  Fretless -> putCharFlush [label="injected"]
+  GenericRendering -> OpenGL
+  GenericRendering -> PitchHandler
+  GenericRendering -> Fretless
+  GenericRendering -> VertexObjectBuilder
+  GenericRendering -> Transforms
+  GenericRendering -> ObjectRendering
+  GenericRendering -> VertexObjectBuilder [style="dotted" label="renders"]
+  ObjectRendering -> VertexObjectBuilder [style="bold"]
+  PressureSensor -> GenericRendering [style="dotted" label="inject accelerometer data"]
+
+  TouchMapping -> PitchHandler [label="make finger handle for touches", style="dotted"]
+
+  Transforms -> GenericRendering [label="normalize coords", style="dotted"]
+  Transforms -> GenericTouchHandling [label="normalize coords", style="dotted"]
+  putCharFlush -> CoreMIDIRenderer [style="dotted"]
+
+  Fret -> Fretless [label="makes values for", style=dotted] 
+}
