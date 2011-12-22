@@ -8,7 +8,7 @@
 
 #include "GenericRendering.h"
 #include "PitchHandler.h"
-#include "Fretless.h"
+//#include "Fretless.h"
 #include "VertexObjectBuilder.h"
 #include "Transforms.h"
 #include <OpenGLES/ES1/gl.h>
@@ -18,6 +18,7 @@
 
 #include "ObjectRendering.h"
 
+struct Fretless_context;
 
 static float scale[16] = {
     1.0f, 0.0f, 0.0f, 0.0f,

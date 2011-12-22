@@ -13,6 +13,7 @@
 #include "ObjectRendering.h"
 #include "Fretless.h"
 #include "PitchHandler.h"
+#include "WidgetTree.h"
 
 #include <math.h>
 
@@ -34,14 +35,7 @@ static char* requiredTexture[] = {
     "tutorial",
     "ashmedi",
     "stars",
-    "channelcycling",
-    "A",
-    "B",
-    "C",
-    "D",
-    "E",
-    "F",
-    "G"
+    "channelcycling"
 };
 
 #define IMAGECOUNT 4
@@ -50,19 +44,15 @@ static char* requiredTexture[] = {
 #define PIC_ASHMEDI 1
 #define PIC_STARS 2
 #define PIC_CHANNELCYCLING 3
-#define PIC_A 4
-#define PIC_B 5
-#define PIC_C 6
-#define PIC_D 7
-#define PIC_E 8
-#define PIC_F 9
-#define PIC_G 10
+
 
 static unsigned int textures[256];
 static float textureWidth[256];
 static float textureHeight[256];
 static float lightPosition[3];
 
+#define ROOTPANEL 0
+#define CHANNELOCCUPANCYPANEL 1
 
 void ObjectRendering_updateLightOrientation(float x,float y, float z)
 {
@@ -94,6 +84,9 @@ void ObjectRendering_init(
     ObjectRendering_imageRender = ObjectRendering_imageRenderArg;
     ObjectRendering_stringRender = ObjectRendering_stringRenderArg;
     ObjectRendering_drawVO       = ObjectRendering_drawVOArg;
+    
+    WidgetTree_clear();
+    WidgetTree_add(CHANNELOCCUPANCYPANEL, 0.7 - 0.2, 0.7 - 0.2, 0.7 + 0.2, 0.7 + 0.2);
 }
 
 void ObjectRendering_loadImages()
@@ -121,11 +114,18 @@ void GenericRendering_drawBackground()
     float right = 1 + lightPosition[0]*0.1 - 0.2;
     float top   = 1 + lightPosition[1]*0.1 - 0.2;
     float bottom= 0 + lightPosition[1]*0.1 + 0.2;
+    /*
     VertexObjectBuilder_startTexturedObject(voCtxDynamic,trianglestrip,PIC_STARS);
     VertexObjectBuilder_addTexturedVertex(voCtxDynamic, 0, 0, 0, left,bottom);
     VertexObjectBuilder_addTexturedVertex(voCtxDynamic, 0, 1, 0, left,top);
     VertexObjectBuilder_addTexturedVertex(voCtxDynamic, 1, 0, 0, right,bottom);
     VertexObjectBuilder_addTexturedVertex(voCtxDynamic, 1, 1, 0, right,top);
+     */
+    VertexObjectBuilder_startColoredObject(voCtxDynamic,trianglestrip);
+    VertexObjectBuilder_addColoredVertex(voCtxDynamic, 0, 0, 0, 0,0,0,255);
+    VertexObjectBuilder_addColoredVertex(voCtxDynamic, 0, 1, 0, 0,0,0,255);
+    VertexObjectBuilder_addColoredVertex(voCtxDynamic, 1, 0, 0, 0,0,0,255);
+    VertexObjectBuilder_addColoredVertex(voCtxDynamic, 1, 1, 0, 0,0,0,255);
 }
 
 void drawOccupancyHandle(float cx, float cy, float diameter,float z)
@@ -146,8 +146,14 @@ void drawOccupancyHandle(float cx, float cy, float diameter,float z)
     VertexObjectBuilder_addColoredVertex(voCtxDynamic,cx+rA*sinB,cy+rA*cosB,0,200, 200,  0,255);        
 }
 
-void GenericRendering_drawChannelOccupancy(float cx,float cy,float diameter)
+void GenericRendering_drawChannelOccupancy()
 {
+    struct WidgetTree_rect* panel = WidgetTree_get(CHANNELOCCUPANCYPANEL);
+    
+    float cx = (panel->x1 + panel->x2)/2;
+    float cy = (panel->y1 + panel->y2)/2;
+    float diameter = (panel->x2 - panel->x1);
+    
     //Draw the main radius of the channel cycle
     VertexObjectBuilder_startColoredObject(voCtxDynamic,linestrip);    
     float r = (diameter*0.25);
@@ -225,12 +231,13 @@ void GenericRendering_drawMoveableFrets()
     while(PitchHandler_getFret(phctx,&pitch, &x, &y, &importance, &usage,&ourFret))
     {
         float dxi = dx*importance*(1+usage);
+        float dyi = dy*(1+importance*0.1);
         float bCol = importance * 255.0 / 4.0;
         
         int red = 0;
         int green = usage*50;
         int blue = bCol;
-        int trans = 255;
+        int trans = 200;
         
         int rede = 0;
         int greene = 255;
@@ -251,21 +258,21 @@ void GenericRendering_drawMoveableFrets()
         }
         
         
-        VertexObjectBuilder_addColoredVertex(voCtxDynamic,x,     y   ,0,red,green,blue,trans);            
-        VertexObjectBuilder_addColoredVertex(voCtxDynamic,x-dxi, y   ,0,rede,greene,bluee,transe);            
-        VertexObjectBuilder_addColoredVertex(voCtxDynamic,x    , y-dy,0,rede,greene,bluee,transe);            
+        VertexObjectBuilder_addColoredVertex(voCtxDynamic,x,     y    ,0,red,green,blue,trans);            
+        VertexObjectBuilder_addColoredVertex(voCtxDynamic,x-dxi, y    ,0,rede,greene,bluee,transe);            
+        VertexObjectBuilder_addColoredVertex(voCtxDynamic,x    , y-dyi,0,rede,greene,bluee,transe);            
         
-        VertexObjectBuilder_addColoredVertex(voCtxDynamic,x,     y   ,0,red,green,blue,trans);            
-        VertexObjectBuilder_addColoredVertex(voCtxDynamic,x    , y+dy,0,rede,greene,bluee,transe);            
-        VertexObjectBuilder_addColoredVertex(voCtxDynamic,x+dxi, y   ,0,rede,greene,bluee,transe);            
+        VertexObjectBuilder_addColoredVertex(voCtxDynamic,x,     y    ,0,red,green,blue,trans);            
+        VertexObjectBuilder_addColoredVertex(voCtxDynamic,x    , y+dyi,0,rede,greene,bluee,transe);            
+        VertexObjectBuilder_addColoredVertex(voCtxDynamic,x+dxi, y    ,0,rede,greene,bluee,transe);            
         
-        VertexObjectBuilder_addColoredVertex(voCtxDynamic,x,     y   ,0,red,green,blue,trans);            
-        VertexObjectBuilder_addColoredVertex(voCtxDynamic,x    , y+dy,0,rede,greene,bluee,transe);            
-        VertexObjectBuilder_addColoredVertex(voCtxDynamic,x-dxi, y   ,0,rede,greene,bluee,transe);            
+        VertexObjectBuilder_addColoredVertex(voCtxDynamic,x,     y    ,0,red,green,blue,trans);            
+        VertexObjectBuilder_addColoredVertex(voCtxDynamic,x    , y+dyi,0,rede,greene,bluee,transe);            
+        VertexObjectBuilder_addColoredVertex(voCtxDynamic,x-dxi, y    ,0,rede,greene,bluee,transe);            
         
-        VertexObjectBuilder_addColoredVertex(voCtxDynamic,x,     y   ,0,red,green,blue,trans);            
-        VertexObjectBuilder_addColoredVertex(voCtxDynamic,x+dxi, y   ,0,rede,greene,bluee,transe);            
-        VertexObjectBuilder_addColoredVertex(voCtxDynamic,x    , y-dy,0,rede,greene,bluee,transe);            
+        VertexObjectBuilder_addColoredVertex(voCtxDynamic,x,     y    ,0,red,green,blue,trans);            
+        VertexObjectBuilder_addColoredVertex(voCtxDynamic,x+dxi, y    ,0,rede,greene,bluee,transe);            
+        VertexObjectBuilder_addColoredVertex(voCtxDynamic,x    , y-dyi,0,rede,greene,bluee,transe);            
     }   
     
     
@@ -345,7 +352,7 @@ void GenericRendering_dynamic()
     GenericRendering_drawFingerLocation();
     GenericRendering_drawPitchLocation();
     
-    GenericRendering_drawChannelOccupancy(0.7, 0.7, 0.6);
+    GenericRendering_drawChannelOccupancy();
     
 }
 

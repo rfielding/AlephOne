@@ -7,8 +7,8 @@
 //
 
 #import "AlephOneTests.h"
-#import "Fretless.h"
 #import "CoreMIDIRenderer.h"
+#import "Fretless.h"
 
 #import <stdio.h>
 #import <stdarg.h>
@@ -39,21 +39,33 @@ struct Fretless_context* fctx;
                                                   printf
                                                   ); 
     
-    Fretless_boot(fctx);     //Put one finger at highest note, and another at the lowest, and bend them in
+    int finger0 = 0;
+    int finger1 = 1;
+    int poly0 = 0;
+    int poly1 = 1;
+    int legato = 1;
+    float vol = 1.0;
+    /*
+    Fretless_boot(fctx);     
+    //Put one finger at highest note, and another at the lowest, and bend them in
     //opposite directions.  This is the biggest oversight in standard MIDI that this
     //doesn't work easily.
-    Fretless_down(fctx, 0, 0.0, 0, 1.0, 1);
-    Fretless_down(fctx, 1, 127.0, 1, 1.0, 1);
+    float pitch0 = 1.0;
+    Fretless_down(fctx, finger0, pitch0, poly0, vol, legato);
+    //Fretless_down(fctx, finger1, pitch1, 1, 1.0, legato);
     Fretless_flush(fctx);
-    for(float p=0; p<127; p+=0.01)
+    for(pitch0=12; pitch0<100; pitch0+=0.01)
     {
-        Fretless_move(fctx, 0, p, 0);
-        Fretless_move(fctx, 1, 127-p, 1);
+        Fretless_move(fctx, finger0, pitch0, poly0);
+        //Fretless_move(fctx, finger1, 127 - pitch0, poly1);
         Fretless_flush(fctx);
+        
+        [NSThread sleepForTimeInterval:0.01];
     }
-    Fretless_up(fctx, 0);
-    Fretless_up(fctx, 1);
-    
+    Fretless_up(fctx, finger0);
+    //Fretless_up(fctx, finger1);
+    Fretless_flush(fctx);
+    */
     Fretless_free(fctx);
     
 }

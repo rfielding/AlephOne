@@ -1,53 +1,98 @@
 digraph depends {
-  size="9,9";
+  size="10,10";
+  rankdir=LR;
   ratio=fill;
+  label="This is a full accounting of AlephOne component dependencies.  The solid lines are include references.  Dotted lines specify what the component does for the thing it references.\nIf you want to use a component, then follow the solid lines out to determine what else you will need to take with it.\nNotice that most of the audio code is portable from iOS, and almost all of the rendering code as well.\nTransforms puts GenericRendering and GenericTouchHandling into the same coordinate system to simplify the code.\nOnly GenericRendering, a very small piece of code is actually dependent upon OpenGL.\nPitchHandler, Fret, and Fretless constitute a portable MIDI library for making MIDI look completely frequency oriented like OSC that I might make open source.\nputCharFlush is not an actual module, but just a set of function pointers injected that modules like CoreMIDIRenderer happen to have.";
+  
+  subgraph cluster_assemble {
+    label="instantiate and configure components";
+    AlephOneAppDelegate;
+    EAGLView;
+  }
 
-  EAGLView[];
-  putCharFlush[style=dotted];
-  OpenGL[shape=box];
-  UIKit[shape=box];
-  CoreMIDI[shape=box];
-  iOS[shape=box];
-
-  OpenGL -> iOS
+  PressureSensor
+  subgraph cluster_norm {
+    label="normalize coordinates to ((0,0), (1,1)) and hit test";
+    Transforms;
+    WidgetTree;
+  }
+  //subgraph cluster_touch {
+  //  label="touch handling in ((0,0), (1,1)) coord space";
+    GenericTouchHandling[style=filled, color=orange];
+    TouchMapping[style=filled, color=orange];
+  //}
+  subgraph cluster_drawing {
+    label="user interface visuals in ((0,0), (1,1)) coord space";
+    GenericRendering[color=yellow, style=filled];
+    ObjectRendering[color=yellow, style=filled];
+    VertexObjectBuilder[color=yellow, style=filled];
+    OpenGLES1[style=filled, color=lightgray];
+  }
+  subgraph cluster_midigen {
+    label="generate midi bytes from floating point midi numbers and touch gestures, hiding the protocol to make it look OSC-like to caller.\n(x,y) coords passed into PitchHandler uses ((0,0), (1,1)) coord space for pitch geometry."; 
+    Fretless[style=filled, color=green];
+    Fret[style=filled, color=green];
+    PitchHandler[style=filled, color=green];
+    putCharFlush[color=lightblue];
+    CoreMIDIRenderer[style=filled,color=lightblue];
+  }
+  //subgraph cluster_render {
+ //   label="rendering audio and video";
+    //subgraph cluster_os {
+    //  label="Apple SDK";
+      UIKit[style=filled, color=pink];
+      CoreMIDI[style=filled, color=pink];
+      iOS[style=filled, color=pink];
+   // }
+  //}
+ 
   UIKit -> iOS
+
   CoreMIDI -> iOS
 
   AlephOneAppDelegate -> EAGLView [style="bold"]
-  PressureSensor -> UIKit
-  EAGLView -> OpenGL
-  EAGLView -> UIKit
-  EAGLView -> Fretless [style="bold"]
-  EAGLView -> Transforms
-  EAGLView -> PressureSensor
-  EAGLView -> CoreMIDIRenderer
+  AlephOneAppDelegate -> OpenGLES1 [color=gray];
+  AlephOneAppDelegate -> UIKit [color=red];
+
+  PressureSensor -> UIKit [color=red];
+
+  EAGLView -> OpenGLES1 [color=gray];
+  EAGLView -> UIKit [color=red];
+  EAGLView -> Fretless [color=gray,style="bold"]
+  EAGLView -> Transforms [color=gray]
+  EAGLView -> PressureSensor [color=gray];
+  EAGLView -> CoreMIDIRenderer [color=gray];
   EAGLView -> GenericTouchHandling
   EAGLView -> GenericRendering
-  EAGLView -> PitchHandler [style="bold"]
-  EAGLView -> Fret [style="bold"]
+  EAGLView -> PitchHandler [color=gray,style="bold"]
+  EAGLView -> Fret [color=gray,style="bold"]
+
   GenericTouchHandling -> Fretless
   GenericTouchHandling -> PitchHandler
   GenericTouchHandling -> TouchMapping
-  GenericTouchHandling -> iOS
+  GenericTouchHandling -> UIKit [color=red];
+  GenericTouchHandling -> WidgetTree
+
   PitchHandler -> Fretless
   PitchHandler -> Fret
-  CoreMIDIRenderer -> CoreMIDI
-  Fretless -> putCharFlush [label="injected"]
-  GenericRendering -> OpenGL
+
+  CoreMIDIRenderer -> CoreMIDI [color=red];
+
+  Fretless -> putCharFlush
+
+  GenericRendering -> OpenGLES1;
   GenericRendering -> PitchHandler
-  GenericRendering -> Fretless
-  GenericRendering -> VertexObjectBuilder
+  GenericRendering -> VertexObjectBuilder [color=gray];
   GenericRendering -> Transforms
   GenericRendering -> ObjectRendering
-  GenericRendering -> VertexObjectBuilder [style="dotted" label="renders"]
+
   ObjectRendering -> VertexObjectBuilder [style="bold"]
-  PressureSensor -> GenericRendering [style="dotted" label="inject accelerometer data"]
+  ObjectRendering -> WidgetTree
 
-  TouchMapping -> PitchHandler [label="make finger handle for touches", style="dotted"]
+  PressureSensor -> GenericRendering [color=gray,style="dotted" label="accelerometer data for"]
 
-  Transforms -> GenericRendering [label="normalize coords", style="dotted"]
-  Transforms -> GenericTouchHandling [label="normalize coords", style="dotted"]
-  putCharFlush -> CoreMIDIRenderer [style="dotted"]
 
-  Fret -> Fretless [label="makes values for", style=dotted] 
+  putCharFlush -> CoreMIDIRenderer [label="injected at runtime", style="dotted"]
+
+
 }
