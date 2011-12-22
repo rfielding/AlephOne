@@ -1,5 +1,5 @@
 digraph depends {
-  size="10,10";
+  size="12,12";
   rankdir=LR;
   ratio=fill;
   label="This is a full accounting of AlephOne component dependencies.  The solid lines are include references.  Dotted lines specify what the component does for the thing it references.\nIf you want to use a component, then follow the solid lines out to determine what else you will need to take with it.\nNotice that most of the audio code is portable from iOS, and almost all of the rendering code as well.\nTransforms puts GenericRendering and GenericTouchHandling into the same coordinate system to simplify the code.\nOnly GenericRendering, a very small piece of code is actually dependent upon OpenGL.\nPitchHandler, Fret, and Fretless constitute a portable MIDI library for making MIDI look completely frequency oriented like OSC that I might make open source.\nputCharFlush is not an actual module, but just a set of function pointers injected that modules like CoreMIDIRenderer happen to have.";
