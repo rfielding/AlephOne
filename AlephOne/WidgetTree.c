@@ -9,29 +9,31 @@
 #include "WidgetTree.h"
 
 #define NULL ((void*)0)
-#define ROOT 0
-#define NOWIDGET -1
 #define MAXWIDGETS 256
 struct WidgetTree_rect rectangles[MAXWIDGETS];
 int rectanglesCount = 0;
 
 int WidgetTree_hitTest(float x,float y)
 {
-    int idx = 0;
-    while(idx < rectanglesCount)
+    int idx = rectanglesCount;
+    while(idx >= 0)
     {
-        if(idx >= MAXWIDGETS)return NOWIDGET;
-        
         if(
            rectangles[idx].x1 <= x &&
            rectangles[idx].y1 <= y &&
            rectangles[idx].x2 >= x &&
-           rectangles[idx].y2 >= y)
+           rectangles[idx].y2 >= y && 
+           rectangles[idx].down)
             return rectangles[idx].identifier;
-        idx++;
+        idx--;
     }
     //If out of bounds, it hit tests against the root
-    return ROOT;
+    return ROOTWIDGET;
+}
+
+int WidgetTree_count()
+{
+    return rectanglesCount;
 }
 
 struct WidgetTree_rect* WidgetTree_get(int identifier)
@@ -50,21 +52,23 @@ struct WidgetTree_rect* WidgetTree_get(int identifier)
 
 void WidgetTree_clear()
 {
-    rectanglesCount = 1;
-    rectangles[0].x1 = 0;
-    rectangles[0].y1 = 0;
-    rectangles[0].x2 = 1;
-    rectangles[0].y2 = 1;
-    
+    rectanglesCount = 0;
 }
 
-void WidgetTree_add(int identifier, float x1, float y1, float x2, float y2)
+struct WidgetTree_rect* WidgetTree_add(int identifier, float x1, float y1, float x2, float y2)
 {
-    if(rectanglesCount + 1 >= MAXWIDGETS)return;
+    if(rectanglesCount + 1 >= MAXWIDGETS)return NULL;
     rectangles[rectanglesCount].x1 = x1;
     rectangles[rectanglesCount].y1 = y1;
     rectangles[rectanglesCount].x2 = x2;
     rectangles[rectanglesCount].y2 = y2;
     rectangles[rectanglesCount].identifier = identifier;
+    rectangles[rectanglesCount].tick = NULL;
+    rectangles[rectanglesCount].render = NULL;
+    rectangles[rectanglesCount].up = NULL;
+    rectangles[rectanglesCount].down = NULL;
+    rectangles[rectanglesCount].flush = NULL;
+    rectangles[rectanglesCount].ctx = NULL;
     rectanglesCount++;
+    return &rectangles[rectanglesCount-1];
 }

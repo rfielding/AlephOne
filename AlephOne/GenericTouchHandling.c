@@ -26,7 +26,7 @@ static int currentWidget[FINGERMAX];
 
 void GenericTouchHandling_touchesFlush()
 {
-    SurfaceTouchHandling_touchesFlush();
+    SurfaceTouchHandling_touchesFlush(NULL);
 }
 
 void GenericTouchHandling_touchesInit(
@@ -47,9 +47,12 @@ void GenericTouchHandling_touchesInit(
 void GenericTouchHandling_touchesUp(void* touch)
 {
     int finger  = TouchMapping_mapFinger(touch);
-    if(currentWidget[finger] == 0)
+    int wid = currentWidget[finger];
+    
+    struct WidgetTree_rect* itemP = WidgetTree_get(wid);
+    if(itemP && itemP->up)
     {
-        SurfaceTouchHandling_touchesUp(finger,touch);        
+        itemP->up(NULL,finger,touch);        
     }
     TouchMapping_unmapFinger(touch);
 }
@@ -58,16 +61,27 @@ void GenericTouchHandling_touchesUp(void* touch)
 void GenericTouchHandling_touchesDown(void* touch,int isMoving,float x,float y, float velocity, float area)
 {
     int finger  = TouchMapping_mapFinger(touch);
-    currentWidget[finger] = WidgetTree_hitTest(x,y);
-    //Move and up must do what down last did.
-    if(currentWidget[finger] == 0)
+    int wid;
+    
+    if(isMoving)
     {
-        SurfaceTouchHandling_touchesDown(finger,touch,isMoving,x,y,velocity,area);        
+        wid = currentWidget[finger];
+    }
+    else
+    {
+        wid = WidgetTree_hitTest(x,y);        
+        currentWidget[finger] = wid;
+    }
+
+    struct WidgetTree_rect* itemP = WidgetTree_get(wid);
+    if(itemP && itemP->down)
+    {
+        itemP->down(NULL,finger,touch,isMoving,x,y,velocity,area);                    
     }
 }
 
 void GenericTouchHandling_tick()
 {
-    SurfaceTouchHandling_tick();        
+    SurfaceTouchHandling_tick(NULL);        
 }
 

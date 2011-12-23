@@ -19,10 +19,14 @@
 #import "PressureSensor.h"
 #include "CoreMIDIRenderer.h"
 
+
+
 static BOOL isInitialized = FALSE;
 static struct PitchHandler_context* phctx;
 static struct Fretless_context* fctx;
 static struct Fret_context* frctx;
+
+
 
 @interface EAGLView (PrivateMethods)
 - (void)createFramebuffer;
@@ -46,7 +50,6 @@ static struct Fret_context* frctx;
     unsigned int textures[1];
     //Cause our call to glTexImage2D to bind to the result in textures[0]
     glGenTextures(1, textures);
-    NSLog(@"binding to %d",textures[0]);
     glBindTexture(GL_TEXTURE_2D, textures[0]);
     
     void* imageData = NULL;

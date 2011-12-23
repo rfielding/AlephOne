@@ -42,6 +42,9 @@
 		49B390BF144915CB008C9F6E /* Fretless.c in Sources */ = {isa = PBXBuildFile; fileRef = 49B390BD144915CB008C9F6E /* Fretless.c */; };
 		49B390C0144915CB008C9F6E /* Fretless.c in Sources */ = {isa = PBXBuildFile; fileRef = 49B390BD144915CB008C9F6E /* Fretless.c */; };
 		49C429C214A4339F00008AB0 /* SurfaceTouchHandling.c in Sources */ = {isa = PBXBuildFile; fileRef = 49C429C014A4339F00008AB0 /* SurfaceTouchHandling.c */; };
+		49C429C614A459E000008AB0 /* SurfaceDrawHandling.c in Sources */ = {isa = PBXBuildFile; fileRef = 49C429C414A459DF00008AB0 /* SurfaceDrawHandling.c */; };
+		49C429C914A45D1200008AB0 /* ChannelOccupancyControl.c in Sources */ = {isa = PBXBuildFile; fileRef = 49C429C714A45D1100008AB0 /* ChannelOccupancyControl.c */; };
+		49C429CD14A462AC00008AB0 /* SliderControl.c in Sources */ = {isa = PBXBuildFile; fileRef = 49C429CB14A462AB00008AB0 /* SliderControl.c */; };
 		49CB084014888CA3003DEA9D /* PitchHandler.c in Sources */ = {isa = PBXBuildFile; fileRef = 49CB083E14888CA3003DEA9D /* PitchHandler.c */; };
 		49CB084414888E55003DEA9D /* TouchMapping.c in Sources */ = {isa = PBXBuildFile; fileRef = 49CB084214888E55003DEA9D /* TouchMapping.c */; };
 		49CB084714889D4C003DEA9D /* ControlRegistry.c in Sources */ = {isa = PBXBuildFile; fileRef = 49CB084514889D4B003DEA9D /* ControlRegistry.c */; };
@@ -110,6 +113,13 @@
 		49B390BE144915CB008C9F6E /* Fretless.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Fretless.h; sourceTree = "<group>"; };
 		49C429C014A4339F00008AB0 /* SurfaceTouchHandling.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = SurfaceTouchHandling.c; sourceTree = "<group>"; };
 		49C429C114A4339F00008AB0 /* SurfaceTouchHandling.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SurfaceTouchHandling.h; sourceTree = "<group>"; };
+		49C429C414A459DF00008AB0 /* SurfaceDrawHandling.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = SurfaceDrawHandling.c; sourceTree = "<group>"; };
+		49C429C514A459DF00008AB0 /* SurfaceDrawHandling.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SurfaceDrawHandling.h; sourceTree = "<group>"; };
+		49C429C714A45D1100008AB0 /* ChannelOccupancyControl.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = ChannelOccupancyControl.c; sourceTree = "<group>"; };
+		49C429C814A45D1100008AB0 /* ChannelOccupancyControl.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ChannelOccupancyControl.h; sourceTree = "<group>"; };
+		49C429CA14A45DC900008AB0 /* WidgetConstants.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = WidgetConstants.h; sourceTree = "<group>"; };
+		49C429CB14A462AB00008AB0 /* SliderControl.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = SliderControl.c; sourceTree = "<group>"; };
+		49C429CC14A462AC00008AB0 /* SliderControl.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SliderControl.h; sourceTree = "<group>"; };
 		49CB083E14888CA3003DEA9D /* PitchHandler.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = PitchHandler.c; sourceTree = "<group>"; };
 		49CB083F14888CA3003DEA9D /* PitchHandler.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PitchHandler.h; sourceTree = "<group>"; };
 		49CB084214888E55003DEA9D /* TouchMapping.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = TouchMapping.c; sourceTree = "<group>"; };
@@ -292,6 +302,13 @@
 				496749F114A2CB7D0053761F /* WidgetTree.h */,
 				49C429C014A4339F00008AB0 /* SurfaceTouchHandling.c */,
 				49C429C114A4339F00008AB0 /* SurfaceTouchHandling.h */,
+				49C429C414A459DF00008AB0 /* SurfaceDrawHandling.c */,
+				49C429C514A459DF00008AB0 /* SurfaceDrawHandling.h */,
+				49C429C714A45D1100008AB0 /* ChannelOccupancyControl.c */,
+				49C429C814A45D1100008AB0 /* ChannelOccupancyControl.h */,
+				49C429CA14A45DC900008AB0 /* WidgetConstants.h */,
+				49C429CB14A462AB00008AB0 /* SliderControl.c */,
+				49C429CC14A462AC00008AB0 /* SliderControl.h */,
 			);
 			name = PortableCode;
 			sourceTree = "<group>";
@@ -429,6 +446,9 @@
 				49400BE8149EE7D500F5B7C0 /* ObjectRendering.c in Sources */,
 				496749F214A2CB7D0053761F /* WidgetTree.c in Sources */,
 				49C429C214A4339F00008AB0 /* SurfaceTouchHandling.c in Sources */,
+				49C429C614A459E000008AB0 /* SurfaceDrawHandling.c in Sources */,
+				49C429C914A45D1200008AB0 /* ChannelOccupancyControl.c in Sources */,
+				49C429CD14A462AC00008AB0 /* SliderControl.c in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

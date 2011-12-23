@@ -13,6 +13,7 @@
 #include "TouchMapping.h"
 #include "PitchHandler.h"
 
+#define FINGERMAX 16
 #define NULL ((void*)0)
 
 
@@ -23,7 +24,7 @@ static struct PitchHandler_context* phctx = NULL;
 static int (*fail)(const char*,...);
 static int (*logger)(const char*,...);
 
-void SurfaceTouchHandling_touchesFlush()
+void SurfaceTouchHandling_touchesFlush(void* ctx)
 {
     Fretless_flush(fretlessp);    
 }
@@ -45,7 +46,7 @@ void SurfaceTouchHandling_touchesInit(
     SurfaceTouchHandling_setChorusLevel(0.25);    
 }
 
-void SurfaceTouchHandling_touchesUp(int finger,void* touch)
+void SurfaceTouchHandling_touchesUp(void* ctx,int finger,void* touch)
 {
     if(finger < 0)
     {
@@ -63,7 +64,7 @@ void SurfaceTouchHandling_touchesUp(int finger,void* touch)
 }
 
 
-void SurfaceTouchHandling_touchesDown(int finger,void* touch,int isMoving,float x,float y, float velocity, float area)
+void SurfaceTouchHandling_touchesDown(void* ctx,int finger,void* touch,int isMoving,float x,float y, float velocity, float area)
 {
     int finger1  = finger;
     if(finger1 < 0)
@@ -101,9 +102,9 @@ void SurfaceTouchHandling_touchesDown(int finger,void* touch,int isMoving,float 
     }
 }
 
-void SurfaceTouchHandling_tick()
+void SurfaceTouchHandling_tick(void* ctx)
 {
-    for(int finger=0; finger<16; finger++)
+    for(int finger=0; finger<FINGERMAX; finger++)
     {
         int finger2 = TouchMapping_finger2FromFinger1(finger);
         //Only the real finger will show up as active
