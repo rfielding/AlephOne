@@ -52,7 +52,7 @@ void GenericTouchHandling_touchesUp(void* touch)
     struct WidgetTree_rect* itemP = WidgetTree_get(wid);
     if(itemP && itemP->up)
     {
-        itemP->up(NULL,finger,touch);        
+        itemP->up(itemP->ctx,finger,touch);        
     }
     TouchMapping_unmapFinger(touch);
 }
@@ -76,7 +76,7 @@ void GenericTouchHandling_touchesDown(void* touch,int isMoving,float x,float y, 
     struct WidgetTree_rect* itemP = WidgetTree_get(wid);
     if(itemP && itemP->down)
     {
-        itemP->down(NULL,finger,touch,isMoving,x,y,velocity,area);                    
+        itemP->down(itemP->ctx,finger,touch,isMoving,x,y,velocity,area);                    
     }
 }
 

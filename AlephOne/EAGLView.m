@@ -168,7 +168,7 @@ static struct Fret_context* frctx;
     else
     {
         PitchHandler_setColCount(phctx,5);
-        PitchHandler_setRowCount(phctx,3);        
+        PitchHandler_setRowCount(phctx,3.5);        
     }
     for(int s=0; s<16; s++)
     {

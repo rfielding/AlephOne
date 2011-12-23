@@ -34,6 +34,7 @@ void SliderControl_init(
 struct Slider_data
 {
     int widgetId;
+    float val;
     void (*setter)(void* ctx,float val);
     float (*getter)(void* ctx);
 };
@@ -41,34 +42,54 @@ struct Slider_data
 void Slider_render(void* ctx)
 {
     struct Slider_data* slider = (struct Slider_data*)ctx;
-    struct WidgetTree_rect* w = WidgetTree_get(slider->widgetId);
     
     float xv = 0.5;
-    
-    VertexObjectBuilder_startColoredObject(voCtxDynamic,trianglestrip);
-    VertexObjectBuilder_addColoredVertex(voCtxDynamic, w->x1, w->y1, 0, 0,255,0,255);
-    VertexObjectBuilder_addColoredVertex(voCtxDynamic, w->x1, w->y2, 0, 0,  0,0,255);
-    VertexObjectBuilder_addColoredVertex(voCtxDynamic, xv,    w->y1, 0, 0,255,0,255);
-    VertexObjectBuilder_addColoredVertex(voCtxDynamic, xv,    w->y2, 0, 0,  0,0,255);    
-    
-    VertexObjectBuilder_startColoredObject(voCtxDynamic,trianglestrip);
-    VertexObjectBuilder_addColoredVertex(voCtxDynamic, xv,    w->y1, 0, 0,  0,0,255);
-    VertexObjectBuilder_addColoredVertex(voCtxDynamic, xv,    w->y2, 0, 0,  0,0,255);
-    VertexObjectBuilder_addColoredVertex(voCtxDynamic, w->x2, w->y1, 0, 0,  0,0,255);
-    VertexObjectBuilder_addColoredVertex(voCtxDynamic, w->x2, w->y2, 0, 0,  0,0,255);      
+    if(slider)
+    {
+        struct WidgetTree_rect* w = WidgetTree_get(slider->widgetId);
+        if(w)
+        {            
+            if(slider->getter)
+            {
+                xv = slider->val;
+            }
+            VertexObjectBuilder_startColoredObject(voCtxDynamic,trianglestrip);
+            VertexObjectBuilder_addColoredVertex(voCtxDynamic, w->x1, w->y1, 0, 0,255,0,200);
+            VertexObjectBuilder_addColoredVertex(voCtxDynamic, w->x1, w->y2, 0, 0,  0,0,127);
+            VertexObjectBuilder_addColoredVertex(voCtxDynamic, xv,    w->y1, 0, 0,255,0,127);
+            VertexObjectBuilder_addColoredVertex(voCtxDynamic, xv,    w->y2, 0, 0,  0,0,127);    
+            
+            VertexObjectBuilder_startColoredObject(voCtxDynamic,trianglestrip);
+            VertexObjectBuilder_addColoredVertex(voCtxDynamic, xv,    w->y1, 0, 0,  0,0,127);
+            VertexObjectBuilder_addColoredVertex(voCtxDynamic, xv,    w->y2, 0, 0,  0,0,127);
+            VertexObjectBuilder_addColoredVertex(voCtxDynamic, w->x2, w->y1, 0, 0,  0,0,127);
+            VertexObjectBuilder_addColoredVertex(voCtxDynamic, w->x2, w->y2, 0, 0,  0,0,127);      
+        }
+    }
 }
 
 void Slider_up(void* ctx,int finger,void* touch)
 {
     //struct Slider_data* slider = (struct Slider_data*)ctx;
     //struct WidgetTree_rect* w = WidgetTree_get(slider->widgetId);
-    
 }
 
 void Slider_down(void* ctx,int finger,void* touch,int isMoving,float x,float y, float velocity, float area)
 {
-    //struct Slider_data* slider = (struct Slider_data*)ctx;
-    //struct WidgetTree_rect* w = WidgetTree_get(slider->widgetId);
+    struct Slider_data* slider = (struct Slider_data*)ctx;
+    if(slider)
+    {
+        struct WidgetTree_rect* w = WidgetTree_get(slider->widgetId);
+        if(w)
+        {
+            float fx = (x - w->x1)/(w->x2 - w->x1);
+            if(slider->setter)
+            {
+                slider->setter(ctx,fx);        
+            }                    
+            slider->val = fx;
+        }
+    }
 }
 
 struct WidgetTree_rect* CreateSlider(
@@ -82,8 +103,12 @@ struct WidgetTree_rect* CreateSlider(
     struct WidgetTree_rect* widget = WidgetTree_add(widgetId, x1,y1,x2,y2);
     struct Slider_data* slider = malloc(sizeof(struct Slider_data));
     slider->widgetId = widgetId;
-    //slider->setter = setter;
-    //slider->getter = getter;
+    slider->setter = setter;
+    slider->getter = getter;
+    if(slider->getter)
+    {
+        slider->val = slider->getter(slider);
+    }
     widget->ctx = slider;
     widget->render = render;
     widget->up = Slider_up;

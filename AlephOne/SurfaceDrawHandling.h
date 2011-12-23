@@ -16,4 +16,6 @@ void SurfaceDraw_init(
                       int trianglestripArg
                       );
 
+struct WidgetTree_rect* SurfaceDraw_create();
+
 void SurfaceDraw_render(void* ctx);

@@ -9,7 +9,10 @@
 #include "SurfaceDrawHandling.h"
 #include "VertexObjectBuilder.h"
 #include "PitchHandler.h"
+#include "SurfaceTouchHandling.h"
+#include "WidgetTree.h"
 
+#define NULL ((void*)0)
 static int triangles;
 static int trianglestrip;
 static struct VertexObjectBuilder* voCtxDynamic;
@@ -27,6 +30,20 @@ void SurfaceDraw_init(
     trianglestrip = trianglestripArg;
     phctx = phctxArg;
     voCtxDynamic = voCtxDynamicArg;
+}
+
+//This is always widget 0 with these bounds!
+struct WidgetTree_rect* SurfaceDraw_create()
+{
+    struct WidgetTree_rect* itemP = NULL;
+    int widget=0;    
+    itemP = WidgetTree_add(widget,0,0,1,1);
+    itemP->render = SurfaceDraw_render;
+    itemP->up = SurfaceTouchHandling_touchesUp;
+    itemP->down = SurfaceTouchHandling_touchesDown;
+    itemP->tick = SurfaceTouchHandling_tick;
+    itemP->flush = SurfaceTouchHandling_touchesFlush;   
+    return itemP;
 }
 
 void drawBackground()

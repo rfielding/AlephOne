@@ -133,6 +133,16 @@ void GenericRendering_draw()
     ObjectRendering_drawVO(voCtxDynamic);    
 }
 
+void NoteDiff_set(void* ctx, float val)
+{
+    PitchHandler_setNoteDiff(phctx, 24-1+24*val);
+}
+
+float NoteDiff_get(void* ctx)
+{
+    return (PitchHandler_getNoteDiff(phctx)-23)/24.0;
+}
+
 /**
  * A strange place for this function in some ways, but it doesn't create anything terrible like
  * OS dependencies, etc.
@@ -142,17 +152,14 @@ void WidgetsAssemble()
     struct WidgetTree_rect* itemP = NULL;
     int widget=0;
     
-    itemP = WidgetTree_add(widget,0,0,1,1);
-    itemP->render = SurfaceDraw_render;
-    itemP->up = SurfaceTouchHandling_touchesUp;
-    itemP->down = SurfaceTouchHandling_touchesDown;
-    itemP->tick = SurfaceTouchHandling_tick;
-    itemP->flush = SurfaceTouchHandling_touchesFlush;
-    
+    itemP = SurfaceDraw_create();    
     widget++;
-    itemP = WidgetTree_add(widget, 0.7 - 0.2, 0.7 - 0.2, 0.7 + 0.2, 0.7 + 0.2);    
-    itemP->render = ChannelOccupancyControl_render;    
-    
+
+    itemP = WidgetTree_add(widget, 0.8 - 0.2, 0.8 - 0.2, 0.8 + 0.2, 0.8 + 0.2);    
+    itemP->render = ChannelOccupancyControl_render;        
     widget++;
-    itemP = CreateSlider(widget, 0,0.9, 1,1, NULL, NULL, Slider_render);
+    
+    itemP = CreateSlider(widget, 0,0.9, 1,1, NoteDiff_set, NoteDiff_get, Slider_render);
+    widget++;    
+    
 }
