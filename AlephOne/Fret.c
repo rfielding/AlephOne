@@ -83,6 +83,8 @@ float Fret_getPitchFromFret(struct Fret_context* ctx, int fret)
  */
 float Fret_getTarget(struct Fret_context* ctx, float pitch, int* fretP)
 {
+    if(ctx->used == 0)return pitch;
+    
     int octaveEst = ctx->used*floorf(pitch / 12.0);
     float pitchVal = pitch;
     float bestDistance=48;

@@ -43,16 +43,12 @@ void Slider_render(void* ctx)
 {
     struct Slider_data* slider = (struct Slider_data*)ctx;
     
-    float xv = 0.5;
     if(slider)
     {
         struct WidgetTree_rect* w = WidgetTree_get(slider->widgetId);
         if(w)
         {            
-            if(slider->getter)
-            {
-                xv = slider->val;
-            }
+            float xv = w->x1 + slider->val * (w->x2 - w->x1);
             VertexObjectBuilder_startColoredObject(voCtxDynamic,trianglestrip);
             VertexObjectBuilder_addColoredVertex(voCtxDynamic, w->x1, w->y1, 0, 0,255,0,200);
             VertexObjectBuilder_addColoredVertex(voCtxDynamic, w->x1, w->y2, 0, 0,  0,0,127);
@@ -83,6 +79,14 @@ void Slider_down(void* ctx,int finger,void* touch,int isMoving,float x,float y, 
         if(w)
         {
             float fx = (x - w->x1)/(w->x2 - w->x1);
+            if(fx < 0)
+            {
+                fx = 0;
+            }
+            if(fx > 1)
+            {
+                fx = 1;
+            }
             if(slider->setter)
             {
                 slider->setter(ctx,fx);        
@@ -108,6 +112,10 @@ struct WidgetTree_rect* CreateSlider(
     if(slider->getter)
     {
         slider->val = slider->getter(slider);
+    }
+    else
+    {
+        slider->val = 0.5;
     }
     widget->ctx = slider;
     widget->render = render;

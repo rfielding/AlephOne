@@ -13,6 +13,7 @@
 #include "VertexObjectBuilder.h"
 #include "ObjectRendering.h"
 #include "Fretless.h"
+#include "Fret.h"
 #include "PitchHandler.h"
 #include "WidgetTree.h"
 
@@ -143,6 +144,69 @@ float NoteDiff_get(void* ctx)
     return (PitchHandler_getNoteDiff(phctx)-23)/24.0;
 }
 
+void Cols_set(void* ctx, float val)
+{
+    PitchHandler_setColCount(phctx, 5 + val*7);
+}
+
+float Cols_get(void* ctx)
+{
+    return (PitchHandler_getColCount(phctx)-5)/7;
+}
+
+void Intonation_set(void* ctx, float val)
+{
+    struct Fret_context* frctx = PitchHandler_frets(phctx);
+    Fret_clearFrets(frctx);
+    
+    float baseNote = 2.0;
+    if(val > 0.25)
+    {
+        Fret_placeFret(frctx,baseNote +  0.0,3);
+        Fret_placeFret(frctx,baseNote +  3.0,3);            
+        Fret_placeFret(frctx,baseNote +  5.0,3);        
+        Fret_placeFret(frctx,baseNote +  7.0,3);
+        Fret_placeFret(frctx,baseNote + 10.0,3);
+    }
+    if(val > 0.35)
+    {
+        Fret_placeFret(frctx,baseNote +  2.0,3);
+        Fret_placeFret(frctx,baseNote +  6.0,2);
+        Fret_placeFret(frctx,baseNote +  9.0,3);        
+    }
+    if(val > 0.5)
+    {
+        Fret_placeFret(frctx,baseNote +  1.0,2);
+        Fret_placeFret(frctx,baseNote +  4.0,2);
+        Fret_placeFret(frctx,baseNote +  8.0,2);
+        Fret_placeFret(frctx,baseNote + 11.0,2);                
+    }
+    if(val > 0.65 || (val < 0.30 && val > 0.25))
+    {
+        Fret_placeFret(frctx,baseNote + 1.5,1);
+        Fret_placeFret(frctx,baseNote + 8.5,1);                
+    }
+    if(val > 0.65)
+    {
+        Fret_placeFret(frctx,baseNote + 6.5,1);        
+    }
+    if(val > 0.9)
+    {
+        Fret_placeFret(frctx,baseNote +  0.5,1);
+        Fret_placeFret(frctx,baseNote +  2.5,1);
+        Fret_placeFret(frctx,baseNote +  3.5,1);                                    
+        Fret_placeFret(frctx,baseNote +  4.5,1);                                    
+        Fret_placeFret(frctx,baseNote +  5.5,1);                                    
+        Fret_placeFret(frctx,baseNote +  7.5,1);                                    
+        Fret_placeFret(frctx,baseNote +  9.5,1);                                    
+        Fret_placeFret(frctx,baseNote + 10.5,1);                                    
+        Fret_placeFret(frctx,baseNote + 11.5,1);                                                                   
+    }
+
+}
+
+
+
 /**
  * A strange place for this function in some ways, but it doesn't create anything terrible like
  * OS dependencies, etc.
@@ -155,11 +219,18 @@ void WidgetsAssemble()
     itemP = SurfaceDraw_create();    
     widget++;
 
-    itemP = WidgetTree_add(widget, 0.8 - 0.2, 0.8 - 0.2, 0.8 + 0.2, 0.8 + 0.2);    
+    float cx = 0.8;
+    float cy = 0.2;
+    itemP = WidgetTree_add(widget, cx - 0.2, cy - 0.2, cx + 0.2, cy + 0.2);    
     itemP->render = ChannelOccupancyControl_render;        
     widget++;
     
-    itemP = CreateSlider(widget, 0,0.9, 1,1, NoteDiff_set, NoteDiff_get, Slider_render);
+    itemP = CreateSlider(widget, 0,0.9, 0.33,1, NoteDiff_set, NoteDiff_get, Slider_render);
     widget++;    
     
+    itemP = CreateSlider(widget, 0.331,0.9, 0.66,1, Intonation_set, NULL, Slider_render);
+    widget++;      
+    
+    itemP = CreateSlider(widget, 0.66,0.9, 1,1, Cols_set, Cols_get, Slider_render);
+    widget++;      
 }

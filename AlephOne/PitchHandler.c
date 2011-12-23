@@ -186,14 +186,18 @@ struct FingerInfo* PitchHandler_pickPitch(struct PitchHandler_context* ctx, int 
     ctx->fingers[finger].beginPitch = thisPitch;
     int fretPicked;
     ctx->fingers[finger].endPitch = Fret_getTarget(ctx->fret,thisPitch,&fretPicked);
- 
-    //Keep a histogram of fret usage
-    fretPicked = (fretPicked+12*ctx->fret->used) % ctx->fret->used;
-    //for(int f=0; f < ctx->fretsUsed; f++)
-    //{
-    //    ctx->fretUsage[f] *= (1.0*(ctx->fretsUsed-1))/ctx->fretsUsed;
-    //}
-    ctx->fret->usage[ fretPicked ] += 0.25;
+    if(ctx->fret->used > 0)
+    {
+        
+        //Keep a histogram of fret usage
+        fretPicked = (fretPicked+12*ctx->fret->used) % ctx->fret->used;
+        //for(int f=0; f < ctx->fretsUsed; f++)
+        //{
+        //    ctx->fretUsage[f] *= (1.0*(ctx->fretsUsed-1))/ctx->fretsUsed;
+        //}
+        ctx->fret->usage[ fretPicked ] += 0.25;
+        
+    }
     
     float targetDrift = (ctx->fingers[finger].endPitch - thisPitch);
     if( isMoving )
@@ -272,8 +276,10 @@ void PitchHandler_getFretsBegin(struct PitchHandler_context* ctx)
 }
 
 int PitchHandler_getFret(struct PitchHandler_context* ctx, float* pitch,float* x,float* y,int* importance,float* usage,int* fretval)
-{
+{    
     struct Fret_context* fctx = ctx->fret;
+    if(fctx->used == 0)return 0;
+    
     float pitchVal = Fret_getPitchFromFret(fctx,ctx->fretiterator) - ctx->noteDiff;
     
     //If we have gone past the right edge of the screen
