@@ -43,11 +43,32 @@ void Slider_render(void* ctx)
     struct Slider_data* slider = (struct Slider_data*)ctx;
     struct WidgetTree_rect* w = WidgetTree_get(slider->widgetId);
     
+    float xv = 0.5;
+    
     VertexObjectBuilder_startColoredObject(voCtxDynamic,trianglestrip);
     VertexObjectBuilder_addColoredVertex(voCtxDynamic, w->x1, w->y1, 0, 0,255,0,255);
     VertexObjectBuilder_addColoredVertex(voCtxDynamic, w->x1, w->y2, 0, 0,  0,0,255);
-    VertexObjectBuilder_addColoredVertex(voCtxDynamic, w->x2, w->y1, 0, 0,255,0,255);
-    VertexObjectBuilder_addColoredVertex(voCtxDynamic, w->x2, w->y2, 0, 0,  0,0,255);    
+    VertexObjectBuilder_addColoredVertex(voCtxDynamic, xv,    w->y1, 0, 0,255,0,255);
+    VertexObjectBuilder_addColoredVertex(voCtxDynamic, xv,    w->y2, 0, 0,  0,0,255);    
+    
+    VertexObjectBuilder_startColoredObject(voCtxDynamic,trianglestrip);
+    VertexObjectBuilder_addColoredVertex(voCtxDynamic, xv,    w->y1, 0, 0,  0,0,255);
+    VertexObjectBuilder_addColoredVertex(voCtxDynamic, xv,    w->y2, 0, 0,  0,0,255);
+    VertexObjectBuilder_addColoredVertex(voCtxDynamic, w->x2, w->y1, 0, 0,  0,0,255);
+    VertexObjectBuilder_addColoredVertex(voCtxDynamic, w->x2, w->y2, 0, 0,  0,0,255);      
+}
+
+void Slider_up(void* ctx,int finger,void* touch)
+{
+    //struct Slider_data* slider = (struct Slider_data*)ctx;
+    //struct WidgetTree_rect* w = WidgetTree_get(slider->widgetId);
+    
+}
+
+void Slider_down(void* ctx,int finger,void* touch,int isMoving,float x,float y, float velocity, float area)
+{
+    //struct Slider_data* slider = (struct Slider_data*)ctx;
+    //struct WidgetTree_rect* w = WidgetTree_get(slider->widgetId);
 }
 
 struct WidgetTree_rect* CreateSlider(
@@ -65,18 +86,8 @@ struct WidgetTree_rect* CreateSlider(
     //slider->getter = getter;
     widget->ctx = slider;
     widget->render = render;
+    widget->up = Slider_up;
+    widget->down = Slider_down;
     return widget;
 }
 
-void Slider_up(void* ctx,int finger,void* touch)
-{
-    //struct Slider_data* slider = (struct Slider_data*)ctx;
-    //struct WidgetTree_rect* w = WidgetTree_get(slider->widgetId);
-    
-}
-
-void Slider_down(void* ctx,int finger,void* touch,int isMoving,float x,float y, float velocity, float area)
-{
-    //struct Slider_data* slider = (struct Slider_data*)ctx;
-    //struct WidgetTree_rect* w = WidgetTree_get(slider->widgetId);
-}
