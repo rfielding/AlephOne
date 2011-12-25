@@ -33,8 +33,8 @@ void GenericRendering_init(
                            struct PitchHandler_context* phctxArg, 
                            struct Fretless_context* fctxArg, 
                            void* imageContextArg,
-                           void (*imageRenderArg)(void*,char*,unsigned int*,float*,float*),
-                           void (*stringRenderArg)(void*,char*,unsigned int*,float*,float*)
+                           void (*imageRenderArg)(void*,char*,unsigned int*,float*,float*,int),
+                           void (*stringRenderArg)(void*,char*,unsigned int*,float*,float*,int)
                            )
 {
     ObjectRendering_init(

@@ -30,8 +30,8 @@
 
 
 static void* ObjectRendering_imageContext;
-static void (*ObjectRendering_imageRender)(void*,char*,unsigned int*,float*,float*);
-static void (*ObjectRendering_stringRender)(void*,char*,unsigned int*,float*,float*);
+static void (*ObjectRendering_imageRender)(void*,char*,unsigned int*,float*,float*,int);
+static void (*ObjectRendering_stringRender)(void*,char*,unsigned int*,float*,float*,int);
 static void (*ObjectRendering_drawVO)();
 
 static int triangles;
@@ -52,10 +52,10 @@ static char* requiredTexture[] = {
 #define IMAGECOUNT 4
 
 
-
-static unsigned int textures[256];
-static float textureWidth[256];
-static float textureHeight[256];
+#define TEXTURECOUNT 256
+static unsigned int textures[TEXTURECOUNT];
+static float textureWidth[TEXTURECOUNT];
+static float textureHeight[TEXTURECOUNT];
 static float lightPosition[3];
 
 
@@ -76,8 +76,8 @@ void ObjectRendering_init(
                            int trianglestripArg,
                            int linestripArg,
                            void* ObjectRendering_imageContextArg,
-                           void (*ObjectRendering_imageRenderArg)(void*,char*,unsigned int*,float*,float*),
-                           void (*ObjectRendering_stringRenderArg)(void*,char*,unsigned int*,float*,float*),
+                           void (*ObjectRendering_imageRenderArg)(void*,char*,unsigned int*,float*,float*,int),
+                           void (*ObjectRendering_stringRenderArg)(void*,char*,unsigned int*,float*,float*,int),
                            void (*ObjectRendering_drawVOArg)()
                            )
 {
@@ -107,7 +107,8 @@ void ObjectRendering_loadImages()
             requiredTexture[i],
             &textures[i],
             &textureWidth[i],
-            &textureHeight[i]
+            &textureHeight[i],
+            0
         );
     }
     //These need to be re-rendered into the same slot
@@ -116,7 +117,8 @@ void ObjectRendering_loadImages()
                                  "Channel Cycling",
                                  &textures[PIC_CHANNELCYCLINGTEXT],
                                  &textureWidth[PIC_CHANNELCYCLINGTEXT],
-                                 &textureHeight[PIC_CHANNELCYCLINGTEXT]
+                                 &textureHeight[PIC_CHANNELCYCLINGTEXT],
+                                 0
                                  );
     //These need to be re-rendered into the same slot
     ObjectRendering_stringRender(
@@ -124,7 +126,8 @@ void ObjectRendering_loadImages()
                                  "Center",
                                  &textures[PIC_BASENOTETEXT],
                                  &textureWidth[PIC_BASENOTETEXT],
-                                 &textureHeight[PIC_BASENOTETEXT]
+                                 &textureHeight[PIC_BASENOTETEXT],
+                                 0
                                  );    
     //These need to be re-rendered into the same slot
     ObjectRendering_stringRender(
@@ -132,7 +135,8 @@ void ObjectRendering_loadImages()
                                  "Scale",
                                  &textures[PIC_SCALETEXT],
                                  &textureWidth[PIC_SCALETEXT],
-                                 &textureHeight[PIC_SCALETEXT]
+                                 &textureHeight[PIC_SCALETEXT],
+                                 0
                                  );       
     //These need to be re-rendered into the same slot
     ObjectRendering_stringRender(
@@ -140,7 +144,8 @@ void ObjectRendering_loadImages()
                                  "Width",
                                  &textures[PIC_WIDTHTEXT],
                                  &textureWidth[PIC_WIDTHTEXT],
-                                 &textureHeight[PIC_WIDTHTEXT]
+                                 &textureHeight[PIC_WIDTHTEXT],
+                                 0
                                  );       
 }
 

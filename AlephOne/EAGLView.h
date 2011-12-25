@@ -36,6 +36,6 @@
 - (void)setup:(EAGLContext*)newContext;
 - (void)drawFrame;
 - (void)setContext:(EAGLContext *)newContext;
-- (int)loadImage:(NSString*)imagePath ofType:(NSString*)imageType wasWidth:(float*)w wasHeight:(float*)h;
+//- (int)loadImage:(NSString*)imagePath ofType:(NSString*)imageType wasWidth:(float*)w wasHeight:(float*)h;
 
 @end

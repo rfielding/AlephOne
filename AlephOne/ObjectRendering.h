@@ -18,8 +18,8 @@ void ObjectRendering_init(
                            int trianglestripArg,
                            int linestripArg,
                            void* ObjectRendering_imageContextArg,
-                           void (*ObjectRendering_imageRenderArg)(void*,char*,unsigned int*,float*,float*),
-                           void (*ObjectRendering_stringRenderArg)(void*,char*,unsigned int*,float*,float*),
+                           void (*ObjectRendering_imageRenderArg)(void*,char*,unsigned int*,float*,float*,int),
+                           void (*ObjectRendering_stringRenderArg)(void*,char*,unsigned int*,float*,float*,int),
                            void (*ObjectRendering_drawVOArg)()
                            );
 

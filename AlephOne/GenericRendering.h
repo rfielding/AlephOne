@@ -20,8 +20,8 @@ void GenericRendering_init(
     struct PitchHandler_context* phctxArg, 
     struct Fretless_context* fctxArg, 
     void* imageContext,
-    void (*imageRender)(void*,char*,unsigned int*,float*,float*),
-    void (*stringRender)(void*,char*,unsigned int*,float*,float*)
+    void (*imageRender)(void*,char*,unsigned int*,float*,float*,int),
+    void (*stringRender)(void*,char*,unsigned int*,float*,float*,int)
 );
 
 void GenericRendering_updateLightOrientation(float x,float y, float z);

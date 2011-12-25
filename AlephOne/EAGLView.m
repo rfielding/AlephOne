@@ -43,13 +43,15 @@ static struct Fret_context* frctx;
     return [CAEAGLLayer class];
 }
 
-- (int)loadImage:(NSString*)imagePath ofType:(NSString*)imageType wasWidth:(float*)w wasHeight:(float*)h
+- (void)loadImage:(NSString*)imagePath ofType:(NSString*)imageType wasWidth:(float*)w wasHeight:(float*)h withReRender:(BOOL)reRender toTexture:(unsigned int*)textures
 {    
     glEnable(GL_TEXTURE_2D);
 
-    unsigned int textures[1];
     //Cause our call to glTexImage2D to bind to the result in textures[0]
-    glGenTextures(1, textures);
+    if(reRender == FALSE)
+    {
+        glGenTextures(1, textures);
+    }
     glBindTexture(GL_TEXTURE_2D, textures[0]);
     
     void* imageData = NULL;
@@ -96,18 +98,17 @@ static struct Fret_context* frctx;
     free(imageData);
     [image release];
     [texData release];
-    
-    return textures[0];
 }
 
-- (int)loadString:(NSString*)str wasWidth:(float*)w wasHeight:(float*)h
+- (void)loadString:(NSString*)str wasWidth:(float*)w wasHeight:(float*)h withReRender:(BOOL)reRender toTexture:(unsigned int*)textures
 {
     
     glEnable(GL_TEXTURE_2D);
     
-    unsigned int textures[1];
-    //Cause our call to glTexImage2D to bind to the result in textures[0]
-    glGenTextures(1, textures);
+    if(reRender == FALSE)
+    {
+        glGenTextures(1, textures);
+    }
     glBindTexture(GL_TEXTURE_2D, textures[0]);
     
     void* imageData = NULL;
@@ -156,8 +157,6 @@ static struct Fret_context* frctx;
     *w = width;
     *h = height;
     Transforms_translate(w,h);
-    
-    return textures[0];       
 }
 
 - (void)configureSurface
@@ -208,17 +207,17 @@ static struct Fret_context* frctx;
     Fretless_setMidiHintChannelBendSemis(fctx,2);
 }
 
-void imageRender(void* ctx,char* imagePath,unsigned int* textureName,float* width,float* height)
+void imageRender(void* ctx,char* imagePath,unsigned int* textureName,float* width,float* height,int reRender)
 {
     NSString* currentImageStr = [ NSString stringWithUTF8String:imagePath ];
-    *textureName = [(EAGLView*)ctx loadImage:currentImageStr  ofType:@"png" wasWidth:width wasHeight:height]; 
+    [(EAGLView*)ctx loadImage:currentImageStr  ofType:@"png" wasWidth:width wasHeight:height withReRender:(BOOL)reRender toTexture:textureName]; 
 }
 
 
-void stringRender(void* ctx,char* str,unsigned int* textureName,float* width,float* height)
+void stringRender(void* ctx,char* str,unsigned int* textureName,float* width,float* height, int reRender)
 {
     NSString* currentStr = [ NSString stringWithUTF8String:str ];
-    *textureName = [(EAGLView*)ctx loadString:currentStr  wasWidth:width wasHeight:height];     
+    [(EAGLView*)ctx loadString:currentStr  wasWidth:width wasHeight:height withReRender:(BOOL)reRender toTexture:textureName];     
 }
 
 //The EAGL view is stored in the nib file. When it's unarchived it's sent -initWithCoder:.
