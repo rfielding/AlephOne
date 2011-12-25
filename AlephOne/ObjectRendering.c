@@ -98,6 +98,23 @@ void ObjectRendering_init(
     WidgetsAssemble();
 }
 
+//Pass a funtion pointer to this for anything that needs to update a string
+//The impl might need to maintain more state to be efficient.
+void reRenderString(unsigned int texture,char* val,int* w, int* h)
+{
+    //These need to be re-rendered into the same slot
+    ObjectRendering_stringRender(
+                                 ObjectRendering_imageContext,
+                                 val,
+                                 &textures[texture],
+                                 &textureWidth[texture],
+                                 &textureHeight[texture],
+                                 0
+                                 );    
+    *w = textureWidth[texture];
+    *h = textureHeight[texture];
+}
+
 void ObjectRendering_loadImages()
 {
     for(int i=0; i < IMAGECOUNT; i++)
