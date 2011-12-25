@@ -35,6 +35,7 @@ struct Slider_data
 {
     int widgetId;
     float val;
+    int label;
     void (*setter)(void* ctx,float val);
     float (*getter)(void* ctx);
 };
@@ -61,6 +62,11 @@ void Slider_render(void* ctx)
             VertexObjectBuilder_addColoredVertex(voCtxDynamic, w->x2, w->y1, 0, 0,  0,0,127);
             VertexObjectBuilder_addColoredVertex(voCtxDynamic, w->x2, w->y2, 0, 0,  0,0,127);      
         }
+        VertexObjectBuilder_startTexturedObject(voCtxDynamic,trianglestrip,slider->label);
+        VertexObjectBuilder_addTexturedVertex(voCtxDynamic, w->x1, w->y1, 0, 0,0);
+        VertexObjectBuilder_addTexturedVertex(voCtxDynamic, w->x1, w->y2, 0, 0,1);
+        VertexObjectBuilder_addTexturedVertex(voCtxDynamic, w->x2, w->y1, 0, 1,0);
+        VertexObjectBuilder_addTexturedVertex(voCtxDynamic, w->x2, w->y2, 0, 1,1);        
     }
 }
 
@@ -98,6 +104,7 @@ void Slider_down(void* ctx,int finger,void* touch,int isMoving,float x,float y, 
 
 struct WidgetTree_rect* CreateSlider(
                                      int widgetId,
+                                     unsigned int label,
                                      float x1,float y1,float x2,float y2,
                                      void (*setter)(void* ctx,float val), 
                                      float (*getter)(void* ctx),
@@ -107,6 +114,7 @@ struct WidgetTree_rect* CreateSlider(
     struct WidgetTree_rect* widget = WidgetTree_add(widgetId, x1,y1,x2,y2);
     struct Slider_data* slider = malloc(sizeof(struct Slider_data));
     slider->widgetId = widgetId;
+    slider->label = label;
     slider->setter = setter;
     slider->getter = getter;
     if(slider->getter)

@@ -52,7 +52,29 @@ void drawBackground()
     VertexObjectBuilder_addColoredVertex(voCtxDynamic, 0, 0, 0, 0,0,0,255);
     VertexObjectBuilder_addColoredVertex(voCtxDynamic, 0, 1, 0, 0,0,0,255);
     VertexObjectBuilder_addColoredVertex(voCtxDynamic, 1, 0, 0, 0,0,0,255);
-    VertexObjectBuilder_addColoredVertex(voCtxDynamic, 1, 1, 0, 0,0,0,255);
+    VertexObjectBuilder_addColoredVertex(voCtxDynamic, 1, 1, 0, 0,0,0,255);    
+    
+    float rows = PitchHandler_getRowCount(phctx);
+    float dy = 1.0 / rows;
+    float ds = dy/2;
+    for(float f=ds; f<rows; f+=dy)
+    {
+        VertexObjectBuilder_startColoredObject(voCtxDynamic,triangles);
+        
+        VertexObjectBuilder_addColoredVertex(voCtxDynamic, 0, f   , 0, 0,255,255, 20);
+        VertexObjectBuilder_addColoredVertex(voCtxDynamic, 1, f   , 0, 0,255,255, 20);
+        VertexObjectBuilder_addColoredVertex(voCtxDynamic, 1, f+dy, 0, 0,  0,  0,  0);        
+        VertexObjectBuilder_addColoredVertex(voCtxDynamic, 0, f+dy, 0, 0,  0,  0,  0);      
+        VertexObjectBuilder_addColoredVertex(voCtxDynamic, 0, f   , 0, 0,255,  0, 20);
+        VertexObjectBuilder_addColoredVertex(voCtxDynamic, 1, f+dy, 0, 0,  0,  0,  0);
+        
+        VertexObjectBuilder_addColoredVertex(voCtxDynamic, 0, f   , 0, 0,255,255, 20);
+        VertexObjectBuilder_addColoredVertex(voCtxDynamic, 1, f   , 0, 0,255,255, 20);
+        VertexObjectBuilder_addColoredVertex(voCtxDynamic, 1, f-dy, 0, 0,  0,  0,  0);        
+        VertexObjectBuilder_addColoredVertex(voCtxDynamic, 0, f-dy, 0, 0,  0,  0,  0);      
+        VertexObjectBuilder_addColoredVertex(voCtxDynamic, 0, f   , 0, 0,255,  0, 20);
+        VertexObjectBuilder_addColoredVertex(voCtxDynamic, 1, f-dy, 0, 0,  0,  0,  0);
+    }
 }
 
 

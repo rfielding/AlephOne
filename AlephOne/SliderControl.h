@@ -20,6 +20,7 @@ void SliderControl_init(
 
 struct WidgetTree_rect* CreateSlider(
                                      int widgetId,
+                                     unsigned int label,
                                      float x1,float y1,float x2,float y2,
                                      void (*setter)(void* ctx,float val), 
                                      float (*getter)(void* ctx),

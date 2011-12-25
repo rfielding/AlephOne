@@ -100,37 +100,64 @@ static struct Fret_context* frctx;
     return textures[0];
 }
 
-- (int)loadString:(NSString*)str ofType:(NSString*)imageType wasWidth:(int*)w wasHeight:(int*)h
+- (int)loadString:(NSString*)str wasWidth:(float*)w wasHeight:(float*)h
 {
-    /*
+    
     glEnable(GL_TEXTURE_2D);
     
     unsigned int textures[1];
     //Cause our call to glTexImage2D to bind to the result in textures[0]
     glGenTextures(1, textures);
-    NSLog(@"binding to %d",textures[0]);
     glBindTexture(GL_TEXTURE_2D, textures[0]);
     
     void* imageData = NULL;
-    unsigned int width=0;
-    unsigned int height=0;
+    unsigned int width=256;
+    unsigned int height=32;
     
  
+    // Create the color space.
+    CGColorSpaceRef colorSpace = CGColorSpaceCreateDeviceRGB();
     
+    // Make the image data array.
+    imageData = malloc(width * height * 4);
     
+    // Make the bitmap context.
+    CGContextRef context = CGBitmapContextCreate(imageData, width, height, 8, 4 * width, colorSpace, 
+                                                 kCGImageAlphaPremultipliedLast | kCGBitmapByteOrder32Big);
     
+    // Release the color space.
+    CGColorSpaceRelease(colorSpace);
+    
+    // Clear the background.
+    CGContextClearRect(context, CGRectMake(0, 0, width, height));
+    
+    // Get the font.
+    UIFont *font = [UIFont fontWithName:@"Helvetica" size:24];
+    
+    /*
+    CGContextSaveGState(context);
+    CGAffineTransform flipVertical = CGAffineTransformMake
+    (1, 0, 0, -1, 0, height); //set the flip
+    CGContextConcatCTM(context, flipVertical); //apply it to context
+    */
+    
+    CGContextSetGrayFillColor(context, 1.0, 1.0);
+	UIGraphicsPushContext(context);
+    [str drawInRect:CGRectMake(0, 0, width, height) withFont:font lineBreakMode:UILineBreakModeTailTruncation alignment:UITextAlignmentLeft];
+	UIGraphicsPopContext();
     
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, imageData);
     
     CGContextRelease(context);
     
+    // Free the image data array.
     free(imageData);
-    [image release];
-    [texData release];
     
-    return textures[0];  
-     */
-    return 0;
+    *w = width;
+    *h = height;
+    Transforms_translate(w,h);
+    
+    return textures[0];       
 }
 
 - (void)configureSurface
@@ -190,7 +217,8 @@ void imageRender(void* ctx,char* imagePath,unsigned int* textureName,float* widt
 
 void stringRender(void* ctx,char* str,unsigned int* textureName,float* width,float* height)
 {
-    
+    NSString* currentStr = [ NSString stringWithUTF8String:str ];
+    *textureName = [(EAGLView*)ctx loadString:currentStr  wasWidth:width wasHeight:height];     
 }
 
 //The EAGL view is stored in the nib file. When it's unarchived it's sent -initWithCoder:.

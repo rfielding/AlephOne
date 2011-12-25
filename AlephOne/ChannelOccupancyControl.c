@@ -112,10 +112,10 @@ void ChannelOccupancyControl_render(void* ctx)
         VertexObjectBuilder_addColoredVertex(voCtxDynamic,cx+rD*sinC,cy+rD*cosC,0,red*0.5, green*0.5, blue*0.5,255);  
         
     }
-    VertexObjectBuilder_startTexturedObject(voCtxDynamic,trianglestrip,PIC_CHANNELCYCLING);
-    VertexObjectBuilder_addTexturedVertex(voCtxDynamic, cx-diameter/2, cy+diameter/8 - diameter/4, 0, 0,0);
-    VertexObjectBuilder_addTexturedVertex(voCtxDynamic, cx-diameter/2, cy-diameter/8 - diameter/4, 0, 0,1);
-    VertexObjectBuilder_addTexturedVertex(voCtxDynamic, cx+diameter/2, cy+diameter/8 - diameter/4, 0, 1,0);
-    VertexObjectBuilder_addTexturedVertex(voCtxDynamic, cx+diameter/2, cy-diameter/8 - diameter/4, 0, 1,1);
+    VertexObjectBuilder_startTexturedObject(voCtxDynamic,trianglestrip,PIC_CHANNELCYCLINGTEXT);
+    VertexObjectBuilder_addTexturedVertex(voCtxDynamic, cx-diameter/2, cy+diameter/8 - diameter/4, 0, 0,1);
+    VertexObjectBuilder_addTexturedVertex(voCtxDynamic, cx-diameter/2, cy-diameter/8 - diameter/4, 0, 0,0);
+    VertexObjectBuilder_addTexturedVertex(voCtxDynamic, cx+diameter/2, cy+diameter/8 - diameter/4, 0, 1,1);
+    VertexObjectBuilder_addTexturedVertex(voCtxDynamic, cx+diameter/2, cy-diameter/8 - diameter/4, 0, 1,0);
 }
 

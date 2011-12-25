@@ -110,6 +110,38 @@ void ObjectRendering_loadImages()
             &textureHeight[i]
         );
     }
+    //These need to be re-rendered into the same slot
+    ObjectRendering_stringRender(
+                                 ObjectRendering_imageContext,
+                                 "Channel Cycling",
+                                 &textures[PIC_CHANNELCYCLINGTEXT],
+                                 &textureWidth[PIC_CHANNELCYCLINGTEXT],
+                                 &textureHeight[PIC_CHANNELCYCLINGTEXT]
+                                 );
+    //These need to be re-rendered into the same slot
+    ObjectRendering_stringRender(
+                                 ObjectRendering_imageContext,
+                                 "Center",
+                                 &textures[PIC_BASENOTETEXT],
+                                 &textureWidth[PIC_BASENOTETEXT],
+                                 &textureHeight[PIC_BASENOTETEXT]
+                                 );    
+    //These need to be re-rendered into the same slot
+    ObjectRendering_stringRender(
+                                 ObjectRendering_imageContext,
+                                 "Scale",
+                                 &textures[PIC_SCALETEXT],
+                                 &textureWidth[PIC_SCALETEXT],
+                                 &textureHeight[PIC_SCALETEXT]
+                                 );       
+    //These need to be re-rendered into the same slot
+    ObjectRendering_stringRender(
+                                 ObjectRendering_imageContext,
+                                 "Width",
+                                 &textures[PIC_WIDTHTEXT],
+                                 &textureWidth[PIC_WIDTHTEXT],
+                                 &textureHeight[PIC_WIDTHTEXT]
+                                 );       
 }
 
 int ObjectRendering_getTexture(int idx)
@@ -160,49 +192,61 @@ void Intonation_set(void* ctx, float val)
     Fret_clearFrets(frctx);
     
     float baseNote = 2.0;
-    if(val > 0.25)
-    {
-        Fret_placeFret(frctx,baseNote +  0.0,3);
-        Fret_placeFret(frctx,baseNote +  3.0,3);            
-        Fret_placeFret(frctx,baseNote +  5.0,3);        
-        Fret_placeFret(frctx,baseNote +  7.0,3);
-        Fret_placeFret(frctx,baseNote + 10.0,3);
-    }
-    if(val > 0.35)
-    {
-        Fret_placeFret(frctx,baseNote +  2.0,3);
-        Fret_placeFret(frctx,baseNote +  6.0,2);
-        Fret_placeFret(frctx,baseNote +  9.0,3);        
-    }
-    if(val > 0.5)
-    {
-        Fret_placeFret(frctx,baseNote +  1.0,2);
-        Fret_placeFret(frctx,baseNote +  4.0,2);
-        Fret_placeFret(frctx,baseNote +  8.0,2);
-        Fret_placeFret(frctx,baseNote + 11.0,2);                
-    }
-    if(val > 0.65 || (val < 0.30 && val > 0.25))
-    {
-        Fret_placeFret(frctx,baseNote + 1.5,1);
-        Fret_placeFret(frctx,baseNote + 8.5,1);                
-    }
-    if(val > 0.65)
-    {
-        Fret_placeFret(frctx,baseNote + 6.5,1);        
-    }
     if(val > 0.9)
     {
-        Fret_placeFret(frctx,baseNote +  0.5,1);
-        Fret_placeFret(frctx,baseNote +  2.5,1);
-        Fret_placeFret(frctx,baseNote +  3.5,1);                                    
-        Fret_placeFret(frctx,baseNote +  4.5,1);                                    
-        Fret_placeFret(frctx,baseNote +  5.5,1);                                    
-        Fret_placeFret(frctx,baseNote +  7.5,1);                                    
-        Fret_placeFret(frctx,baseNote +  9.5,1);                                    
-        Fret_placeFret(frctx,baseNote + 10.5,1);                                    
-        Fret_placeFret(frctx,baseNote + 11.5,1);                                                                   
+        Fret_placeFret(frctx, baseNote + 12*0,  3);
+        Fret_placeFret(frctx, baseNote + 12*log2f(9.0/8),  3);
+        Fret_placeFret(frctx, baseNote + 12*log2f(6.0/5),  3);
+        Fret_placeFret(frctx, baseNote + 12*log2f(4.0/3),  3);
+        Fret_placeFret(frctx, baseNote + 12*log2f(3.0/2),  3);
+        Fret_placeFret(frctx, baseNote + 12*log2f(4.0/5 * 2), 2);
+        Fret_placeFret(frctx, baseNote + 12*log2f(8.0/9 * 2), 3);
     }
-
+    else
+    {
+        if(val >= 0)
+        {
+            Fret_placeFret(frctx,baseNote +  0.0,3);
+            Fret_placeFret(frctx,baseNote +  3.0,3);            
+            Fret_placeFret(frctx,baseNote +  5.0,3);        
+            Fret_placeFret(frctx,baseNote +  7.0,3);
+            Fret_placeFret(frctx,baseNote + 10.0,3);
+        }
+        if(val > 0.35)
+        {
+            Fret_placeFret(frctx,baseNote +  2.0,3);
+            Fret_placeFret(frctx,baseNote +  6.0,2);
+            Fret_placeFret(frctx,baseNote +  9.0,3);        
+        }
+        if(val > 0.5)
+        {
+            Fret_placeFret(frctx,baseNote +  1.0,2);
+            Fret_placeFret(frctx,baseNote +  4.0,2);
+            Fret_placeFret(frctx,baseNote +  8.0,2);
+            Fret_placeFret(frctx,baseNote + 11.0,2);                
+        }
+        if(val > 0.65 || (val < 0.30 && val > 0.25))
+        {
+            Fret_placeFret(frctx,baseNote + 1.5,1);
+            Fret_placeFret(frctx,baseNote + 8.5,1);                
+        }
+        if(val > 0.65)
+        {
+            Fret_placeFret(frctx,baseNote + 6.5,1);        
+        }
+        if(val > 0.8)
+        {
+            Fret_placeFret(frctx,baseNote +  0.5,1);
+            Fret_placeFret(frctx,baseNote +  2.5,1);
+            Fret_placeFret(frctx,baseNote +  3.5,1);                                    
+            Fret_placeFret(frctx,baseNote +  4.5,1);                                    
+            Fret_placeFret(frctx,baseNote +  5.5,1);                                    
+            Fret_placeFret(frctx,baseNote +  7.5,1);                                    
+            Fret_placeFret(frctx,baseNote +  9.5,1);                                    
+            Fret_placeFret(frctx,baseNote + 10.5,1);                                    
+            Fret_placeFret(frctx,baseNote + 11.5,1);                                                                   
+        }        
+    }
 }
 
 
@@ -225,12 +269,12 @@ void WidgetsAssemble()
     itemP->render = ChannelOccupancyControl_render;        
     widget++;
     
-    itemP = CreateSlider(widget, 0,0.9, 0.33,1, NoteDiff_set, NoteDiff_get, Slider_render);
+    itemP = CreateSlider(widget, PIC_BASENOTETEXT,0,0.9, 0.33,1, NoteDiff_set, NoteDiff_get, Slider_render);
     widget++;    
     
-    itemP = CreateSlider(widget, 0.331,0.9, 0.66,1, Intonation_set, NULL, Slider_render);
+    itemP = CreateSlider(widget, PIC_SCALETEXT,0.332,0.9, 0.66,1, Intonation_set, NULL, Slider_render);
     widget++;      
     
-    itemP = CreateSlider(widget, 0.66,0.9, 1,1, Cols_set, Cols_get, Slider_render);
+    itemP = CreateSlider(widget, PIC_WIDTHTEXT,0.662,0.9, 1,1, Cols_set, Cols_get, Slider_render);
     widget++;      
 }
