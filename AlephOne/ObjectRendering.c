@@ -244,12 +244,20 @@ void Intonation_do(float val)
     if(val > 0.9)
     {
         Fret_placeFret(frctx, baseNote + 12*0,  3);
-        Fret_placeFret(frctx, baseNote + 12*log2f(9.0/8),  3);
         Fret_placeFret(frctx, baseNote + 12*log2f(6.0/5),  3);
         Fret_placeFret(frctx, baseNote + 12*log2f(4.0/3),  3);
         Fret_placeFret(frctx, baseNote + 12*log2f(3.0/2),  3);
         Fret_placeFret(frctx, baseNote + 12*log2f(4.0/5 * 2), 2);
         Fret_placeFret(frctx, baseNote + 12*log2f(8.0/9 * 2), 3);
+        
+        if(val > 0.95)
+        {
+            Fret_placeFret(frctx, baseNote + 12*log2f(13.0/12),  1);                        
+        }
+        else
+        {
+            Fret_placeFret(frctx, baseNote + 12*log2f(9.0/8),  3);            
+        }
     }
     else
     {
@@ -293,7 +301,7 @@ void Intonation_do(float val)
             Fret_placeFret(frctx,baseNote +  7.5,1);                                    
             Fret_placeFret(frctx,baseNote +  9.5,1);                                    
             Fret_placeFret(frctx,baseNote + 10.5,1);                                    
-            Fret_placeFret(frctx,baseNote + 11.5,1);                                                                   
+            Fret_placeFret(frctx,baseNote + 11.5,1);                  
         }        
     }    
 }
