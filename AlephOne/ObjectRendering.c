@@ -67,6 +67,7 @@ static float lightPosition[3];
 struct Slider_data* baseSlider;
 struct Slider_data* intonationSlider;
 struct Slider_data* widthSlider;
+struct Slider_data* heightSlider;
 
 struct Slider_data* rootNoteSlider;
 
@@ -155,12 +156,15 @@ void ObjectRendering_loadImages()
             0
         );
     }
+    //Loading up strings because we know that OpenGL context is now valid.
+    //This may move to support re-rendering of strings
     renderLabel("Channel Cycling", PIC_CHANNELCYCLINGTEXT);
     renderLabel("Center",PIC_BASENOTETEXT);
     renderLabel("Scale",PIC_SCALETEXT);
     renderLabel("Width",PIC_WIDTHTEXT);
     renderLabel("Page",PIC_PAGE1TEXT);
     renderLabel("Circle Of Fifths", PIC_ROOTNOTETEXT);
+    renderLabel("Height", PIC_HEIGHTTEXT);
 }
 
 int ObjectRendering_getTexture(int idx)
@@ -168,12 +172,11 @@ int ObjectRendering_getTexture(int idx)
     return textures[idx];
 }
 
-
+//Rendering is just drawing all active and renderable items in order
 void GenericRendering_draw()
 {
     VertexObjectBuilder_reset(voCtxDynamic);    
     
-    //Opposite order of hit testing to draw them in layers
     for(int item=0; item<WidgetTree_count(); item++)
     {
         struct WidgetTree_rect* itemP = WidgetTree_get(item);
@@ -185,11 +188,13 @@ void GenericRendering_draw()
     ObjectRendering_drawVO(voCtxDynamic);    
 }
 
+//Control paging is simply hiding and showing controls
 void Page_set(void* ctx, int val)
 {
     baseSlider->rect->isActive = FALSE;
     intonationSlider->rect->isActive = FALSE;
     widthSlider->rect->isActive = FALSE;
+    heightSlider->rect->isActive = FALSE;
     rootNoteSlider->rect->isActive = FALSE;
     
     switch(val)
@@ -197,6 +202,7 @@ void Page_set(void* ctx, int val)
         case 0:
             baseSlider->rect->isActive = TRUE;
             widthSlider->rect->isActive = TRUE;
+            heightSlider->rect->isActive = TRUE;
             break;
         case 1:
             intonationSlider->rect->isActive = TRUE;
@@ -229,6 +235,16 @@ void Cols_set(void* ctx, float val)
 float Cols_get(void* ctx)
 {
     return (PitchHandler_getColCount(phctx)-5)/7;
+}
+
+void Rows_set(void* ctx, float val)
+{
+    PitchHandler_setRowCount(phctx, 2 + val*7);
+}
+
+float Rows_get(void* ctx)
+{
+    return (PitchHandler_getRowCount(phctx)-2)/7;
 }
 
 float Intonation_get(void* ctx)
@@ -337,20 +353,21 @@ void WidgetsAssemble()
     float cy = 0.2;
     
     //Creating a raw control given just a rendering function
-    itemP = WidgetTree_add(cx - 0.2, cy - 0.2, cx + 0.2, cy + 0.2);    
-    itemP->render = ChannelOccupancyControl_render;       
+    ChannelOccupancyControl_create(cx - 0.2, cy - 0.2, cx + 0.2, cy + 0.2);
     
-    
+    float panelBottom = 0.9;
+    float panelTop = 1.0;
     //This button cycles through pages of controls
     CreateButton(PIC_PAGE1TEXT,0.0,0.9, 0.11,1, Page_set, Page_get, Button_render, 3);
     
     //Page 1
-    baseSlider = CreateSlider(PIC_BASENOTETEXT,0.12,0.9, 0.5,1, NoteDiff_set, NoteDiff_get);    
-    widthSlider = CreateSlider(PIC_WIDTHTEXT,0.502,0.9, 1,1, Cols_set, Cols_get);
+    baseSlider = CreateSlider(PIC_BASENOTETEXT,0.12,panelBottom, 0.33,panelTop, NoteDiff_set, NoteDiff_get);    
+    widthSlider = CreateSlider(PIC_WIDTHTEXT,0.332,panelBottom, 0.66,panelTop, Cols_set, Cols_get);
+    heightSlider = CreateSlider(PIC_HEIGHTTEXT,0.662,panelBottom, 1,panelTop, Rows_set, Rows_get);
     
     //Page 2
-    intonationSlider = CreateSlider(PIC_SCALETEXT,0.12,0.9, 0.5,1, Intonation_set, Intonation_get);
-    rootNoteSlider = CreateSlider(PIC_ROOTNOTETEXT,0.502,0.9, 1,1, RootNote_set, RootNote_get);
+    intonationSlider = CreateSlider(PIC_SCALETEXT,0.12,panelBottom, 0.5,panelTop, Intonation_set, Intonation_get);
+    rootNoteSlider = CreateSlider(PIC_ROOTNOTETEXT,0.502,panelBottom, 1,panelTop, RootNote_set, RootNote_get);
 
     //Set us to page 0 to start
     Page_set(NULL, 0);

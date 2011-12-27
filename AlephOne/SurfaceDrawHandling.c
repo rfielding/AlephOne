@@ -60,18 +60,18 @@ void drawBackground()
     {
         VertexObjectBuilder_startColoredObject(voCtxDynamic,triangles);
         
-        VertexObjectBuilder_addColoredVertex(voCtxDynamic, 0, f   , 0, 0,255,255, 20);
-        VertexObjectBuilder_addColoredVertex(voCtxDynamic, 1, f   , 0, 0,255,255, 20);
+        VertexObjectBuilder_addColoredVertex(voCtxDynamic, 0, f   , 0, 0,255,255, 40);
+        VertexObjectBuilder_addColoredVertex(voCtxDynamic, 1, f   , 0, 0,255,255, 40);
         VertexObjectBuilder_addColoredVertex(voCtxDynamic, 1, f+dy, 0, 0,  0,  0,  0);        
         VertexObjectBuilder_addColoredVertex(voCtxDynamic, 0, f+dy, 0, 0,  0,  0,  0);      
-        VertexObjectBuilder_addColoredVertex(voCtxDynamic, 0, f   , 0, 0,255,  0, 20);
+        VertexObjectBuilder_addColoredVertex(voCtxDynamic, 0, f   , 0, 0,255,255, 40);
         VertexObjectBuilder_addColoredVertex(voCtxDynamic, 1, f+dy, 0, 0,  0,  0,  0);
         
-        VertexObjectBuilder_addColoredVertex(voCtxDynamic, 0, f   , 0, 0,255,255, 20);
-        VertexObjectBuilder_addColoredVertex(voCtxDynamic, 1, f   , 0, 0,255,255, 20);
+        VertexObjectBuilder_addColoredVertex(voCtxDynamic, 0, f   , 0, 0,255,255, 40);
+        VertexObjectBuilder_addColoredVertex(voCtxDynamic, 1, f   , 0, 0,255,255, 40);
         VertexObjectBuilder_addColoredVertex(voCtxDynamic, 1, f-dy, 0, 0,  0,  0,  0);        
         VertexObjectBuilder_addColoredVertex(voCtxDynamic, 0, f-dy, 0, 0,  0,  0,  0);      
-        VertexObjectBuilder_addColoredVertex(voCtxDynamic, 0, f   , 0, 0,255,  0, 20);
+        VertexObjectBuilder_addColoredVertex(voCtxDynamic, 0, f   , 0, 0,255,255, 40);
         VertexObjectBuilder_addColoredVertex(voCtxDynamic, 1, f-dy, 0, 0,  0,  0,  0);
     }
 }

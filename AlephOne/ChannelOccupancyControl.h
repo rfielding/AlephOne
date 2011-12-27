@@ -8,6 +8,12 @@
 
 struct VertexObjectBuilder;
 struct Fretless_context;
+struct WidgetTree_rect;
+
+struct ChannelOccupancyControl_data
+{
+    struct WidgetTree_rect* rect;
+};
 
 void ChannelOccupancyControl_touchesInit(
                                          int trianglesArg,
@@ -18,4 +24,4 @@ void ChannelOccupancyControl_touchesInit(
                                          );
 
 
-void ChannelOccupancyControl_render(void* ctx);
+struct ChannelOccupancyControl_data* ChannelOccupancyControl_create(float x1,float y1, float x2,float y2);

@@ -14,6 +14,7 @@
 #include "Fretless.h"
 
 #include "WidgetConstants.h"
+#include <stdlib.h>
 
 static int triangles;
 static int trianglestrip;
@@ -56,7 +57,7 @@ void drawOccupancyHandle(float cx, float cy, float diameter,float z)
 
 void ChannelOccupancyControl_render(void* ctx)
 {
-    struct WidgetTree_rect* panel = WidgetTree_get(CHANNELOCCUPANCYPANEL);
+    struct WidgetTree_rect* panel = ((struct ChannelOccupancyControl_data*)ctx)->rect;
     
     float cx = (panel->x1 + panel->x2)/2;
     float cy = (panel->y1 + panel->y2)/2;
@@ -119,3 +120,13 @@ void ChannelOccupancyControl_render(void* ctx)
     VertexObjectBuilder_addTexturedVertex(voCtxDynamic, cx+diameter/2, cy-diameter/8 - diameter/4, 0, 1,0);
 }
 
+struct ChannelOccupancyControl_data* ChannelOccupancyControl_create(float x1,float y1, float x2,float y2)
+{
+    struct ChannelOccupancyControl_data* coControl = 
+        (struct ChannelOccupancyControl_data*)malloc(sizeof(struct ChannelOccupancyControl_data));
+    
+    coControl->rect = WidgetTree_add(x1,y1,x2,y2);    
+    coControl->rect->render = ChannelOccupancyControl_render;   
+    coControl->rect->ctx = coControl;
+    return coControl;
+}

@@ -64,7 +64,11 @@ struct WidgetTree_rect* WidgetTree_get(int order)
 
 struct WidgetTree_rect* WidgetTree_add(float x1, float y1, float x2, float y2)
 {
-    if(rectanglesCount + 1 >= MAXWIDGETS)return NULL;
+    if(rectanglesCount + 1 >= MAXWIDGETS)
+    {
+        fail("added too many widgets!");
+        return NULL;        
+    }
     rectangles[rectanglesCount].x1 = x1;
     rectangles[rectanglesCount].y1 = y1;
     rectangles[rectanglesCount].x2 = x2;
