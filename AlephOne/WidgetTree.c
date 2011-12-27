@@ -12,9 +12,23 @@
 #define MAXWIDGETS 256
 struct WidgetTree_rect rectangles[MAXWIDGETS];
 int rectanglesCount = 0;
+int (*fail)(const char*,...);
+int (*logger)(const char*,...);
 
-int WidgetTree_hitTest(float x,float y)
+
+void WidgetTree_init(    
+    int (*failArg)(const char*,...),
+    int (*loggerArg)(const char*,...)
+)
 {
+    rectanglesCount = 0;
+    fail = failArg;
+    logger = loggerArg;
+}
+
+struct WidgetTree_rect* WidgetTree_hitTest(float x,float y)
+{
+    if(rectanglesCount<1)fail("Can't hit test.  Root widget must be added first.\n");
     int idx = rectanglesCount;
     while(idx >= 0)
     {
@@ -23,12 +37,13 @@ int WidgetTree_hitTest(float x,float y)
            rectangles[idx].y1 <= y &&
            rectangles[idx].x2 >= x &&
            rectangles[idx].y2 >= y && 
-           rectangles[idx].down)
-            return rectangles[idx].identifier;
+           rectangles[idx].down &&
+           rectangles[idx].isActive)
+            return &rectangles[idx];
         idx--;
     }
     //If out of bounds, it hit tests against the root
-    return ROOTWIDGET;
+    return &rectangles[0];
 }
 
 int WidgetTree_count()
@@ -36,39 +51,31 @@ int WidgetTree_count()
     return rectanglesCount;
 }
 
-struct WidgetTree_rect* WidgetTree_get(int identifier)
+struct WidgetTree_rect* WidgetTree_get(int order)
 {
-    int idx = 0;
-    while(idx < rectanglesCount)
+    if(order < 0 || rectanglesCount <= order)
     {
-        if(idx >= MAXWIDGETS)return NULL;
-        
-        if(rectangles[idx].identifier == identifier)
-            return &rectangles[idx];
-        idx++;
+        fail("out of bounds widget tree index: %d\n", order);
     }
-    return NULL;    
+    return &rectangles[order];
 }
 
-void WidgetTree_clear()
-{
-    rectanglesCount = 0;
-}
 
-struct WidgetTree_rect* WidgetTree_add(int identifier, float x1, float y1, float x2, float y2)
+
+struct WidgetTree_rect* WidgetTree_add(float x1, float y1, float x2, float y2)
 {
     if(rectanglesCount + 1 >= MAXWIDGETS)return NULL;
     rectangles[rectanglesCount].x1 = x1;
     rectangles[rectanglesCount].y1 = y1;
     rectangles[rectanglesCount].x2 = x2;
     rectangles[rectanglesCount].y2 = y2;
-    rectangles[rectanglesCount].identifier = identifier;
     rectangles[rectanglesCount].tick = NULL;
     rectangles[rectanglesCount].render = NULL;
     rectangles[rectanglesCount].up = NULL;
     rectangles[rectanglesCount].down = NULL;
     rectangles[rectanglesCount].flush = NULL;
     rectangles[rectanglesCount].ctx = NULL;
+    rectangles[rectanglesCount].isActive = 1;
     rectanglesCount++;
     return &rectangles[rectanglesCount-1];
 }

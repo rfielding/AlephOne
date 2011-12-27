@@ -18,6 +18,7 @@
 #import "GenericRendering.h"
 #import "PressureSensor.h"
 #include "CoreMIDIRenderer.h"
+#include "WidgetTree.h"
 
 
 
@@ -249,6 +250,7 @@ void stringRender(void* ctx,char* str,unsigned int* textureName,float* width,flo
             printf
         );
         
+        WidgetTree_init(printf,printf);
         GenericRendering_init(phctx,fctx,self,imageRender,stringRender);
         
         GenericTouchHandling_touchesInit(phctx,fctx,printf,printf);

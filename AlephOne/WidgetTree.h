@@ -11,8 +11,6 @@
 
 struct WidgetTree_rect
 {
-    int identifier;
-    
     float x1;
     float y1;
     float x2;
@@ -24,12 +22,14 @@ struct WidgetTree_rect
     void (*down)(void* ctx,int finger,void* touch,int isMoving,float x,float y, float velocity, float area);
     void (*tick)(void* ctx);
     void (*render)(void* ctx);
+    
+    int isActive;
 };
 
-/**
- *  Clear out the widget tree.  Must be called before using this API
- */
-void WidgetTree_clear();
+void WidgetTree_init(    
+    int (*failArg)(const char*,...),
+    int (*loggerArg)(const char*,...)
+);
 
 /**
  *  The entire surface is bounded in ((0,0), (1,1)), with (0,0) as bottom corner
@@ -37,18 +37,20 @@ void WidgetTree_clear();
  *  Given a coordinate, tell us which widget was touched.
  *  The main surface is identifier 0.
  */
-int WidgetTree_hitTest(float x,float y);
+struct WidgetTree_rect* WidgetTree_hitTest(float x,float y);
 
 
 
 /**
  *  Put in a rectangle, (0,0) is bottom corner, (1,1) is upper right
+ *
+ *  The root widget MUST be inserted first, as it's what we fall back on if hit tests miss.
  */
-struct WidgetTree_rect* WidgetTree_add(int identifier, float x1, float y1, float x2, float y2);
+struct WidgetTree_rect* WidgetTree_add(float x1, float y1, float x2, float y2);
 
 /**
- *  Get a rectangle for an id
+ *  Get a rectangle (in order)
  */
-struct WidgetTree_rect* WidgetTree_get(int identifier);
+struct WidgetTree_rect* WidgetTree_get(int order);
 
 int WidgetTree_count();

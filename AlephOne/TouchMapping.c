@@ -10,7 +10,9 @@
 
 #define FINGERMAX 16
 #define NOBODY -1
-#define NULL 0
+//#define NULL 0
+
+#include <stdio.h>
 
 static void* utilFingerAlloced[FINGERMAX];
 
@@ -29,11 +31,16 @@ int TouchMapping_mapFinger(void* ptr)
     {
         if(utilFingerAlloced[f] == NULL)
         {
+            //printf("TouchMapping_mapFinger %d -> %d\n",ptr, f);
+            if((int)ptr == -1)
+            {
+                printf("unmapped something that doesn't look like a pointer: -1\n");
+            }
             utilFingerAlloced[f] = ptr;
             return f;
         }
     }
-    //ctxp->fail("Fretless_util_mapFinger ran out of slots\n");
+    printf("TouchMapping_mapFinger ran out of slots!\n");
     return NOBODY;
 }
 
@@ -43,11 +50,12 @@ void TouchMapping_unmapFinger(void* ptr)
     {
         if(utilFingerAlloced[f] == ptr)
         {
+            //printf("TouchMapping_unmapFinger %d !-> %d\n",ptr, f);
             utilFingerAlloced[f] = NULL;
             return;
         }
     }    
-    //ctxp->fail("Fretless_util_unmapFinger tried to unmap an unmapped pointer\n");
+    printf("TouchMapping_unmapFinger tried to unmap an unmapped pointer\n");
 }
 
 //Provide a second mapping for the finger, which is useful for voice doubling

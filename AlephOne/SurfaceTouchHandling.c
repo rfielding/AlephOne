@@ -69,12 +69,12 @@ void SurfaceTouchHandling_touchesDown(void* ctx,int finger,void* touch,int isMov
     int finger1  = finger;
     if(finger1 < 0)
     {
-        fail("touch did not map to a finger1");   
+        fail("touch did not map to a finger1\n");   
     }    
     int finger2  = TouchMapping_mapFinger2(touch);
     if(finger2 < 0)
     {
-        fail("touch did not map to a finger2");   
+        fail("touch did not map to a finger2\n");   
     }    
     struct FingerInfo* fingerInfo = PitchHandler_pickPitch(phctx,finger1,isMoving,x,y);
     float note = fingerInfo->pitch;
@@ -106,11 +106,11 @@ void SurfaceTouchHandling_tick(void* ctx)
 {
     for(int finger=0; finger<FINGERMAX; finger++)
     {
-        int finger2 = TouchMapping_finger2FromFinger1(finger);
         //Only the real finger will show up as active
         struct FingerInfo* fingerInfo = PitchHandler_fingerState(phctx,finger);
         if(fingerInfo->isActive)
         {
+            int finger2 = TouchMapping_finger2FromFinger1(finger);
             float expr = fingerInfo->expr;
             float dx = (expr*expr*expr*expr)*chorusLevel;
             PitchHandler_pickPitch(phctx,finger,1,fingerInfo->fingerX,fingerInfo->fingerY);

@@ -36,8 +36,7 @@ void SurfaceDraw_init(
 struct WidgetTree_rect* SurfaceDraw_create()
 {
     struct WidgetTree_rect* itemP = NULL;
-    int widget=0;    
-    itemP = WidgetTree_add(widget,0,0,1,1);
+    itemP = WidgetTree_add(0,0,1,1);
     itemP->render = SurfaceDraw_render;
     itemP->up = SurfaceTouchHandling_touchesUp;
     itemP->down = SurfaceTouchHandling_touchesDown;

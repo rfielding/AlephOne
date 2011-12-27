@@ -22,7 +22,7 @@ static struct Fretless_context* fretlessp = NULL;
 static struct PitchHandler_context* phctx = NULL;
 static int (*fail)(const char*,...);
 static int (*logger)(const char*,...);
-static int currentWidget[FINGERMAX];
+static struct WidgetTree_rect* currentWidget[FINGERMAX];
 
 void GenericTouchHandling_touchesFlush()
 {
@@ -42,42 +42,45 @@ void GenericTouchHandling_touchesInit(
     logger = loggerArg;
         
     SurfaceTouchHandling_touchesInit(phctxArg,fctxArg,failArg,loggerArg);
+    
+    for(int f=0; f<FINGERMAX; f++)
+    {
+        currentWidget[f] = NULL;
+    }
 }
 
 void GenericTouchHandling_touchesUp(void* touch)
 {
     int finger  = TouchMapping_mapFinger(touch);
-    int wid = currentWidget[finger];
-    
-    struct WidgetTree_rect* itemP = WidgetTree_get(wid);
+    if(finger<0)fail("impossible state: finger is invalid: %d",finger);    
+    struct WidgetTree_rect* itemP = currentWidget[finger];
+    if(!itemP)fail("impossible state touchesUp: currentWidget for finger %d is not set.",finger);
     if(itemP && itemP->up)
     {
         itemP->up(itemP->ctx,finger,touch);        
     }
-    TouchMapping_unmapFinger(touch);
+    //We must unmap it unconditionally
+    TouchMapping_unmapFinger(touch);        
 }
 
 
 void GenericTouchHandling_touchesDown(void* touch,int isMoving,float x,float y, float velocity, float area)
 {
     int finger  = TouchMapping_mapFinger(touch);
-    int wid;
+    if(finger<0)fail("impossible state: finger is invalid: %d",finger);    
     
-    if(isMoving)
+    //We can only perform hit tests on finger down
+    if(!isMoving)
     {
-        wid = currentWidget[finger];
+        currentWidget[finger] = WidgetTree_hitTest(x,y);
     }
-    else
-    {
-        wid = WidgetTree_hitTest(x,y);        
-        currentWidget[finger] = wid;
-    }
-
-    struct WidgetTree_rect* itemP = WidgetTree_get(wid);
+    
+    struct WidgetTree_rect* itemP = currentWidget[finger];
+    if(!itemP)fail("impossible state touchesDown: currentWidget for finger %d is not set.",finger);    
     if(itemP && itemP->down)
     {
         itemP->down(itemP->ctx,finger,touch,isMoving,x,y,velocity,area);                    
-    }
+    }        
 }
 
 void GenericTouchHandling_tick()

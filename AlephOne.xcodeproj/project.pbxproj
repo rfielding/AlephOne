@@ -17,6 +17,7 @@
 		49400BF5149F128300F5B7C0 /* channelcycling.png in Resources */ = {isa = PBXBuildFile; fileRef = 49400BF4149F128200F5B7C0 /* channelcycling.png */; };
 		4959A8D6149702EB00D4F03B /* Transforms.c in Sources */ = {isa = PBXBuildFile; fileRef = 4959A8D4149702EA00D4F03B /* Transforms.c */; };
 		4959A8DA149842BD00D4F03B /* PressureSensor.m in Sources */ = {isa = PBXBuildFile; fileRef = 4959A8D9149842BC00D4F03B /* PressureSensor.m */; };
+		4963A35C14A9297700CE0C5A /* ButtonControl.c in Sources */ = {isa = PBXBuildFile; fileRef = 4963A35A14A9297700CE0C5A /* ButtonControl.c */; };
 		496749F214A2CB7D0053761F /* WidgetTree.c in Sources */ = {isa = PBXBuildFile; fileRef = 496749F014A2CB7D0053761F /* WidgetTree.c */; };
 		496862861481FB7600460B4B /* CoreMIDIRenderer.m in Sources */ = {isa = PBXBuildFile; fileRef = 496862851481FB7600460B4B /* CoreMIDIRenderer.m */; };
 		49B39079144914DC008C9F6E /* UIKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 49B39078144914DC008C9F6E /* UIKit.framework */; };
@@ -79,6 +80,8 @@
 		4959A8D5149702EB00D4F03B /* Transforms.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Transforms.h; sourceTree = "<group>"; };
 		4959A8D8149842BB00D4F03B /* PressureSensor.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PressureSensor.h; sourceTree = "<group>"; };
 		4959A8D9149842BC00D4F03B /* PressureSensor.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = PressureSensor.m; sourceTree = "<group>"; };
+		4963A35A14A9297700CE0C5A /* ButtonControl.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = ButtonControl.c; sourceTree = "<group>"; };
+		4963A35B14A9297700CE0C5A /* ButtonControl.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ButtonControl.h; sourceTree = "<group>"; };
 		496749F014A2CB7D0053761F /* WidgetTree.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = WidgetTree.c; sourceTree = "<group>"; };
 		496749F114A2CB7D0053761F /* WidgetTree.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = WidgetTree.h; sourceTree = "<group>"; };
 		496862841481FB7600460B4B /* CoreMIDIRenderer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CoreMIDIRenderer.h; sourceTree = "<group>"; };
@@ -309,6 +312,8 @@
 				49C429CA14A45DC900008AB0 /* WidgetConstants.h */,
 				49C429CB14A462AB00008AB0 /* SliderControl.c */,
 				49C429CC14A462AC00008AB0 /* SliderControl.h */,
+				4963A35A14A9297700CE0C5A /* ButtonControl.c */,
+				4963A35B14A9297700CE0C5A /* ButtonControl.h */,
 			);
 			name = PortableCode;
 			sourceTree = "<group>";
@@ -449,6 +454,7 @@
 				49C429C614A459E000008AB0 /* SurfaceDrawHandling.c in Sources */,
 				49C429C914A45D1200008AB0 /* ChannelOccupancyControl.c in Sources */,
 				49C429CD14A462AC00008AB0 /* SliderControl.c in Sources */,
+				4963A35C14A9297700CE0C5A /* ButtonControl.c in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
