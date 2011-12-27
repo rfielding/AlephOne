@@ -358,7 +358,7 @@ void WidgetsAssemble()
     float panelBottom = 0.9;
     float panelTop = 1.0;
     //This button cycles through pages of controls
-    CreateButton(PIC_PAGE1TEXT,0.0,0.9, 0.11,1, Page_set, Page_get, Button_render, 3);
+    CreateButton(PIC_PAGE1TEXT,0.0,0.9, 0.11,1, Page_set, Page_get, 3);
     
     //Page 1
     baseSlider = CreateSlider(PIC_BASENOTETEXT,0.12,panelBottom, 0.33,panelTop, NoteDiff_set, NoteDiff_get);    

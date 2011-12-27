@@ -33,8 +33,5 @@ struct Button_data* CreateButton(
                                      float x1,float y1,float x2,float y2,
                                      void (*setter)(void* ctx,int val), 
                                      int (*getter)(void* ctx),
-                                     void (*render)(void* ctx),
                                      int stateCount
                                      );
-
-void Button_render(void* ctx);

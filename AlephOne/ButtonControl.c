@@ -93,7 +93,6 @@ struct Button_data* CreateButton(
                                      float x1,float y1,float x2,float y2,
                                      void (*setter)(void* ctx,int val), 
                                      int (*getter)(void* ctx),
-                                     void (*render)(void* ctx),
                                      int stateCount
                                      )
 {
@@ -113,7 +112,7 @@ struct Button_data* CreateButton(
         button->val = 0;
     }
     widget->ctx = button;
-    widget->render = render;
+    widget->render = Button_render;
     widget->up = Button_up;
     widget->down = Button_down;
     return button;
