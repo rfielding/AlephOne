@@ -58,6 +58,9 @@ void drawOccupancyHandle(float cx, float cy, float diameter,float z)
 void ChannelOccupancyControl_render(void* ctx)
 {
     struct WidgetTree_rect* panel = ((struct ChannelOccupancyControl_data*)ctx)->rect;
+    int bottom = Fretless_getMidiHintChannelBase(fctx);
+    int span = Fretless_getMidiHintChannelSpan(fctx);
+    int top  = (bottom + span + 15)%16;
     
     float cx = (panel->x1 + panel->x2)/2;
     float cy = (panel->y1 + panel->y2)/2;
@@ -66,18 +69,16 @@ void ChannelOccupancyControl_render(void* ctx)
     //Draw the main radius of the channel cycle
     VertexObjectBuilder_startColoredObject(voCtxDynamic,linestrip);    
     float r = (diameter*0.25);
-    for(int channel=0; channel<16; channel++)
+    for(int channel=bottom; channel<(bottom+span); channel++)
     {
         float a = channel/16.0 * 2*M_PI;
         float cosA = cosf(a);
         float sinA = sinf(a);
-        VertexObjectBuilder_addColoredVertex(voCtxDynamic,cx+r*sinA,cy+r*cosA,0,0, 255, 0,127);                
+        VertexObjectBuilder_addColoredVertex(voCtxDynamic,cx+r*sinA,cy+r*cosA,0,0, 255, 0,127);                            
     }
-    VertexObjectBuilder_addColoredVertex(voCtxDynamic,cx,cy+r,0,0, 255, 0,127);  
+    //VertexObjectBuilder_addColoredVertex(voCtxDynamic,cx,cy+r,0,0, 255, 0,127);  
     
     VertexObjectBuilder_startColoredObject(voCtxDynamic,triangles);
-    int bottom = Fretless_getMidiHintChannelBase(fctx);
-    int top  = (bottom + Fretless_getMidiHintChannelSpan(fctx) + 15)%16;
     drawOccupancyHandle(cx,cy,diameter,bottom);
     drawOccupancyHandle(cx,cy,diameter,top);
     

@@ -255,6 +255,10 @@ void Fretless_setMidiHintChannelBase(struct Fretless_context* ctxp, int base)
         ctxp->fail("%d: base > 0 || base >= CHANNELMAX\n",base);
     }
     ctxp->channelBase = base;
+    if(ctxp->channelBase + ctxp->channelSpan > FINGERMAX)
+    {
+        ctxp->channelSpan = FINGERMAX - ctxp->channelBase;
+    }
 }
 
 int Fretless_getMidiHintChannelBase(struct Fretless_context* ctxp)
@@ -269,6 +273,10 @@ void Fretless_setMidiHintChannelSpan(struct Fretless_context* ctxp, int span)
         ctxp->fail("%d: span < 0 || span > CHANNELMAX\n",span);
     }
     ctxp->channelSpan = span;
+    if(ctxp->channelBase + ctxp->channelSpan > FINGERMAX)
+    {
+        ctxp->channelSpan = FINGERMAX - ctxp->channelBase;
+    }
 }
 
 int Fretless_getMidiHintChannelSpan(struct Fretless_context* ctxp)
