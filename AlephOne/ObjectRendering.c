@@ -73,6 +73,7 @@ struct Slider_data* rootNoteSlider;
 
 struct Slider_data* midiChannelSlider;
 struct Slider_data* midiChannelSpanSlider;
+struct Slider_data* midiBendSlider;
 
 static float baseNote = 2.0;
 
@@ -168,8 +169,9 @@ void ObjectRendering_loadImages()
     renderLabel("Page",PIC_PAGE1TEXT);
     renderLabel("Circle Of Fifths", PIC_ROOTNOTETEXT);
     renderLabel("Height", PIC_HEIGHTTEXT);
-    renderLabel("Midi Channel", PIC_MIDIBASETEXT);
-    renderLabel("Midi Channel Span", PIC_MIDISPANTEXT);
+    renderLabel("Channel", PIC_MIDIBASETEXT);
+    renderLabel("Channel Span", PIC_MIDISPANTEXT);
+    renderLabel("Bend Width", PIC_MIDIBENDTEXT);
 }
 
 int ObjectRendering_getTexture(int idx)
@@ -203,7 +205,7 @@ void Page_set(void* ctx, int val)
     rootNoteSlider->rect->isActive = FALSE;
     midiChannelSlider->rect->isActive = FALSE;
     midiChannelSpanSlider->rect->isActive = FALSE;
-    
+    midiBendSlider->rect->isActive = FALSE;
     switch(val)
     {
         case 0:
@@ -218,6 +220,7 @@ void Page_set(void* ctx, int val)
         case 2:
             midiChannelSlider->rect->isActive = TRUE;
             midiChannelSpanSlider->rect->isActive = TRUE;            
+            midiBendSlider->rect->isActive = TRUE;            
             break;
     }
 }
@@ -277,6 +280,17 @@ void MidiSpan_set(void* ctx, float val)
 float MidiSpan_get(void* ctx)
 {
     return (Fretless_getMidiHintChannelSpan(fctx)-1)/ 15.0;
+}
+
+
+void MidiBend_set(void* ctx, float val)
+{
+    Fretless_setMidiHintChannelBendSemis(fctx, (int)(val*22)+2);
+}
+
+float MidiBend_get(void* ctx)
+{
+    return (Fretless_getMidiHintChannelBendSemis(fctx)-2)/ 22.0;
 }
 
 float Intonation_get(void* ctx)
@@ -402,8 +416,9 @@ void WidgetsAssemble()
     rootNoteSlider = CreateSlider(PIC_ROOTNOTETEXT,0.502,panelBottom, 0.95,panelTop, RootNote_set, RootNote_get);
     
     //Page 3
-    midiChannelSlider = CreateSlider(PIC_MIDIBASETEXT, 0.12,panelBottom, 0.5,panelTop, MidiBase_set, MidiBase_get);
-    midiChannelSpanSlider = CreateSlider(PIC_MIDISPANTEXT, 0.52,panelBottom, 0.95,panelTop, MidiSpan_set, MidiSpan_get);
+    midiChannelSlider = CreateSlider(PIC_MIDIBASETEXT, 0.12,panelBottom, 0.33,panelTop, MidiBase_set, MidiBase_get);
+    midiChannelSpanSlider = CreateSlider(PIC_MIDISPANTEXT, 0.332,panelBottom, 0.66,panelTop, MidiSpan_set, MidiSpan_get);
+    midiBendSlider = CreateSlider(PIC_MIDIBENDTEXT, 0.662,panelBottom, 0.95,panelTop, MidiBend_set, MidiBend_get);
 
     //Set us to page 0 to start
     Page_set(NULL, 0);

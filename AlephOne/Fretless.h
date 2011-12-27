@@ -52,6 +52,7 @@ int Fretless_getMidiHintChannelSpan(struct Fretless_context* ctxp);
  * This is the number of semitones that a maxmimized bend will span
  */
 void Fretless_setMidiHintChannelBendSemis(struct Fretless_context* ctxp, int semitones);
+int Fretless_getMidiHintChannelBendSemis(struct Fretless_context* ctxp);
 
 /*
  * Use this to note that we would like to not send out bends to MIDI

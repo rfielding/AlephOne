@@ -327,6 +327,10 @@ void Fretless_setMidiHintChannelBendSemis(struct Fretless_context* ctxp, int sem
     }
 }
 
+int Fretless_getMidiHintChannelBendSemis(struct Fretless_context* ctxp)
+{
+    return ctxp->channelBendSemis;
+}
 
 /**
  Must call this before anything else is callable
