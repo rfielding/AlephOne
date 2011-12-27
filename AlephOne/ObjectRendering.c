@@ -65,11 +65,14 @@ static float lightPosition[3];
 
 //All the references to controls
 struct Slider_data* baseSlider;
-struct Slider_data* intonationSlider;
 struct Slider_data* widthSlider;
 struct Slider_data* heightSlider;
 
+struct Slider_data* intonationSlider;
 struct Slider_data* rootNoteSlider;
+
+struct Slider_data* midiChannelSlider;
+struct Slider_data* midiChannelSpanSlider;
 
 static float baseNote = 2.0;
 
@@ -165,6 +168,8 @@ void ObjectRendering_loadImages()
     renderLabel("Page",PIC_PAGE1TEXT);
     renderLabel("Circle Of Fifths", PIC_ROOTNOTETEXT);
     renderLabel("Height", PIC_HEIGHTTEXT);
+    renderLabel("Midi Channel", PIC_MIDIBASETEXT);
+    renderLabel("Midi Channel Span", PIC_MIDISPANTEXT);
 }
 
 int ObjectRendering_getTexture(int idx)
@@ -196,6 +201,8 @@ void Page_set(void* ctx, int val)
     widthSlider->rect->isActive = FALSE;
     heightSlider->rect->isActive = FALSE;
     rootNoteSlider->rect->isActive = FALSE;
+    midiChannelSlider->rect->isActive = FALSE;
+    midiChannelSpanSlider->rect->isActive = FALSE;
     
     switch(val)
     {
@@ -207,6 +214,10 @@ void Page_set(void* ctx, int val)
         case 1:
             intonationSlider->rect->isActive = TRUE;
             rootNoteSlider->rect->isActive = TRUE;
+            break;
+        case 2:
+            midiChannelSlider->rect->isActive = TRUE;
+            midiChannelSpanSlider->rect->isActive = TRUE;            
             break;
     }
 }
@@ -245,6 +256,27 @@ void Rows_set(void* ctx, float val)
 float Rows_get(void* ctx)
 {
     return (PitchHandler_getRowCount(phctx)-2)/7;
+}
+
+
+void MidiBase_set(void* ctx, float val)
+{
+    Fretless_setMidiHintChannelBase(fctx, (int)(val*15.99));
+}
+
+float MidiBase_get(void* ctx)
+{
+    return Fretless_getMidiHintChannelBase(fctx)/ 15.99;
+}
+
+void MidiSpan_set(void* ctx, float val)
+{
+    Fretless_setMidiHintChannelSpan(fctx, (int)(val*15)+1);
+}
+
+float MidiSpan_get(void* ctx)
+{
+    return (Fretless_getMidiHintChannelSpan(fctx)-1)/ 15.0;
 }
 
 float Intonation_get(void* ctx)
@@ -358,16 +390,20 @@ void WidgetsAssemble()
     float panelBottom = 0.9;
     float panelTop = 1.0;
     //This button cycles through pages of controls
-    CreateButton(PIC_PAGE1TEXT,0.0,0.9, 0.11,1, Page_set, Page_get, 3);
+    CreateButton(PIC_PAGE1TEXT,0.0,0.9, 0.11,1, Page_set, Page_get, 4);
     
     //Page 1
     baseSlider = CreateSlider(PIC_BASENOTETEXT,0.12,panelBottom, 0.33,panelTop, NoteDiff_set, NoteDiff_get);    
     widthSlider = CreateSlider(PIC_WIDTHTEXT,0.332,panelBottom, 0.66,panelTop, Cols_set, Cols_get);
-    heightSlider = CreateSlider(PIC_HEIGHTTEXT,0.662,panelBottom, 1,panelTop, Rows_set, Rows_get);
+    heightSlider = CreateSlider(PIC_HEIGHTTEXT,0.662,panelBottom, 0.95,panelTop, Rows_set, Rows_get);
     
     //Page 2
     intonationSlider = CreateSlider(PIC_SCALETEXT,0.12,panelBottom, 0.5,panelTop, Intonation_set, Intonation_get);
-    rootNoteSlider = CreateSlider(PIC_ROOTNOTETEXT,0.502,panelBottom, 1,panelTop, RootNote_set, RootNote_get);
+    rootNoteSlider = CreateSlider(PIC_ROOTNOTETEXT,0.502,panelBottom, 0.95,panelTop, RootNote_set, RootNote_get);
+    
+    //Page 3
+    midiChannelSlider = CreateSlider(PIC_MIDIBASETEXT, 0.12,panelBottom, 0.5,panelTop, MidiBase_set, MidiBase_get);
+    midiChannelSpanSlider = CreateSlider(PIC_MIDISPANTEXT, 0.52,panelBottom, 0.95,panelTop, MidiSpan_set, MidiSpan_get);
 
     //Set us to page 0 to start
     Page_set(NULL, 0);

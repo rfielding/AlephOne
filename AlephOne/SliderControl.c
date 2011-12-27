@@ -128,6 +128,7 @@ struct Slider_data* CreateSlider(
     slider->setter = setter;
     slider->getter = getter;
     slider->val = 0.5;
+    //shit... we will need to actually listen to changes.
     if(slider->getter)
     {
         slider->val = slider->getter(slider);
