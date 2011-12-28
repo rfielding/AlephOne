@@ -40,40 +40,34 @@ void Slider_render(void* ctx)
 {
     struct Slider_data* slider = (struct Slider_data*)ctx;
     
-    if(slider)
-    {
-        struct WidgetTree_rect* w = slider->rect;
-        if(w)
-        {            
-            float xv = w->x1 + slider->val * (w->x2 - w->x1);
-            VertexObjectBuilder_startColoredObject(voCtxDynamic,trianglestrip);
-            VertexObjectBuilder_addColoredVertex(voCtxDynamic, w->x1, w->y1, 0, 0,255,0,200);
-            VertexObjectBuilder_addColoredVertex(voCtxDynamic, w->x1, w->y2, 0, 0,  0,0,127);
-            VertexObjectBuilder_addColoredVertex(voCtxDynamic, xv,    w->y1, 0, 0,255,0,127);
-            VertexObjectBuilder_addColoredVertex(voCtxDynamic, xv,    w->y2, 0, 0,  0,0,127);    
-            
-            VertexObjectBuilder_startColoredObject(voCtxDynamic,trianglestrip);
-            VertexObjectBuilder_addColoredVertex(voCtxDynamic, xv,    w->y1, 0, 0, 50,50,100);
-            VertexObjectBuilder_addColoredVertex(voCtxDynamic, xv,    w->y2, 0, 0, 50,50,100);
-            VertexObjectBuilder_addColoredVertex(voCtxDynamic, w->x2, w->y1, 0, 0, 50,50,100);
-            VertexObjectBuilder_addColoredVertex(voCtxDynamic, w->x2, w->y2, 0, 0, 50,50,100); 
-            
-            VertexObjectBuilder_startColoredObject(voCtxDynamic,linestrip);
-            VertexObjectBuilder_addColoredVertex(voCtxDynamic, w->x1,    w->y1, 0, 0, 200, 0,100);
-            VertexObjectBuilder_addColoredVertex(voCtxDynamic, w->x1,    w->y2, 0, 0, 100,50, 50);
-            VertexObjectBuilder_addColoredVertex(voCtxDynamic, w->x2,    w->y2, 0, 0, 100,50, 80);
-            VertexObjectBuilder_addColoredVertex(voCtxDynamic, w->x2,    w->y1, 0, 0, 200,50,100);             
-            VertexObjectBuilder_addColoredVertex(voCtxDynamic, w->x1,    w->y1, 0, 0, 200,50,100);             
-        }
-        float s = 0.02;
-        float dx = 0.4;
-        float dy = 0.1;
-        VertexObjectBuilder_startTexturedObject(voCtxDynamic,trianglestrip,slider->label);
-        VertexObjectBuilder_addTexturedVertex(voCtxDynamic, w->x1+s, w->y1, 0, 0,0);
-        VertexObjectBuilder_addTexturedVertex(voCtxDynamic, w->x1+s, w->y1+dy, 0, 0,1);
-        VertexObjectBuilder_addTexturedVertex(voCtxDynamic, w->x1+dx+s, w->y1, 0, 1,0);
-        VertexObjectBuilder_addTexturedVertex(voCtxDynamic, w->x1+dx+s, w->y1+dy, 0, 1,1);        
-    }
+    struct WidgetTree_rect* w = slider->rect;
+    float xv = w->x1 + slider->getter(slider) * (w->x2 - w->x1);
+    VertexObjectBuilder_startColoredObject(voCtxDynamic,trianglestrip);
+    VertexObjectBuilder_addColoredVertex(voCtxDynamic, w->x1, w->y1, 0, 0,255,0,200);
+    VertexObjectBuilder_addColoredVertex(voCtxDynamic, w->x1, w->y2, 0, 0,  0,0,127);
+    VertexObjectBuilder_addColoredVertex(voCtxDynamic, xv,    w->y1, 0, 0,255,0,127);
+    VertexObjectBuilder_addColoredVertex(voCtxDynamic, xv,    w->y2, 0, 0,  0,0,127);    
+    
+    VertexObjectBuilder_startColoredObject(voCtxDynamic,trianglestrip);
+    VertexObjectBuilder_addColoredVertex(voCtxDynamic, xv,    w->y1, 0, 0, 50,50,100);
+    VertexObjectBuilder_addColoredVertex(voCtxDynamic, xv,    w->y2, 0, 0, 50,50,100);
+    VertexObjectBuilder_addColoredVertex(voCtxDynamic, w->x2, w->y1, 0, 0, 50,50,100);
+    VertexObjectBuilder_addColoredVertex(voCtxDynamic, w->x2, w->y2, 0, 0, 50,50,100); 
+    
+    VertexObjectBuilder_startColoredObject(voCtxDynamic,linestrip);
+    VertexObjectBuilder_addColoredVertex(voCtxDynamic, w->x1,    w->y1, 0, 0, 200, 0,100);
+    VertexObjectBuilder_addColoredVertex(voCtxDynamic, w->x1,    w->y2, 0, 0, 100,50, 50);
+    VertexObjectBuilder_addColoredVertex(voCtxDynamic, w->x2,    w->y2, 0, 0, 100,50, 80);
+    VertexObjectBuilder_addColoredVertex(voCtxDynamic, w->x2,    w->y1, 0, 0, 200,50,100);             
+    VertexObjectBuilder_addColoredVertex(voCtxDynamic, w->x1,    w->y1, 0, 0, 200,50,100);             
+    float s = 0.02;
+    float dx = 0.4;
+    float dy = 0.075;
+    VertexObjectBuilder_startTexturedObject(voCtxDynamic,trianglestrip,slider->label);
+    VertexObjectBuilder_addTexturedVertex(voCtxDynamic, w->x1+s, w->y1, 0, 0,0);
+    VertexObjectBuilder_addTexturedVertex(voCtxDynamic, w->x1+s, w->y1+dy, 0, 0,1);
+    VertexObjectBuilder_addTexturedVertex(voCtxDynamic, w->x1+dx+s, w->y1, 0, 1,0);
+    VertexObjectBuilder_addTexturedVertex(voCtxDynamic, w->x1+dx+s, w->y1+dy, 0, 1,1);        
 }
 
 void Slider_up(void* ctx,int finger,void* touch)
@@ -99,16 +93,19 @@ void Slider_down(void* ctx,int finger,void* touch,int isMoving,float x,float y, 
             {
                 fx = 1;
             }
-            if(slider->setter)
-            {
-                slider->setter(ctx,fx);        
-            }                    
-            slider->val = fx;
+            slider->setter(ctx,fx);        
         }
     }
 }
 
-float Slider_get(void* ctx)
+
+void GenericSetter(void* ctx, float val)
+{
+    struct Slider_data* slider = (struct Slider_data*)ctx;
+    slider->val = val;
+}
+
+float GenericGetter(void* ctx)
 {
     struct Slider_data* slider = (struct Slider_data*)ctx;
     return slider->val;
@@ -125,18 +122,11 @@ struct Slider_data* CreateSlider(
     struct Slider_data* slider = malloc(sizeof(struct Slider_data));
     slider->rect = widget;
     slider->label = label;
-    slider->setter = setter;
-    slider->getter = getter;
+    //This is only used to give generic sliders some state that generic getters retrieve
     slider->val = 0.5;
-    //shit... we will need to actually listen to changes.
-    if(slider->getter)
-    {
-        slider->val = slider->getter(slider);
-    }
-    else
-    {
-        slider->val = 0.5;
-    }
+    slider->setter = setter ? setter : GenericSetter;
+    slider->getter = getter ? getter : GenericGetter;
+    //Don't use val directly, as it's just here for the getter to have some state if the getter needs it
     widget->ctx = slider;
     widget->render = Slider_render;
     widget->up = Slider_up;

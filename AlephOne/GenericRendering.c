@@ -13,6 +13,7 @@
 #include "Transforms.h"
 #include <OpenGLES/ES1/gl.h>
 
+//This says that we should construct VertexObjectBuilder at a higher level
 #include <stdlib.h>
 #include <stdio.h>
 

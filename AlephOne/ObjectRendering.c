@@ -70,6 +70,7 @@ struct Slider_data* heightSlider;
 
 struct Slider_data* intonationSlider;
 struct Slider_data* rootNoteSlider;
+struct Slider_data* chorusSlider;
 
 struct Slider_data* midiChannelSlider;
 struct Slider_data* midiChannelSpanSlider;
@@ -172,6 +173,7 @@ void ObjectRendering_loadImages()
     renderLabel("Channel", PIC_MIDIBASETEXT);
     renderLabel("Channel Span", PIC_MIDISPANTEXT);
     renderLabel("Bend Width", PIC_MIDIBENDTEXT);
+    renderLabel("Chorus", PIC_CHORUSTEXT);
 }
 
 int ObjectRendering_getTexture(int idx)
@@ -206,6 +208,7 @@ void Page_set(void* ctx, int val)
     midiChannelSlider->rect->isActive = FALSE;
     midiChannelSpanSlider->rect->isActive = FALSE;
     midiBendSlider->rect->isActive = FALSE;
+    chorusSlider->rect->isActive = FALSE;
     switch(val)
     {
         case 0:
@@ -216,6 +219,7 @@ void Page_set(void* ctx, int val)
         case 1:
             intonationSlider->rect->isActive = TRUE;
             rootNoteSlider->rect->isActive = TRUE;
+            chorusSlider->rect->isActive = TRUE;
             break;
         case 2:
             midiChannelSlider->rect->isActive = TRUE;
@@ -233,12 +237,14 @@ int Page_get(void* ctx)
 
 void NoteDiff_set(void* ctx, float val)
 {
-    PitchHandler_setNoteDiff(phctx, 24-1+24*val);
+    //PitchHandler_setNoteDiff(phctx, 24-1+24*val);
+    PitchHandler_setNoteDiff(phctx, val*126);
 }
 
 float NoteDiff_get(void* ctx)
 {
-    return (PitchHandler_getNoteDiff(phctx)-23)/24.0;
+    //return (PitchHandler_getNoteDiff(phctx)-23)/24.0;
+    return PitchHandler_getNoteDiff(phctx)/126.0;
 }
 
 void Cols_set(void* ctx, float val)
@@ -253,14 +259,24 @@ float Cols_get(void* ctx)
 
 void Rows_set(void* ctx, float val)
 {
-    PitchHandler_setRowCount(phctx, 2 + val*7);
+    PitchHandler_setRowCount(phctx, 2 + val*6);
 }
 
 float Rows_get(void* ctx)
 {
-    return (PitchHandler_getRowCount(phctx)-2)/7;
+    return (PitchHandler_getRowCount(phctx)-2)/6;
 }
 
+
+void Chorus_set(void* ctx, float val)
+{
+    SurfaceTouchHandling_setChorusLevel(val);
+}
+
+float Chorus_get(void* ctx)
+{
+    return SurfaceTouchHandling_getChorusLevel();
+}
 
 void MidiBase_set(void* ctx, float val)
 {
@@ -401,19 +417,20 @@ void WidgetsAssemble()
     //Creating a raw control given just a rendering function
     ChannelOccupancyControl_create(cx - 0.2, cy - 0.2, cx + 0.2, cy + 0.2);
     
-    float panelBottom = 0.9;
+    float panelBottom = 0.92;
     float panelTop = 1.0;
     //This button cycles through pages of controls
-    CreateButton(PIC_PAGE1TEXT,0.0,0.9, 0.11,1, Page_set, Page_get, 4);
+    CreateButton(PIC_PAGE1TEXT,0.0,panelBottom, 0.11,panelTop, Page_set, Page_get, 4);
     
     //Page 1
-    baseSlider = CreateSlider(PIC_BASENOTETEXT,0.12,panelBottom, 0.33,panelTop, NoteDiff_set, NoteDiff_get);    
-    widthSlider = CreateSlider(PIC_WIDTHTEXT,0.332,panelBottom, 0.66,panelTop, Cols_set, Cols_get);
-    heightSlider = CreateSlider(PIC_HEIGHTTEXT,0.662,panelBottom, 0.95,panelTop, Rows_set, Rows_get);
+    widthSlider = CreateSlider(PIC_WIDTHTEXT,0.12,panelBottom, 0.5,panelTop, Cols_set, Cols_get);
+    heightSlider = CreateSlider(PIC_HEIGHTTEXT,0.502,panelBottom, 0.95,panelTop, Rows_set, Rows_get);
+    baseSlider = CreateSlider(PIC_BASENOTETEXT,0.12,panelBottom-0.07, 0.95,panelBottom, NoteDiff_set, NoteDiff_get);    
     
     //Page 2
-    intonationSlider = CreateSlider(PIC_SCALETEXT,0.12,panelBottom, 0.5,panelTop, Intonation_set, Intonation_get);
-    rootNoteSlider = CreateSlider(PIC_ROOTNOTETEXT,0.502,panelBottom, 0.95,panelTop, RootNote_set, RootNote_get);
+    intonationSlider = CreateSlider(PIC_SCALETEXT,0.12,panelBottom, 0.33,panelTop, Intonation_set, Intonation_get);
+    rootNoteSlider = CreateSlider(PIC_ROOTNOTETEXT,0.332,panelBottom, 0.66,panelTop, RootNote_set, RootNote_get);
+    chorusSlider = CreateSlider(PIC_CHORUSTEXT,0.662,panelBottom, 0.95,panelTop, Chorus_set, Chorus_get);
     
     //Page 3
     midiChannelSlider = CreateSlider(PIC_MIDIBASETEXT, 0.12,panelBottom, 0.33,panelTop, MidiBase_set, MidiBase_get);
