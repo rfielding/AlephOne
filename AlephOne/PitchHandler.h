@@ -38,9 +38,6 @@ struct FingerInfo
 
 struct PitchHandler_context* PitchHandler_init(struct Fret_context* fctx,void* (*allocFn)(unsigned long),int (*fail)(const char*,...),int (*logger)(const char*,...));
 
-//With x,y that came out of PitchHandler_translate,
-struct FingerInfo* PitchHandler_pickPitchRaw(struct PitchHandler_context* ctx, int finger,float x,float y);
-//Re-retrieve what pickPitchRaw created
 struct FingerInfo* PitchHandler_fingerState(struct PitchHandler_context* ctx, int finger);
 
 struct Fret_context* PitchHandler_frets(struct PitchHandler_context* ctx);
@@ -62,6 +59,8 @@ int PitchHandler_getNoteDiff(struct PitchHandler_context* ctx);
 
 int PitchHandler_getOctaveRounding(struct PitchHandler_context* ctx);
 void PitchHandler_setOctaveRounding(struct PitchHandler_context* ctx, int octRound);
+
+float PitchHandler_findStandardNote(struct PitchHandler_context* ctx, float x, float y);
 
 //Given where the finger is (in pitch terms), and whether it's moving (or just begin),
 //Compute the adjusted pitch for where this finger is beginning from, the end pitch it wants to go to.

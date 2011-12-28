@@ -43,6 +43,7 @@ static int trianglestrip;
 static int linestrip;
 
 static struct VertexObjectBuilder* voCtxDynamic;
+static struct VertexObjectBuilder* voCtxStatic;
 static struct PitchHandler_context* phctx;
 static struct Fretless_context* fctx;
 
@@ -76,6 +77,9 @@ struct Slider_data* midiChannelSlider;
 struct Slider_data* midiChannelSpanSlider;
 struct Slider_data* midiBendSlider;
 
+struct Button_data* octAutoButton;
+
+
 static float baseNote = 2.0;
 
 void WidgetsAssemble();
@@ -89,6 +93,7 @@ void ObjectRendering_updateLightOrientation(float x,float y, float z)
 
 void ObjectRendering_init(
                            struct VertexObjectBuilder* voCtxDynamicArg,
+                           struct VertexObjectBuilder* voCtxStaticArg,
                            struct PitchHandler_context* phctxArg,
                            struct Fretless_context* fctxArg,
                            int trianglesArg,
@@ -101,6 +106,7 @@ void ObjectRendering_init(
                            )
 {
     voCtxDynamic = voCtxDynamicArg;
+    voCtxStatic = voCtxStaticArg;
     phctx = phctxArg;
     fctx = fctxArg;
     triangles = trianglesArg;
@@ -111,7 +117,7 @@ void ObjectRendering_init(
     ObjectRendering_stringRender = ObjectRendering_stringRenderArg;
     ObjectRendering_drawVO       = ObjectRendering_drawVOArg;
   
-    SurfaceDraw_init(voCtxDynamicArg,phctxArg,trianglesArg,trianglestripArg);
+    SurfaceDraw_init(voCtxDynamicArg,voCtxStaticArg,phctxArg,trianglesArg,trianglestripArg,linestripArg);
     SliderControl_init(voCtxDynamicArg,phctxArg,trianglesArg,trianglestripArg,linestripArg);
     ButtonControl_init(voCtxDynamicArg,phctxArg,trianglesArg,trianglestripArg);
     ChannelOccupancyControl_touchesInit(triangles,trianglestrip,linestrip,voCtxDynamicArg, fctxArg);
@@ -150,6 +156,7 @@ void renderLabel(char* label, int texture)
 //This is called when we have set up the OpenGL context already
 void ObjectRendering_loadImages()
 {
+    /*
     for(int i=0; i < IMAGECOUNT; i++)
     {
         ObjectRendering_imageRender(
@@ -161,6 +168,7 @@ void ObjectRendering_loadImages()
             0
         );
     }
+     */
     //Loading up strings because we know that OpenGL context is now valid.
     //This may move to support re-rendering of strings
     renderLabel("Channel Cycling", PIC_CHANNELCYCLINGTEXT);
@@ -174,6 +182,7 @@ void ObjectRendering_loadImages()
     renderLabel("Channel Span", PIC_MIDISPANTEXT);
     renderLabel("Bend Width", PIC_MIDIBENDTEXT);
     renderLabel("Chorus", PIC_CHORUSTEXT);
+    renderLabel("Oct Auto", PIC_OCTTEXT);
 }
 
 int ObjectRendering_getTexture(int idx)
@@ -194,6 +203,7 @@ void GenericRendering_draw()
             itemP->render(itemP->ctx);            
         }
     }
+    ObjectRendering_drawVO(voCtxStatic);    
     ObjectRendering_drawVO(voCtxDynamic);    
 }
 
@@ -209,12 +219,14 @@ void Page_set(void* ctx, int val)
     midiChannelSpanSlider->rect->isActive = FALSE;
     midiBendSlider->rect->isActive = FALSE;
     chorusSlider->rect->isActive = FALSE;
+    octAutoButton->rect->isActive = FALSE;
     switch(val)
     {
         case 0:
             baseSlider->rect->isActive = TRUE;
             widthSlider->rect->isActive = TRUE;
             heightSlider->rect->isActive = TRUE;
+            octAutoButton->rect->isActive = TRUE;
             break;
         case 1:
             intonationSlider->rect->isActive = TRUE;
@@ -239,6 +251,7 @@ void NoteDiff_set(void* ctx, float val)
 {
     //PitchHandler_setNoteDiff(phctx, 24-1+24*val);
     PitchHandler_setNoteDiff(phctx, val*126);
+    SurfaceDraw_drawBackground();
 }
 
 float NoteDiff_get(void* ctx)
@@ -250,6 +263,7 @@ float NoteDiff_get(void* ctx)
 void Cols_set(void* ctx, float val)
 {
     PitchHandler_setColCount(phctx, 5 + val*7);
+    SurfaceDraw_drawBackground();
 }
 
 float Cols_get(void* ctx)
@@ -260,6 +274,7 @@ float Cols_get(void* ctx)
 void Rows_set(void* ctx, float val)
 {
     PitchHandler_setRowCount(phctx, 2 + val*6);
+    SurfaceDraw_drawBackground();
 }
 
 float Rows_get(void* ctx)
@@ -298,6 +313,15 @@ float MidiSpan_get(void* ctx)
     return (Fretless_getMidiHintChannelSpan(fctx)-1)/ 15.0;
 }
 
+void OctAuto_set(void* ctx, int val)
+{
+    PitchHandler_setOctaveRounding(phctx, val);
+}
+
+int OctAuto_get(void* ctx)
+{
+    return PitchHandler_getOctaveRounding(phctx);
+}
 
 void MidiBend_set(void* ctx, float val)
 {
@@ -309,10 +333,6 @@ float MidiBend_get(void* ctx)
     return (Fretless_getMidiHintChannelBendSemis(fctx)-2)/ 22.0;
 }
 
-float Intonation_get(void* ctx)
-{
-    return ((struct Slider_data*)ctx)->val;
-}
 
 void Intonation_do(float val)
 {
@@ -387,19 +407,19 @@ void Intonation_do(float val)
 void Intonation_set(void* ctx, float val)
 {
     Intonation_do(val);
+    intonationSlider->val = val;
 }
 
 void RootNote_set(void* ctx, float val)
 {
+    //Circle of fifths base note, which is an input into Intonation_set
     baseNote = (int)(7*((int)(12*val-4+12)) % 12);
-    //printf("%d\n",(int)baseNote);
-    Intonation_do(intonationSlider->val);
+    //This state needs to be maintained because we synthesized it
+    rootNoteSlider->val = val;
+    //Recompute the intonation with its same slider value
+    Intonation_do(intonationSlider->getter(intonationSlider));
 }
 
-float RootNote_get(void* ctx)
-{
-    return ((struct Slider_data*)ctx)->val;
-}
 
 
 /**
@@ -424,12 +444,13 @@ void WidgetsAssemble()
     
     //Page 1
     widthSlider = CreateSlider(PIC_WIDTHTEXT,0.12,panelBottom, 0.5,panelTop, Cols_set, Cols_get);
-    heightSlider = CreateSlider(PIC_HEIGHTTEXT,0.502,panelBottom, 0.95,panelTop, Rows_set, Rows_get);
-    baseSlider = CreateSlider(PIC_BASENOTETEXT,0.12,panelBottom-0.07, 0.95,panelBottom, NoteDiff_set, NoteDiff_get);    
+    heightSlider = CreateSlider(PIC_HEIGHTTEXT,0.502,panelBottom, 0.80,panelTop, Rows_set, Rows_get);
+    baseSlider = CreateSlider(PIC_BASENOTETEXT,0.12,panelBottom-0.07, 0.80,panelBottom, NoteDiff_set, NoteDiff_get);    
+    octAutoButton = CreateButton(PIC_OCTTEXT,0.802,panelBottom-0.07, 1,panelTop, OctAuto_set, OctAuto_get, 2);
     
     //Page 2
-    intonationSlider = CreateSlider(PIC_SCALETEXT,0.12,panelBottom, 0.33,panelTop, Intonation_set, Intonation_get);
-    rootNoteSlider = CreateSlider(PIC_ROOTNOTETEXT,0.332,panelBottom, 0.66,panelTop, RootNote_set, RootNote_get);
+    intonationSlider = CreateSlider(PIC_SCALETEXT,0.12,panelBottom, 0.33,panelTop, Intonation_set, NULL);
+    rootNoteSlider = CreateSlider(PIC_ROOTNOTETEXT,0.332,panelBottom, 0.66,panelTop, RootNote_set, NULL);
     chorusSlider = CreateSlider(PIC_CHORUSTEXT,0.662,panelBottom, 0.95,panelTop, Chorus_set, Chorus_get);
     
     //Page 3

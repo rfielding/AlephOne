@@ -200,7 +200,7 @@ static struct Fret_context* frctx;
     for(int s=0; s<16; s++)
     {
         //Set to Just fourths
-        PitchHandler_setTuneInterval(phctx,s,4.9804499913461244);
+        //PitchHandler_setTuneInterval(phctx,s,4.9804499913461244);
     }
     PitchHandler_setNoteDiff(phctx,45); //A is bottom corner
     PitchHandler_setTuneSpeed(phctx,0.25);

@@ -11,11 +11,15 @@ struct PitchHandler_context;
 
 void SurfaceDraw_init(
                       struct VertexObjectBuilder* voCtxDynamicArg,
+                      struct VertexObjectBuilder* voCtxStaticArg,
                       struct PitchHandler_context* phctxArg,
                       int trianglesArg,
-                      int trianglestripArg
+                      int trianglestripArg,
+                      int linestrip
                       );
 
 struct WidgetTree_rect* SurfaceDraw_create();
+
+void SurfaceDraw_drawBackground();
 
 void SurfaceDraw_render(void* ctx);

@@ -15,21 +15,29 @@
 #define NULL ((void*)0)
 static int triangles;
 static int trianglestrip;
+static int linestrip;
+static struct VertexObjectBuilder* voCtxStatic;
 static struct VertexObjectBuilder* voCtxDynamic;
 static struct PitchHandler_context* phctx;
+
+static int firstDraw = 0;
 
 
 void SurfaceDraw_init(
                           struct VertexObjectBuilder* voCtxDynamicArg,
+                          struct VertexObjectBuilder* voCtxStaticArg,
                           struct PitchHandler_context* phctxArg,
                           int trianglesArg,
-                          int trianglestripArg
+                          int trianglestripArg,
+                          int linestripArg
                       )
 {
     triangles = trianglesArg;
     trianglestrip = trianglestripArg;
+    linestrip = linestripArg;
     phctx = phctxArg;
     voCtxDynamic = voCtxDynamicArg;
+    voCtxStatic = voCtxStaticArg;
 }
 
 //This is always widget 0 with these bounds!
@@ -45,35 +53,77 @@ struct WidgetTree_rect* SurfaceDraw_create()
     return itemP;
 }
 
-void drawBackground()
+void SurfaceDraw_drawBackground()
 {    
-    VertexObjectBuilder_startColoredObject(voCtxDynamic,trianglestrip);
-    VertexObjectBuilder_addColoredVertex(voCtxDynamic, 0, 0, 0, 0,0,0,255);
-    VertexObjectBuilder_addColoredVertex(voCtxDynamic, 0, 1, 0, 0,0,0,255);
-    VertexObjectBuilder_addColoredVertex(voCtxDynamic, 1, 0, 0, 0,0,0,255);
-    VertexObjectBuilder_addColoredVertex(voCtxDynamic, 1, 1, 0, 0,0,0,255);    
+    VertexObjectBuilder_reset(voCtxStatic);
+    VertexObjectBuilder_startColoredObject(voCtxStatic,trianglestrip);
+    VertexObjectBuilder_addColoredVertex(voCtxStatic, 0, 0, 0, 0,0,0,255);
+    VertexObjectBuilder_addColoredVertex(voCtxStatic, 0, 1, 0, 0,0,0,255);
+    VertexObjectBuilder_addColoredVertex(voCtxStatic, 1, 0, 0, 0,0,0,255);
+    VertexObjectBuilder_addColoredVertex(voCtxStatic, 1, 1, 0, 0,0,0,255);    
     
+    float cols = PitchHandler_getColCount(phctx);
     float rows = PitchHandler_getRowCount(phctx);
     float dy = 1.0 / rows;
     float ds = dy/2;
+    VertexObjectBuilder_startColoredObject(voCtxStatic,triangles);
+    
+    for(float f=ds; f<rows; f+=dy)
+    {        
+        VertexObjectBuilder_addColoredVertex(voCtxStatic, 0, f   , 0, 0,255,255, 40);
+        VertexObjectBuilder_addColoredVertex(voCtxStatic, 1, f   , 0, 0,255,255, 40);
+        VertexObjectBuilder_addColoredVertex(voCtxStatic, 1, f+dy, 0, 0,  0,  0,  0);        
+        VertexObjectBuilder_addColoredVertex(voCtxStatic, 0, f+dy, 0, 0,  0,  0,  0);      
+        VertexObjectBuilder_addColoredVertex(voCtxStatic, 0, f   , 0, 0,255,255, 40);
+        VertexObjectBuilder_addColoredVertex(voCtxStatic, 1, f+dy, 0, 0,  0,  0,  0);
+        
+        VertexObjectBuilder_addColoredVertex(voCtxStatic, 0, f   , 0, 0,255,255, 40);
+        VertexObjectBuilder_addColoredVertex(voCtxStatic, 1, f   , 0, 0,255,255, 40);
+        VertexObjectBuilder_addColoredVertex(voCtxStatic, 1, f-dy, 0, 0,  0,  0,  0);        
+        VertexObjectBuilder_addColoredVertex(voCtxStatic, 0, f-dy, 0, 0,  0,  0,  0);      
+        VertexObjectBuilder_addColoredVertex(voCtxStatic, 0, f   , 0, 0,255,255, 40);
+        VertexObjectBuilder_addColoredVertex(voCtxStatic, 1, f-dy, 0, 0,  0,  0,  0);
+    }
+    ///* wow... this is SOOO slow!
+    VertexObjectBuilder_startColoredObject(voCtxStatic,triangles);
     for(float f=ds; f<rows; f+=dy)
     {
-        VertexObjectBuilder_startColoredObject(voCtxDynamic,triangles);
-        
-        VertexObjectBuilder_addColoredVertex(voCtxDynamic, 0, f   , 0, 0,255,255, 40);
-        VertexObjectBuilder_addColoredVertex(voCtxDynamic, 1, f   , 0, 0,255,255, 40);
-        VertexObjectBuilder_addColoredVertex(voCtxDynamic, 1, f+dy, 0, 0,  0,  0,  0);        
-        VertexObjectBuilder_addColoredVertex(voCtxDynamic, 0, f+dy, 0, 0,  0,  0,  0);      
-        VertexObjectBuilder_addColoredVertex(voCtxDynamic, 0, f   , 0, 0,255,255, 40);
-        VertexObjectBuilder_addColoredVertex(voCtxDynamic, 1, f+dy, 0, 0,  0,  0,  0);
-        
-        VertexObjectBuilder_addColoredVertex(voCtxDynamic, 0, f   , 0, 0,255,255, 40);
-        VertexObjectBuilder_addColoredVertex(voCtxDynamic, 1, f   , 0, 0,255,255, 40);
-        VertexObjectBuilder_addColoredVertex(voCtxDynamic, 1, f-dy, 0, 0,  0,  0,  0);        
-        VertexObjectBuilder_addColoredVertex(voCtxDynamic, 0, f-dy, 0, 0,  0,  0,  0);      
-        VertexObjectBuilder_addColoredVertex(voCtxDynamic, 0, f   , 0, 0,255,255, 40);
-        VertexObjectBuilder_addColoredVertex(voCtxDynamic, 1, f-dy, 0, 0,  0,  0,  0);
+        float dx = 0.02;
+        float iy = 0.02;
+        int stdNoteBase = ((int)PitchHandler_findStandardNote(phctx,0.5/cols,f));
+        for(int c=0; c<cols; c++)
+        {            
+            float x = (1.0*c + 0.5)/cols;
+            int stdNote = (stdNoteBase + c)%12;
+            switch(stdNote)
+            {
+                case 0:
+                case 2:
+                case 4:
+                case 5:
+                case 7:
+                case 9:
+                case 11:
+                    VertexObjectBuilder_addColoredVertex(voCtxStatic, x-dx, f-iy, 0, 0,255,255, 100);
+                    VertexObjectBuilder_addColoredVertex(voCtxStatic, x-dx, f+iy, 0, 0,255,255, 100);
+                    VertexObjectBuilder_addColoredVertex(voCtxStatic, x+dx, f+iy, 0, 0,255,255, 100);
+                    VertexObjectBuilder_addColoredVertex(voCtxStatic, x+dx, f+iy, 0, 0,255,255, 100);
+                    VertexObjectBuilder_addColoredVertex(voCtxStatic, x+dx, f-iy, 0, 0,255,255, 100);
+                    VertexObjectBuilder_addColoredVertex(voCtxStatic, x-dx, f-iy, 0, 0,255,255, 100);
+                    /*
+                    break;
+                default:
+                    VertexObjectBuilder_startColoredObject(voCtxStatic,linestrip);
+                    VertexObjectBuilder_addColoredVertex(voCtxStatic, x-dx, f-iy, 0, 0,255,255, 100);
+                    VertexObjectBuilder_addColoredVertex(voCtxStatic, x-dx, f+iy, 0, 0,255,255, 100);
+                    VertexObjectBuilder_addColoredVertex(voCtxStatic, x+dx, f+iy, 0, 0,255,255, 100);
+                    VertexObjectBuilder_addColoredVertex(voCtxStatic, x+dx, f-iy, 0, 0,255,255, 100);
+                    VertexObjectBuilder_addColoredVertex(voCtxStatic, x-dx, f-iy, 0, 0,255,255, 100);    
+                     */
+            }
+        }
     }
+     //*/
 }
 
 
@@ -208,7 +258,11 @@ void drawPitchLocation()
 
 void SurfaceDraw_render(void* ctx)
 {    
-    drawBackground();    
+    if(firstDraw == 0)
+    {
+        SurfaceDraw_drawBackground();    
+        firstDraw = 1;
+    }
     drawMoveableFrets();
     drawFingerLocation();
     drawPitchLocation();

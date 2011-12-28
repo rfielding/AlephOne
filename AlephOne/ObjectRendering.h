@@ -12,6 +12,7 @@ struct Fretless_context;
 
 void ObjectRendering_init(
                            struct VertexObjectBuilder* voCtxDynamicArg,
+                           struct VertexObjectBuilder* voCtxStaticArg,
                            struct PitchHandler_context* phctxArg,
                            struct Fretless_context* fctxArg,
                            int trianglesArg,

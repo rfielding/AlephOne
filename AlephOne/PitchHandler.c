@@ -155,6 +155,11 @@ void PitchHandler_unpickPitch(struct PitchHandler_context* ctx, int finger)
     ctx->fingers[finger].isActive = 0;
 }
 
+float PitchHandler_findStandardNote(struct PitchHandler_context* ctx, float x, float y)
+{
+    return (x * ctx->colCount) + ctx->tuneIntervalCumulative[(int)(y * ctx->rowCount)] + ctx->noteDiff;
+}
+
 struct FingerInfo* PitchHandler_pickPitch(struct PitchHandler_context* ctx, int finger,int isMoving,float x,float y)
 {
     ctx->fingers[finger].string = (ctx->rowCount * y);

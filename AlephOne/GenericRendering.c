@@ -40,6 +40,7 @@ void GenericRendering_init(
 {
     ObjectRendering_init(
                           VertexObjectBuilder_init(malloc,printf),
+                          VertexObjectBuilder_init(malloc,printf),
                           phctxArg,
                           fctxArg,
                           GL_TRIANGLES,
@@ -90,6 +91,7 @@ void GenericRendering_drawVO(struct VertexObjectBuilder* vobj)
 {    
     int voCount = VertexObjectBuilder_getVertexObjectsCount(vobj);
 
+    
     for(int o=0; o<voCount;o++)
     {
         struct VertexObject* vo = VertexObjectBuilder_getVertexObject(vobj,o);
