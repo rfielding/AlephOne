@@ -66,6 +66,7 @@ void GenericRendering_updateLightOrientation(float x,float y, float z)
 
 void GenericRendering_camera()
 {
+    //glClearColor(0,0,0,255);
     glDisable(GL_LIGHTING);
     
     glEnable(GL_TEXTURE_2D);

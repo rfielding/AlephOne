@@ -68,7 +68,7 @@ void SurfaceDraw_drawBackground()
     float ds = dy/2;
     VertexObjectBuilder_startColoredObject(voCtxStatic,triangles);
     
-    for(float f=ds; f<rows; f+=dy)
+    for(float f=ds; f<1.0; f+=dy)
     {        
         VertexObjectBuilder_addColoredVertex(voCtxStatic, 0, f   , 0, 0,255,255, 40);
         VertexObjectBuilder_addColoredVertex(voCtxStatic, 1, f   , 0, 0,255,255, 40);
@@ -84,9 +84,8 @@ void SurfaceDraw_drawBackground()
         VertexObjectBuilder_addColoredVertex(voCtxStatic, 0, f   , 0, 0,255,255, 40);
         VertexObjectBuilder_addColoredVertex(voCtxStatic, 1, f-dy, 0, 0,  0,  0,  0);
     }
-    ///* wow... this is SOOO slow!
     VertexObjectBuilder_startColoredObject(voCtxStatic,triangles);
-    for(float f=ds; f<rows; f+=dy)
+    for(float f=ds; f<1.0; f+=dy)
     {
         float dx = 0.02;
         float iy = 0.02;

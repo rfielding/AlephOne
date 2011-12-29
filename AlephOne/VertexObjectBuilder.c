@@ -9,8 +9,8 @@
 #include "VertexObjectBuilder.h"
 
 
-#define VOVERTEXMAX (16384)
-#define VOOBJMAX (512)
+#define VOVERTEXMAX (8192*2)
+#define VOOBJMAX (256)
 
 struct VertexObjectBuilder
 {
