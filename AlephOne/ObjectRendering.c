@@ -49,13 +49,11 @@ static struct Fretless_context* fctx;
 
 
 static char* requiredTexture[] = {
-    "tutorial",
-    "ashmedi",
-    "stars",
-    "channelcycling"
+    "alephonep2",
+    "ashmedi"
 };
 
-#define IMAGECOUNT 4
+#define IMAGECOUNT 2
 
 
 #define TEXTURECOUNT 256
@@ -156,7 +154,7 @@ void renderLabel(char* label, int texture)
 //This is called when we have set up the OpenGL context already
 void ObjectRendering_loadImages()
 {
-    /*
+    
     for(int i=0; i < IMAGECOUNT; i++)
     {
         ObjectRendering_imageRender(
@@ -168,7 +166,7 @@ void ObjectRendering_loadImages()
             0
         );
     }
-     */
+
     //Loading up strings because we know that OpenGL context is now valid.
     //This may move to support re-rendering of strings
     renderLabel("Channel Cycling", PIC_CHANNELCYCLINGTEXT);
@@ -183,6 +181,7 @@ void ObjectRendering_loadImages()
     renderLabel("Bend Width", PIC_MIDIBENDTEXT);
     renderLabel("Chorus", PIC_CHORUSTEXT);
     renderLabel("Oct Auto", PIC_OCTTEXT);
+    SurfaceDraw_drawBackground();
 }
 
 int ObjectRendering_getTexture(int idx)
@@ -350,11 +349,11 @@ void Intonation_do(float val)
         
         if(val > 0.95)
         {
-            Fret_placeFret(frctx, baseNote + 12*log2f(13.0/12),  1);                        
+            Fret_placeFret(frctx, baseNote + 12*log2f(9.0/8),  3);            
         }
         else
         {
-            Fret_placeFret(frctx, baseNote + 12*log2f(9.0/8),  3);            
+            Fret_placeFret(frctx, baseNote + 12*log2f(13.0/12),  1);                        
         }
     }
     else

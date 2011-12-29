@@ -51,8 +51,8 @@ void drawOccupancyHandle(float cx, float cy, float diameter,float z)
     float cosC = cosf(z);
     float sinC = sinf(z);
     VertexObjectBuilder_addColoredVertex(voCtxDynamic,cx+rB*sinC,cy+rB*cosC,0,255, 255,255,255);        
-    VertexObjectBuilder_addColoredVertex(voCtxDynamic,cx+rA*sinA,cy+rA*cosA,0,200, 200,  0,255);        
-    VertexObjectBuilder_addColoredVertex(voCtxDynamic,cx+rA*sinB,cy+rA*cosB,0,200, 200,  0,255);        
+    VertexObjectBuilder_addColoredVertex(voCtxDynamic,cx+rA*sinA,cy+rA*cosA,0,200, 200,  0,200);        
+    VertexObjectBuilder_addColoredVertex(voCtxDynamic,cx+rA*sinB,cy+rA*cosB,0,200, 200,  0,200);        
 }
 
 void ChannelOccupancyControl_render(void* ctx)
@@ -78,7 +78,7 @@ void ChannelOccupancyControl_render(void* ctx)
         float cosA = cosf(a);
         float sinA = sinf(a);
         VertexObjectBuilder_addColoredVertex(voCtxDynamic,cx+r*sinA,cy+r*cosA,0,0, 127, 50,100);                            
-        VertexObjectBuilder_addColoredVertex(voCtxDynamic,cx+r2*sinA,cy+r2*cosA,0,0, 127, 50,100);                            
+        VertexObjectBuilder_addColoredVertex(voCtxDynamic,cx+r2*sinA,cy+r2*cosA,0,0, 127, 50,0);                            
     }
     
     float rLo = r/2 - (r/2)/bend;

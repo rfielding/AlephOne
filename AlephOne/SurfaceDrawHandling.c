@@ -11,6 +11,7 @@
 #include "PitchHandler.h"
 #include "SurfaceTouchHandling.h"
 #include "WidgetTree.h"
+#include "WidgetConstants.h"
 
 #define NULL ((void*)0)
 static int triangles;
@@ -56,11 +57,16 @@ struct WidgetTree_rect* SurfaceDraw_create()
 void SurfaceDraw_drawBackground()
 {    
     VertexObjectBuilder_reset(voCtxStatic);
+    VertexObjectBuilder_startTexturedObject(voCtxStatic,trianglestrip,PIC_ALEPHONE);
+    VertexObjectBuilder_addTexturedVertex(voCtxStatic, 0.1+0.00, 0.05+0.00, 0, 0,0);
+    VertexObjectBuilder_addTexturedVertex(voCtxStatic, 0.1+0.00, 0.05+0.25, 0, 0,1);
+    VertexObjectBuilder_addTexturedVertex(voCtxStatic, 0.1+0.20, 0.05+0.00, 0, 1,0);
+    VertexObjectBuilder_addTexturedVertex(voCtxStatic, 0.1+0.20, 0.05+0.25, 0, 1,1);    
     VertexObjectBuilder_startColoredObject(voCtxStatic,trianglestrip);
-    VertexObjectBuilder_addColoredVertex(voCtxStatic, 0, 0, 0, 0,0,0,255);
-    VertexObjectBuilder_addColoredVertex(voCtxStatic, 0, 1, 0, 0,0,0,255);
-    VertexObjectBuilder_addColoredVertex(voCtxStatic, 1, 0, 0, 0,0,0,255);
-    VertexObjectBuilder_addColoredVertex(voCtxStatic, 1, 1, 0, 0,0,0,255);    
+    VertexObjectBuilder_addColoredVertex(voCtxStatic, 0, 0, 0, 0,0,0,200);
+    VertexObjectBuilder_addColoredVertex(voCtxStatic, 0, 1, 0, 0,0,0,200);
+    VertexObjectBuilder_addColoredVertex(voCtxStatic, 1, 0, 0, 0,0,0,200);
+    VertexObjectBuilder_addColoredVertex(voCtxStatic, 1, 1, 0, 0,0,0,200);    
     
     float cols = PitchHandler_getColCount(phctx);
     float rows = PitchHandler_getRowCount(phctx);
@@ -94,6 +100,9 @@ void SurfaceDraw_drawBackground()
         {            
             float x = (1.0*c + 0.5)/cols;
             int stdNote = (stdNoteBase + c)%12;
+            int r;
+            int g;
+            int b;
             switch(stdNote)
             {
                 case 0:
@@ -103,23 +112,21 @@ void SurfaceDraw_drawBackground()
                 case 7:
                 case 9:
                 case 11:
-                    VertexObjectBuilder_addColoredVertex(voCtxStatic, x-dx, f-iy, 0, 0,255,255, 100);
-                    VertexObjectBuilder_addColoredVertex(voCtxStatic, x-dx, f+iy, 0, 0,255,255, 100);
-                    VertexObjectBuilder_addColoredVertex(voCtxStatic, x+dx, f+iy, 0, 0,255,255, 100);
-                    VertexObjectBuilder_addColoredVertex(voCtxStatic, x+dx, f+iy, 0, 0,255,255, 100);
-                    VertexObjectBuilder_addColoredVertex(voCtxStatic, x+dx, f-iy, 0, 0,255,255, 100);
-                    VertexObjectBuilder_addColoredVertex(voCtxStatic, x-dx, f-iy, 0, 0,255,255, 100);
-                    /*
+                    r=0;
+                    g=255;
+                    b=255;
                     break;
                 default:
-                    VertexObjectBuilder_startColoredObject(voCtxStatic,linestrip);
-                    VertexObjectBuilder_addColoredVertex(voCtxStatic, x-dx, f-iy, 0, 0,255,255, 100);
-                    VertexObjectBuilder_addColoredVertex(voCtxStatic, x-dx, f+iy, 0, 0,255,255, 100);
-                    VertexObjectBuilder_addColoredVertex(voCtxStatic, x+dx, f+iy, 0, 0,255,255, 100);
-                    VertexObjectBuilder_addColoredVertex(voCtxStatic, x+dx, f-iy, 0, 0,255,255, 100);
-                    VertexObjectBuilder_addColoredVertex(voCtxStatic, x-dx, f-iy, 0, 0,255,255, 100);    
-                     */
+                    r=0;
+                    g=0;
+                    b=0;
             }
+            VertexObjectBuilder_addColoredVertex(voCtxStatic, x-dx, f-iy, 0, r,g,b, 100);
+            VertexObjectBuilder_addColoredVertex(voCtxStatic, x-dx, f+iy, 0, r,g,b, 100);
+            VertexObjectBuilder_addColoredVertex(voCtxStatic, x+dx, f+iy, 0, r,g,b, 100);
+            VertexObjectBuilder_addColoredVertex(voCtxStatic, x+dx, f+iy, 0, r,g,b, 100);
+            VertexObjectBuilder_addColoredVertex(voCtxStatic, x+dx, f-iy, 0, r,g,b, 100);
+            VertexObjectBuilder_addColoredVertex(voCtxStatic, x-dx, f-iy, 0, r,g,b, 100);
         }
     }
      //*/

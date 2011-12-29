@@ -20,6 +20,7 @@
 		4963A35C14A9297700CE0C5A /* ButtonControl.c in Sources */ = {isa = PBXBuildFile; fileRef = 4963A35A14A9297700CE0C5A /* ButtonControl.c */; };
 		496749F214A2CB7D0053761F /* WidgetTree.c in Sources */ = {isa = PBXBuildFile; fileRef = 496749F014A2CB7D0053761F /* WidgetTree.c */; };
 		496862861481FB7600460B4B /* CoreMIDIRenderer.m in Sources */ = {isa = PBXBuildFile; fileRef = 496862851481FB7600460B4B /* CoreMIDIRenderer.m */; };
+		499ADD8814AC0A200007CAA3 /* alephonep2.png in Resources */ = {isa = PBXBuildFile; fileRef = 499ADD8714AC0A200007CAA3 /* alephonep2.png */; };
 		49B39079144914DC008C9F6E /* UIKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 49B39078144914DC008C9F6E /* UIKit.framework */; };
 		49B3907B144914DC008C9F6E /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 49B3907A144914DC008C9F6E /* Foundation.framework */; };
 		49B3907D144914DC008C9F6E /* CoreGraphics.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 49B3907C144914DC008C9F6E /* CoreGraphics.framework */; };
@@ -86,6 +87,7 @@
 		496749F114A2CB7D0053761F /* WidgetTree.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = WidgetTree.h; sourceTree = "<group>"; };
 		496862841481FB7600460B4B /* CoreMIDIRenderer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CoreMIDIRenderer.h; sourceTree = "<group>"; };
 		496862851481FB7600460B4B /* CoreMIDIRenderer.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = CoreMIDIRenderer.m; sourceTree = "<group>"; };
+		499ADD8714AC0A200007CAA3 /* alephonep2.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = alephonep2.png; sourceTree = "<group>"; };
 		49B39074144914DC008C9F6E /* AlephOne.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = AlephOne.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		49B39078144914DC008C9F6E /* UIKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = UIKit.framework; path = System/Library/Frameworks/UIKit.framework; sourceTree = SDKROOT; };
 		49B3907A144914DC008C9F6E /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = System/Library/Frameworks/Foundation.framework; sourceTree = SDKROOT; };
@@ -254,6 +256,7 @@
 		49B39083144914DC008C9F6E /* Supporting Files */ = {
 			isa = PBXGroup;
 			children = (
+				499ADD8714AC0A200007CAA3 /* alephonep2.png */,
 				49400BF4149F128200F5B7C0 /* channelcycling.png */,
 				49400BEA149F06E400F5B7C0 /* stars.png */,
 				49400BD4149E617500F5B7C0 /* alephonesmall.png */,
@@ -398,6 +401,7 @@
 				49400BD5149E617600F5B7C0 /* alephonesmall.png in Resources */,
 				49400BEB149F06E600F5B7C0 /* stars.png in Resources */,
 				49400BF5149F128300F5B7C0 /* channelcycling.png in Resources */,
+				499ADD8814AC0A200007CAA3 /* alephonep2.png in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

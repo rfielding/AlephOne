@@ -7,7 +7,7 @@
 //
 
 
-#define PIC_TUTORIAL 0
+#define PIC_ALEPHONE 0
 #define PIC_ASHMEDI 1
 #define PIC_STARS 2
 #define PIC_CHANNELCYCLING 3

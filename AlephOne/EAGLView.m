@@ -82,6 +82,12 @@ static struct Fret_context* frctx;
         default: NSLog(@"height %d is not a power of 2!",height);
     }
     CGContextClearRect( context, CGRectMake( 0, 0, width, height ) );
+    
+    CGContextSaveGState(context);
+    CGAffineTransform flipVertical = CGAffineTransformMake
+    (1, 0, 0, -1, 0, height); //set the flip
+    CGContextConcatCTM(context, flipVertical); //apply it to context
+    
     CGContextTranslateCTM( context, 0, height - height );
 
     CGContextDrawImage( context, CGRectMake( 0, 0, width, height ), image.CGImage );   
