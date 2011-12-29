@@ -60,6 +60,7 @@ void ChannelOccupancyControl_render(void* ctx)
     struct WidgetTree_rect* panel = ((struct ChannelOccupancyControl_data*)ctx)->rect;
     int bottom = Fretless_getMidiHintChannelBase(fctx);
     int span = Fretless_getMidiHintChannelSpan(fctx);
+    int bend = Fretless_getMidiHintChannelBendSemis(fctx);
     int top  = (bottom + span + 15)%16;
     
     float cx = (panel->x1 + panel->x2)/2;
@@ -67,15 +68,30 @@ void ChannelOccupancyControl_render(void* ctx)
     float diameter = (panel->x2 - panel->x1);
     
     //Draw the main radius of the channel cycle
-    VertexObjectBuilder_startColoredObject(voCtxDynamic,linestrip);    
     float r = (diameter*0.25);
+    float r2 = r + diameter*0.05;
+    
+    VertexObjectBuilder_startColoredObject(voCtxDynamic,trianglestrip);    
     for(int channel=bottom; channel<(bottom+span); channel++)
     {
         float a = channel/16.0 * 2*M_PI;
         float cosA = cosf(a);
         float sinA = sinf(a);
-        VertexObjectBuilder_addColoredVertex(voCtxDynamic,cx+r*sinA,cy+r*cosA,0,0, 255, 0,127);                            
+        VertexObjectBuilder_addColoredVertex(voCtxDynamic,cx+r*sinA,cy+r*cosA,0,0, 127, 50,100);                            
+        VertexObjectBuilder_addColoredVertex(voCtxDynamic,cx+r2*sinA,cy+r2*cosA,0,0, 127, 50,100);                            
     }
+    
+    float rLo = r/2 - (r/2)/bend;
+    float rHi = r/2 + (r/2)/bend;
+    VertexObjectBuilder_startColoredObject(voCtxDynamic,trianglestrip);    
+    for(int channel=bottom; channel<(bottom+span+1); channel++)
+    {
+        float a = channel/16.0 * 2*M_PI;
+        float cosA = cosf(a);
+        float sinA = sinf(a);
+        VertexObjectBuilder_addColoredVertex(voCtxDynamic,cx+rLo*sinA,cy+rLo*cosA,0, 0, 0, 200,75);                            
+        VertexObjectBuilder_addColoredVertex(voCtxDynamic,cx+rHi*sinA,cy+rHi*cosA,0,200, 0,  0,75);                            
+    }    
     //VertexObjectBuilder_addColoredVertex(voCtxDynamic,cx,cy+r,0,0, 255, 0,127);  
     
     VertexObjectBuilder_startColoredObject(voCtxDynamic,triangles);
@@ -115,10 +131,10 @@ void ChannelOccupancyControl_render(void* ctx)
         
     }
     VertexObjectBuilder_startTexturedObject(voCtxDynamic,trianglestrip,PIC_CHANNELCYCLINGTEXT);
-    VertexObjectBuilder_addTexturedVertex(voCtxDynamic, cx-diameter/2, cy+diameter/8 - diameter/4, 0, 0,1);
-    VertexObjectBuilder_addTexturedVertex(voCtxDynamic, cx-diameter/2, cy-diameter/8 - diameter/4, 0, 0,0);
-    VertexObjectBuilder_addTexturedVertex(voCtxDynamic, cx+diameter/2, cy+diameter/8 - diameter/4, 0, 1,1);
-    VertexObjectBuilder_addTexturedVertex(voCtxDynamic, cx+diameter/2, cy-diameter/8 - diameter/4, 0, 1,0);
+    VertexObjectBuilder_addTexturedVertex(voCtxDynamic, cx-diameter/2 + diameter/8, cy+diameter/8 - diameter/4, 0, 0,1);
+    VertexObjectBuilder_addTexturedVertex(voCtxDynamic, cx-diameter/2 + diameter/8, cy-diameter/8 - diameter/4, 0, 0,0);
+    VertexObjectBuilder_addTexturedVertex(voCtxDynamic, cx+diameter/2 + diameter/8, cy+diameter/8 - diameter/4, 0, 1,1);
+    VertexObjectBuilder_addTexturedVertex(voCtxDynamic, cx+diameter/2 + diameter/8, cy-diameter/8 - diameter/4, 0, 1,0);
 }
 
 struct ChannelOccupancyControl_data* ChannelOccupancyControl_create(float x1,float y1, float x2,float y2)
