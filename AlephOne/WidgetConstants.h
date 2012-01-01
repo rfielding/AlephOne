@@ -23,3 +23,16 @@
 #define PIC_MIDIBENDTEXT 13
 #define PIC_CHORUSTEXT 14
 #define PIC_OCTTEXT 15
+
+#define PIC_NOTE0 32
+#define PIC_NOTE1 33
+#define PIC_NOTE2 34
+#define PIC_NOTE3 35
+#define PIC_NOTE4 36
+#define PIC_NOTE5 37
+#define PIC_NOTE6 38
+#define PIC_NOTE7 39
+#define PIC_NOTE8 40
+#define PIC_NOTE9 41
+#define PIC_NOTE10 42
+#define PIC_NOTE11 43

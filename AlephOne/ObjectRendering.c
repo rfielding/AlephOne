@@ -435,6 +435,22 @@ void ObjectRendering_loadImages()
     
     renderLabel("Chorus", PIC_CHORUSTEXT);
     renderLabel("Oct Auto", PIC_OCTTEXT);
+    
+    //Render a contiguous group of note pre-rendered images
+    //(sharps/flats don't exist for now... a problem I will tackle later)
+    for(int n=0; n < 12; n++)
+    {
+        int i = n + PIC_NOTE0;
+        sprintf(stringRenderBuffer,"note-%d",n);
+        ObjectRendering_imageRender(
+                                    ObjectRendering_imageContext,
+                                    stringRenderBuffer,
+                                    &textures[i],
+                                    &textureWidth[i],
+                                    &textureHeight[i],
+                                    0
+                                    );
+    }    
     SurfaceDraw_drawBackground();
 }
 

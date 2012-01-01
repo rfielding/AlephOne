@@ -90,7 +90,6 @@ void SurfaceDraw_drawBackground()
         VertexObjectBuilder_addColoredVertex(voCtxStatic, 0, f   , 0, 0,255,255, 40);
         VertexObjectBuilder_addColoredVertex(voCtxStatic, 1, f-dy, 0, 0,  0,  0,  0);
     }
-    VertexObjectBuilder_startColoredObject(voCtxStatic,triangles);
     for(float f=ds; f<1.0; f+=dy)
     {
         float dx = 0.02;
@@ -103,6 +102,7 @@ void SurfaceDraw_drawBackground()
             int r;
             int g;
             int b;
+            int isNatural = 0;
             switch(stdNote)
             {
                 case 0:
@@ -115,18 +115,18 @@ void SurfaceDraw_drawBackground()
                     r=0;
                     g=255;
                     b=255;
+                    isNatural = 1;
                     break;
                 default:
                     r=0;
                     g=0;
                     b=0;
             }
-            VertexObjectBuilder_addColoredVertex(voCtxStatic, x-dx, f-iy, 0, r,g,b, 100);
-            VertexObjectBuilder_addColoredVertex(voCtxStatic, x-dx, f+iy, 0, r,g,b, 100);
-            VertexObjectBuilder_addColoredVertex(voCtxStatic, x+dx, f+iy, 0, r,g,b, 100);
-            VertexObjectBuilder_addColoredVertex(voCtxStatic, x+dx, f+iy, 0, r,g,b, 100);
-            VertexObjectBuilder_addColoredVertex(voCtxStatic, x+dx, f-iy, 0, r,g,b, 100);
-            VertexObjectBuilder_addColoredVertex(voCtxStatic, x-dx, f-iy, 0, r,g,b, 100);
+            VertexObjectBuilder_startTexturedObject(voCtxStatic,trianglestrip,(PIC_NOTE0+stdNote));
+            VertexObjectBuilder_addTexturedVertex(voCtxStatic, x-dx, f-iy, 0, 0,0);
+            VertexObjectBuilder_addTexturedVertex(voCtxStatic, x-dx, f+iy, 0, 0,1);
+            VertexObjectBuilder_addTexturedVertex(voCtxStatic, x+dx, f-iy, 0, 1,0);
+            VertexObjectBuilder_addTexturedVertex(voCtxStatic, x+dx, f+iy, 0, 1,1);
         }
     }
      //*/
