@@ -81,7 +81,7 @@ void Fretless_down(struct Fretless_context* ctxp, int finger,float fnote,int pol
  * Invoke this from the controller to send expression.  It sends nothing right now, but should
  * send MIDI CCs at some point.
  */
-void Fretless_express(struct Fretless_context* ctxp, int finger,int key,int val);
+void Fretless_express(struct Fretless_context* ctxp, int finger,int key,float val);
 
 /*
  * Move a finger around, and optionally state if it happened to move into a new logical polyphony

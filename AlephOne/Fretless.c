@@ -777,10 +777,19 @@ void Fretless_up(struct Fretless_context* ctxp, int finger)
     }
 }
 
-//Callable for down or move, before flush
-void Fretless_express(struct Fretless_context* ctxp, int finger,int key,int val)
+//Callable for down or move, before flush - key should be a valid CC
+void Fretless_express(struct Fretless_context* ctxp, int finger,int key,float val)
 {
-    FINGERCHECK(ctxp,finger)    
+    FINGERCHECK(ctxp,finger)  
+    struct Fretless_fingerState* fsPtr = &ctxp->fingers[finger];
+    if(fsPtr->isOn == FALSE)
+    {
+        ctxp->fail("finger %d: Fretless_express && fsPtr->isOn == FALSE\n",finger);
+    }    
+    
+    ctxp->midiPutch(0xB0+ fsPtr->channel);
+    ctxp->midiPutch(key % 127);
+    ctxp->midiPutch(((int)(val*127)) % 127);   
 }
 
 float Fretless_move(struct Fretless_context* ctxp, int finger,float fnote,int polyGroup)

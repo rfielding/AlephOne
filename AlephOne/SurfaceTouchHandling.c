@@ -99,11 +99,11 @@ void SurfaceTouchHandling_touchesDown(void* ctx,int finger,void* touch,int isMov
     if(isMoving)
     {
         Fretless_move(fretlessp,finger1,note-dx,polyGroup1);
-        Fretless_express(fretlessp, finger1, 0, expr);
+        Fretless_express(fretlessp, finger1, 11, expr);
         if(chorusLevel > 0)
         {
             Fretless_move(fretlessp,finger2,note+dx,polyGroup2);
-            Fretless_express(fretlessp, finger2, 0, expr);                                
+            Fretless_express(fretlessp, finger2, 11, expr);                                
         }
     }
     else
@@ -112,11 +112,11 @@ void SurfaceTouchHandling_touchesDown(void* ctx,int finger,void* touch,int isMov
         //logger("vel=%f\n",velocity);
         int legato = 0;
         Fretless_down(fretlessp,finger1, note-dx,polyGroup1,velocity,legato); 
-        Fretless_express(fretlessp, finger1, 0, expr);
+        Fretless_express(fretlessp, finger1, 11, expr);
         if(chorusLevel > 0)
         {
             Fretless_down(fretlessp,finger2,note+dx,polyGroup2,velocity,legato); 
-            Fretless_express(fretlessp, finger2, 0, expr);                    
+            Fretless_express(fretlessp, finger2, 11, expr);                    
         }
     }
 }
