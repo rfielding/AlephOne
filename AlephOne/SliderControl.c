@@ -126,6 +126,7 @@ struct Slider_data* CreateSlider(
     slider->val = 0.5;
     slider->setter = setter ? setter : GenericSetter;
     slider->getter = getter ? getter : GenericGetter;
+    slider->val = slider->getter(slider);
     //Don't use val directly, as it's just here for the getter to have some state if the getter needs it
     widget->ctx = slider;
     widget->render = Slider_render;

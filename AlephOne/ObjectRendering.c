@@ -77,6 +77,7 @@ struct Slider_data* midiBendSlider;
 
 struct Button_data* octAutoButton;
 
+static char stringRenderBuffer[1024];
 
 static float baseNote = 2.0;
 
@@ -124,7 +125,7 @@ void ObjectRendering_init(
 
 //Pass a funtion pointer to this for anything that needs to update a string
 //The impl might need to maintain more state to be efficient.
-void reRenderString(unsigned int texture,char* val,int* w, int* h)
+void reRenderString(char* val,unsigned int texture)
 {
     //These need to be re-rendered into the same slot
     ObjectRendering_stringRender(
@@ -135,11 +136,11 @@ void reRenderString(unsigned int texture,char* val,int* w, int* h)
                                  &textureHeight[texture],
                                  0
                                  );    
-    *w = textureWidth[texture];
-    *h = textureHeight[texture];
+//    *w = textureWidth[texture];
+//    *h = textureHeight[texture];
 }
 
-void renderLabel(char* label, int texture)
+void renderLabel(char* label, unsigned int texture)
 {
     ObjectRendering_stringRender(
                                  ObjectRendering_imageContext,
@@ -177,8 +178,8 @@ void ObjectRendering_loadImages()
     renderLabel("Circle Of Fifths", PIC_ROOTNOTETEXT);
     renderLabel("Height", PIC_HEIGHTTEXT);
     renderLabel("Channel", PIC_MIDIBASETEXT);
-    renderLabel("Channel Span", PIC_MIDISPANTEXT);
-    renderLabel("Bend Width", PIC_MIDIBENDTEXT);
+    renderLabel("Span", PIC_MIDISPANTEXT);
+    renderLabel("Bend", PIC_MIDIBENDTEXT);
     renderLabel("Chorus", PIC_CHORUSTEXT);
     renderLabel("Oct Auto", PIC_OCTTEXT);
     SurfaceDraw_drawBackground();
@@ -294,7 +295,10 @@ float Chorus_get(void* ctx)
 
 void MidiBase_set(void* ctx, float val)
 {
-    Fretless_setMidiHintChannelBase(fctx, (int)(val*15.99));
+    int ival = (int)(val*15.99);
+    sprintf(stringRenderBuffer,"Channel: %d",ival+1);
+    reRenderString(stringRenderBuffer, PIC_MIDIBASETEXT);
+    Fretless_setMidiHintChannelBase(fctx, ival);
 }
 
 float MidiBase_get(void* ctx)
@@ -304,7 +308,10 @@ float MidiBase_get(void* ctx)
 
 void MidiSpan_set(void* ctx, float val)
 {
-    Fretless_setMidiHintChannelSpan(fctx, (int)(val*15)+1);
+    int ival = (int)(val*15)+1;
+    sprintf(stringRenderBuffer,"Span: %d",ival);
+    reRenderString(stringRenderBuffer, PIC_MIDISPANTEXT);
+    Fretless_setMidiHintChannelSpan(fctx, ival);
 }
 
 float MidiSpan_get(void* ctx)
@@ -324,7 +331,10 @@ int OctAuto_get(void* ctx)
 
 void MidiBend_set(void* ctx, float val)
 {
-    Fretless_setMidiHintChannelBendSemis(fctx, (int)(val*22)+2);
+    int ival = (int)(val*22)+2;
+    sprintf(stringRenderBuffer,"Bend: %d", ival);
+    reRenderString(stringRenderBuffer, PIC_MIDIBENDTEXT);
+    Fretless_setMidiHintChannelBendSemis(fctx, ival);
 }
 
 float MidiBend_get(void* ctx)
@@ -453,8 +463,13 @@ void WidgetsAssemble()
     chorusSlider = CreateSlider(PIC_CHORUSTEXT,0.662,panelBottom, 0.95,panelTop, Chorus_set, Chorus_get);
     
     //Page 3
+    MidiBase_set(NULL,MidiBase_get(NULL));
     midiChannelSlider = CreateSlider(PIC_MIDIBASETEXT, 0.12,panelBottom, 0.33,panelTop, MidiBase_set, MidiBase_get);
+    
+    MidiSpan_set(NULL,MidiSpan_get(NULL));
     midiChannelSpanSlider = CreateSlider(PIC_MIDISPANTEXT, 0.332,panelBottom, 0.66,panelTop, MidiSpan_set, MidiSpan_get);
+    
+    MidiBend_set(NULL,MidiBend_get(NULL));
     midiBendSlider = CreateSlider(PIC_MIDIBENDTEXT, 0.662,panelBottom, 0.95,panelTop, MidiBend_set, MidiBend_get);
 
     //Set us to page 0 to start
