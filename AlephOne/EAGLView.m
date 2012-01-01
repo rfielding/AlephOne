@@ -244,7 +244,7 @@ void stringRender(void* ctx,char* str,unsigned int* textureName,float* width,flo
     if(isInitialized==FALSE)
     {        
         PressureSensor_setup();
-        Transforms_clockwiseOrientation();
+        //Transforms_clockwiseOrientation();
         frctx = Fret_init(malloc);
         phctx = PitchHandler_init(frctx,malloc,printf,printf);
         fctx = Fretless_init(
@@ -418,13 +418,15 @@ void stringRender(void* ctx,char* str,unsigned int* textureName,float* width,flo
             
             //Yes, the forbidden finger area touch is back! (For now anyways)
             float area = 1.0;
+            ///*
             id valFloat = [touch valueForKey:@"pathMajorRadius"];
             if(valFloat != nil)
             {
                 area = ([valFloat floatValue]-4)/7.0;
-                area *= area*area;
+                //area *= area*area;
                 area *= 2;
             }
+             //*/
             //NSLog(@"%f",PressureSensor_pressure);
             //NSLog(@"area=%f",area);
             GenericTouchHandling_touchesDown(touch,phase == UITouchPhaseMoved,x,y, PressureSensor_pressure, area); 

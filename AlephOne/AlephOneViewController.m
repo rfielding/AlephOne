@@ -45,6 +45,13 @@
     
 }
 
+
+- (BOOL)shouldAutorotateToInterfaceOrientation:(UIInterfaceOrientation)interfaceOrientation
+{
+    return TRUE; //UIInterfaceOrientationIsLandscape(interfaceOrientation);
+}
+
+
 - (void)dealloc
 {
     if (program) {
