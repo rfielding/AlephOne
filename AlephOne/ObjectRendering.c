@@ -152,38 +152,7 @@ void renderLabel(char* label, unsigned int texture)
                                  );    
 }
 
-//This is called when we have set up the OpenGL context already
-void ObjectRendering_loadImages()
-{
-    
-    for(int i=0; i < IMAGECOUNT; i++)
-    {
-        ObjectRendering_imageRender(
-            ObjectRendering_imageContext,
-            requiredTexture[i],
-            &textures[i],
-            &textureWidth[i],
-            &textureHeight[i],
-            0
-        );
-    }
 
-    //Loading up strings because we know that OpenGL context is now valid.
-    //This may move to support re-rendering of strings
-    renderLabel("Channel Cycling", PIC_CHANNELCYCLINGTEXT);
-    renderLabel("Center",PIC_BASENOTETEXT);
-    renderLabel("Scale",PIC_SCALETEXT);
-    renderLabel("Width",PIC_WIDTHTEXT);
-    renderLabel("Page",PIC_PAGE1TEXT);
-    renderLabel("Circle Of Fifths", PIC_ROOTNOTETEXT);
-    renderLabel("Height", PIC_HEIGHTTEXT);
-    renderLabel("Channel", PIC_MIDIBASETEXT);
-    renderLabel("Span", PIC_MIDISPANTEXT);
-    renderLabel("Bend", PIC_MIDIBENDTEXT);
-    renderLabel("Chorus", PIC_CHORUSTEXT);
-    renderLabel("Oct Auto", PIC_OCTTEXT);
-    SurfaceDraw_drawBackground();
-}
 
 int ObjectRendering_getTexture(int idx)
 {
@@ -429,7 +398,45 @@ void RootNote_set(void* ctx, float val)
     Intonation_do(intonationSlider->getter(intonationSlider));
 }
 
-
+//This is called when we have set up the OpenGL context already
+void ObjectRendering_loadImages()
+{
+    
+    for(int i=0; i < IMAGECOUNT; i++)
+    {
+        ObjectRendering_imageRender(
+                                    ObjectRendering_imageContext,
+                                    requiredTexture[i],
+                                    &textures[i],
+                                    &textureWidth[i],
+                                    &textureHeight[i],
+                                    0
+                                    );
+    }
+    
+    //Loading up strings because we know that OpenGL context is now valid.
+    //This may move to support re-rendering of strings
+    renderLabel("Channel Cycling", PIC_CHANNELCYCLINGTEXT);
+    renderLabel("Center",PIC_BASENOTETEXT);
+    renderLabel("Scale",PIC_SCALETEXT);
+    renderLabel("Width",PIC_WIDTHTEXT);
+    renderLabel("Page",PIC_PAGE1TEXT);
+    renderLabel("Circle Of Fifths", PIC_ROOTNOTETEXT);
+    renderLabel("Height", PIC_HEIGHTTEXT);
+    
+    renderLabel("Channel", PIC_MIDIBASETEXT);
+    MidiBase_set(NULL,MidiBase_get(NULL));
+    
+    renderLabel("Span", PIC_MIDISPANTEXT);
+    MidiSpan_set(NULL,MidiSpan_get(NULL));
+    
+    renderLabel("Bend", PIC_MIDIBENDTEXT);
+    MidiBend_set(NULL,MidiBend_get(NULL));
+    
+    renderLabel("Chorus", PIC_CHORUSTEXT);
+    renderLabel("Oct Auto", PIC_OCTTEXT);
+    SurfaceDraw_drawBackground();
+}
 
 /**
  *  This assembles all of the controls, and invokes the callbacks, usually locally defined.
@@ -463,13 +470,8 @@ void WidgetsAssemble()
     chorusSlider = CreateSlider(PIC_CHORUSTEXT,0.662,panelBottom, 0.95,panelTop, Chorus_set, Chorus_get);
     
     //Page 3
-    MidiBase_set(NULL,MidiBase_get(NULL));
-    midiChannelSlider = CreateSlider(PIC_MIDIBASETEXT, 0.12,panelBottom, 0.33,panelTop, MidiBase_set, MidiBase_get);
-    
-    MidiSpan_set(NULL,MidiSpan_get(NULL));
-    midiChannelSpanSlider = CreateSlider(PIC_MIDISPANTEXT, 0.332,panelBottom, 0.66,panelTop, MidiSpan_set, MidiSpan_get);
-    
-    MidiBend_set(NULL,MidiBend_get(NULL));
+    midiChannelSlider = CreateSlider(PIC_MIDIBASETEXT, 0.12,panelBottom, 0.33,panelTop, MidiBase_set, MidiBase_get);    
+    midiChannelSpanSlider = CreateSlider(PIC_MIDISPANTEXT, 0.332,panelBottom, 0.66,panelTop, MidiSpan_set, MidiSpan_get);    
     midiBendSlider = CreateSlider(PIC_MIDIBENDTEXT, 0.662,panelBottom, 0.95,panelTop, MidiBend_set, MidiBend_get);
 
     //Set us to page 0 to start
