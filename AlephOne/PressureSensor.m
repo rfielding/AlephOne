@@ -50,7 +50,7 @@ float PressureSensor_zNorm=1;
 
 - (void)setup {
     NSLog(@"PressureSensor setup");
-    PressureSensor_pressure = 0.0;
+    PressureSensor_pressure = 1.0;
     
     [[UIAccelerometer sharedAccelerometer] setUpdateInterval:1.0f / kUpdateFrequency];
     [[UIAccelerometer sharedAccelerometer] setDelegate:self];

@@ -95,7 +95,7 @@ void SurfaceTouchHandling_touchesDown(void* ctx,int finger,void* touch,int isMov
     int polyGroup1 = polygroup;
     //This is wrong for more than 8 strings
     int polyGroup2 = (polygroup+8)%FINGERMAX;
-    float dx = (expr*expr*expr*expr)*chorusLevel;
+    float dx = (expr*expr*expr*expr)*chorusLevel*0.5;
     if(isMoving)
     {
         Fretless_move(fretlessp,finger1,note-dx,polyGroup1);
@@ -108,14 +108,14 @@ void SurfaceTouchHandling_touchesDown(void* ctx,int finger,void* touch,int isMov
     }
     else
     {
-        float velocity = 1.0*velocity*area;
-        //logger("vel=%f\n",velocity);
+        float v = area;
+        //logger("v=%f velo=%f area=%f\n",v, velocity,area);
         int legato = 0;
-        Fretless_down(fretlessp,finger1, note-dx,polyGroup1,velocity,legato); 
+        Fretless_down(fretlessp,finger1, note-dx,polyGroup1,v,legato); 
         Fretless_express(fretlessp, finger1, 11, expr);
         if(chorusLevel > 0)
         {
-            Fretless_down(fretlessp,finger2,note+dx,polyGroup2,velocity,legato); 
+            Fretless_down(fretlessp,finger2,note+dx,polyGroup2,v,legato); 
             Fretless_express(fretlessp, finger2, 11, expr);                    
         }
     }

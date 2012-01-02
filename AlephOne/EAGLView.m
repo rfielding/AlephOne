@@ -427,9 +427,10 @@ void stringRender(void* ctx,char* str,unsigned int* textureName,float* width,flo
                 area *= 2;
             }
              //*/
-            //NSLog(@"%f",PressureSensor_pressure);
-            //NSLog(@"area=%f",area);
-            GenericTouchHandling_touchesDown(touch,phase == UITouchPhaseMoved,x,y, PressureSensor_pressure, area); 
+            //NSLog(@"p %f",PressureSensor_pressure);
+            //NSLog(@"a %f",area);
+            GenericTouchHandling_touchesDown(touch,phase == UITouchPhaseMoved,x,y, 
+                                             10*PressureSensor_pressure, area); 
         }
     }
     GenericTouchHandling_touchesFlush();    
