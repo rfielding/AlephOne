@@ -6,6 +6,7 @@
 //  Copyright 2011 Check Point Software. All rights reserved.
 //
 
+//These are the indices for images, kept here to ensure that they are unique
 
 #define PIC_ALEPHONE 0
 #define PIC_ASHMEDI 1

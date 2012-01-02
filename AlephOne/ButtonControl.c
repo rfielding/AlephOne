@@ -48,9 +48,9 @@ void Button_render(void* ctx)
             int b = 255 * ((button->val/4) %8);
             VertexObjectBuilder_startColoredObject(voCtxDynamic,trianglestrip);
             VertexObjectBuilder_addColoredVertex(voCtxDynamic, w->x1, w->y1, 0, r,  g,b,200);
-            VertexObjectBuilder_addColoredVertex(voCtxDynamic, w->x1, w->y2, 0, r,  g,b,127);
+            VertexObjectBuilder_addColoredVertex(voCtxDynamic, w->x1, w->y2, 0, r,  g,b, 80);
             VertexObjectBuilder_addColoredVertex(voCtxDynamic, w->x2, w->y1, 0, r,  g,b,127);
-            VertexObjectBuilder_addColoredVertex(voCtxDynamic, w->x2, w->y2, 0, r,  g,b,127);                
+            VertexObjectBuilder_addColoredVertex(voCtxDynamic, w->x2, w->y2, 0, r,  g,b, 80);                
         }
         float s = 0.01;
         float dx = 0.4;
