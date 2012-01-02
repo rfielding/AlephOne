@@ -106,11 +106,11 @@
 		49691AC114B0DC94009AB83D /* note-7.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "note-7.png"; sourceTree = "<group>"; };
 		49691AC214B0DC94009AB83D /* note-9.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "note-9.png"; sourceTree = "<group>"; };
 		49691AC314B0DC94009AB83D /* note-11.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "note-11.png"; sourceTree = "<group>"; };
-		49691ACB14B0DD6E009AB83D /* note-1.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = "note-1.png"; path = "AlephOne/note-1.png"; sourceTree = "<group>"; };
-		49691ACC14B0DD6E009AB83D /* note-3.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = "note-3.png"; path = "AlephOne/note-3.png"; sourceTree = "<group>"; };
-		49691ACD14B0DD6E009AB83D /* note-6.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = "note-6.png"; path = "AlephOne/note-6.png"; sourceTree = "<group>"; };
-		49691ACE14B0DD6E009AB83D /* note-8.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = "note-8.png"; path = "AlephOne/note-8.png"; sourceTree = "<group>"; };
-		49691ACF14B0DD6E009AB83D /* note-10.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = "note-10.png"; path = "AlephOne/note-10.png"; sourceTree = "<group>"; };
+		49691ACB14B0DD6E009AB83D /* note-1.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "note-1.png"; sourceTree = "<group>"; };
+		49691ACC14B0DD6E009AB83D /* note-3.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "note-3.png"; sourceTree = "<group>"; };
+		49691ACD14B0DD6E009AB83D /* note-6.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "note-6.png"; sourceTree = "<group>"; };
+		49691ACE14B0DD6E009AB83D /* note-8.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "note-8.png"; sourceTree = "<group>"; };
+		49691ACF14B0DD6E009AB83D /* note-10.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "note-10.png"; sourceTree = "<group>"; };
 		499ADD8714AC0A200007CAA3 /* alephonep2.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = alephonep2.png; sourceTree = "<group>"; };
 		49B39074144914DC008C9F6E /* AlephOne.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = AlephOne.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		49B39078144914DC008C9F6E /* UIKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = UIKit.framework; path = System/Library/Frameworks/UIKit.framework; sourceTree = SDKROOT; };
@@ -239,11 +239,6 @@
 		49B39069144914DB008C9F6E = {
 			isa = PBXGroup;
 			children = (
-				49691ACB14B0DD6E009AB83D /* note-1.png */,
-				49691ACC14B0DD6E009AB83D /* note-3.png */,
-				49691ACD14B0DD6E009AB83D /* note-6.png */,
-				49691ACE14B0DD6E009AB83D /* note-8.png */,
-				49691ACF14B0DD6E009AB83D /* note-10.png */,
 				49B39082144914DC008C9F6E /* AlephOne */,
 				49B39077144914DC008C9F6E /* Frameworks */,
 				49B39075144914DC008C9F6E /* Products */,
@@ -285,6 +280,11 @@
 		49B39083144914DC008C9F6E /* Supporting Files */ = {
 			isa = PBXGroup;
 			children = (
+				49691ACB14B0DD6E009AB83D /* note-1.png */,
+				49691ACC14B0DD6E009AB83D /* note-3.png */,
+				49691ACD14B0DD6E009AB83D /* note-6.png */,
+				49691ACE14B0DD6E009AB83D /* note-8.png */,
+				49691ACF14B0DD6E009AB83D /* note-10.png */,
 				49691ABD14B0DC92009AB83D /* note-0.png */,
 				49691ABE14B0DC93009AB83D /* note-2.png */,
 				49691ABF14B0DC93009AB83D /* note-4.png */,
