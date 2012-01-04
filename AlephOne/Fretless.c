@@ -724,6 +724,7 @@ void Fretless_up(struct Fretless_context* ctxp, int finger)
         ctxp->fail("finger %d: Fretless_up && fsPtr->isOn == FALSE\n",finger);
     }
     
+    int oldVelocity = fsPtr->velocity;
     int fingerWasSupressed = fsPtr->isSupressed;
     int fingerToTurnOn = Fretless_unlink(ctxp, finger);
             
@@ -761,6 +762,8 @@ void Fretless_up(struct Fretless_context* ctxp, int finger)
             ctxp->fail("turningOffPtr->isSupressed should not be supressed\n");
         }
         Fretless_setCurrentBend(ctxp,fingerToTurnOn);
+        //Adopt the velocity of the note that uncovers us
+        turningOnPtr->velocity = oldVelocity;
         ctxp->midiPutch(MIDI_ON + turningOnPtr->channel);
         ctxp->midiPutch(turningOnPtr->note);
         ctxp->midiPutch(turningOnPtr->velocity);

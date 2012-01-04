@@ -24,6 +24,7 @@
 #define PIC_MIDIBENDTEXT 13
 #define PIC_CHORUSTEXT 14
 #define PIC_OCTTEXT 15
+#define PIC_BASEVOLTEXT 16
 
 #define PIC_NOTE0 32
 #define PIC_NOTE1 33

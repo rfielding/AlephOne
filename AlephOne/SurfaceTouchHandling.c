@@ -19,6 +19,7 @@
 
 static float chorusLevelDesired = 0;
 static float chorusLevel = 0;
+static float baseVolume = 1.0;
 
 static struct Fretless_context* fretlessp = NULL;
 static struct PitchHandler_context* phctx = NULL;
@@ -108,7 +109,8 @@ void SurfaceTouchHandling_touchesDown(void* ctx,int finger,void* touch,int isMov
     }
     else
     {
-        float v = area;
+        float v = baseVolume;
+        //float v = area;
         //logger("v=%f velo=%f area=%f\n",v, velocity,area);
         int legato = 0;
         Fretless_beginDown(fretlessp,finger1); 
@@ -172,3 +174,12 @@ void SurfaceTouchHandling_setChorusLevel(float chorus)
     chorusLevelDesired = chorus;
 }
 
+float SurfaceTouchHandling_getBaseVolume()
+{
+    return baseVolume;
+}
+
+void SurfaceTouchHandling_setBaseVolume(float val)
+{
+    baseVolume = val;
+}

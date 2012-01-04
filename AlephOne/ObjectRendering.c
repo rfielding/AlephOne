@@ -75,6 +75,8 @@ struct Slider_data* midiChannelSlider;
 struct Slider_data* midiChannelSpanSlider;
 struct Slider_data* midiBendSlider;
 
+struct Slider_data* baseVolumeSlider;
+
 struct Button_data* octAutoButton;
 
 static char stringRenderBuffer[1024];
@@ -189,6 +191,7 @@ void Page_set(void* ctx, int val)
     midiBendSlider->rect->isActive = FALSE;
     chorusSlider->rect->isActive = FALSE;
     octAutoButton->rect->isActive = FALSE;
+    baseVolumeSlider->rect->isActive = FALSE;
     switch(val)
     {
         case 0:
@@ -206,6 +209,9 @@ void Page_set(void* ctx, int val)
             midiChannelSlider->rect->isActive = TRUE;
             midiChannelSpanSlider->rect->isActive = TRUE;            
             midiBendSlider->rect->isActive = TRUE;            
+            break;
+        case 3:
+            baseVolumeSlider->rect->isActive = TRUE;
             break;
     }
 }
@@ -296,6 +302,16 @@ void OctAuto_set(void* ctx, int val)
 int OctAuto_get(void* ctx)
 {
     return PitchHandler_getOctaveRounding(phctx);
+}
+
+float Vel_get(void* ctx)
+{
+    return SurfaceTouchHandling_getBaseVolume();
+}
+
+void Vel_set(void* ctx, float vel)
+{
+    SurfaceTouchHandling_setBaseVolume(vel);
 }
 
 void MidiBend_set(void* ctx, float val)
@@ -436,6 +452,8 @@ void ObjectRendering_loadImages()
     renderLabel("Chorus", PIC_CHORUSTEXT);
     renderLabel("Oct Auto", PIC_OCTTEXT);
     
+    renderLabel("Velocity", PIC_BASEVOLTEXT);
+    
     //Render a contiguous group of note pre-rendered images
     //(sharps/flats don't exist for now... a problem I will tackle later)
     for(int n=0; n < 12; n++)
@@ -472,7 +490,7 @@ void WidgetsAssemble()
     float panelBottom = 0.92;
     float panelTop = 1.0;
     //This button cycles through pages of controls
-    CreateButton(PIC_PAGE1TEXT,0.0,panelBottom, 0.11,panelTop, Page_set, Page_get, 4);
+    CreateButton(PIC_PAGE1TEXT,0.0,panelBottom, 0.11,panelTop, Page_set, Page_get, 5);
     
     //Page 1
     widthSlider = CreateSlider(PIC_WIDTHTEXT,0.12,panelBottom, 0.5,panelTop, Cols_set, Cols_get);
@@ -490,6 +508,8 @@ void WidgetsAssemble()
     midiChannelSpanSlider = CreateSlider(PIC_MIDISPANTEXT, 0.332,panelBottom, 0.66,panelTop, MidiSpan_set, MidiSpan_get);    
     midiBendSlider = CreateSlider(PIC_MIDIBENDTEXT, 0.662,panelBottom, 0.95,panelTop, MidiBend_set, MidiBend_get);
 
+    baseVolumeSlider = CreateSlider(PIC_BASEVOLTEXT, 0.12,panelBottom, 0.95,panelTop, Vel_set, Vel_get);
+    
     //Set us to page 0 to start
     Page_set(NULL, 0);
 }
