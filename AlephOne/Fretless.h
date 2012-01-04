@@ -74,9 +74,12 @@ void Fretless_boot(struct Fretless_context* ctxp);
  * group, then there will be a combination of chording and legato available.
  *
  * When this note goes on, it will supress other notes in the same polyphony group if they exist.
+ *
+ * It is split into begin and end so that express calls can be sandwiched in the middle.
+ * This ensures that the parameter is correct before the note begins.
  */
-void Fretless_down(struct Fretless_context* ctxp, int finger,float fnote,int polyGroup,float velocity,int legato);
-
+void Fretless_beginDown(struct Fretless_context* ctxp, int finger);
+void Fretless_endDown(struct Fretless_context* ctxp, int finger,float fnote,int polyGroup,float velocity,int legato);
 /*
  * Invoke this from the controller to send expression.  It sends nothing right now, but should
  * send MIDI CCs at some point.

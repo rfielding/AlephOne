@@ -92,8 +92,8 @@ void SurfaceDraw_drawBackground()
     }
     for(float f=ds; f<1.0; f+=dy)
     {
-        float dx = 0.022;
-        float iy = 0.022;
+        float dx = 0.023;
+        float iy = 0.023;
         int stdNoteBase = ((int)PitchHandler_findStandardNote(phctx,0.5/cols,f));
         for(int c=0; c<cols; c++)
         {            

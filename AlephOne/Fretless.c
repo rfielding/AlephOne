@@ -627,12 +627,11 @@ int Fretless_unlink(struct Fretless_context* ctxp,int finger)
 }
 
 //Must call this (per finger) before others are callable
-void Fretless_down(struct Fretless_context* ctxp, int finger,float fnote,int polyGroup,float velocity,int legato)
+void Fretless_beginDown(struct Fretless_context* ctxp, int finger)
 {
     STATECHECK(ctxp)
     FINGERCHECK(ctxp,finger)
-    POLYCHECK(ctxp,polyGroup)
-    FNOTECHECK(ctxp,fnote)
+
     struct Fretless_fingerState* fsPtr = &ctxp->fingers[finger];
     if(fsPtr->isOn == TRUE)
     {
@@ -641,6 +640,20 @@ void Fretless_down(struct Fretless_context* ctxp, int finger,float fnote,int pol
     fsPtr->isOn = TRUE;
     
     fsPtr->channel = Fretless_allocChannel(ctxp,finger);
+}
+
+//Must call this (per finger) before others are callable
+void Fretless_endDown(struct Fretless_context* ctxp, int finger,float fnote,int polyGroup,float velocity,int legato)
+{
+    STATECHECK(ctxp)
+    FINGERCHECK(ctxp,finger)
+    POLYCHECK(ctxp,polyGroup)
+    FNOTECHECK(ctxp,fnote)
+    struct Fretless_fingerState* fsPtr = &ctxp->fingers[finger];
+    if(fsPtr->isOn == FALSE)
+    {
+        ctxp->fail("finger %d: Fretless_down && fsPtr->isOn == FALSE\n",finger);
+    }
     fsPtr->velocity = Fretless_limitVal(1,velocity*127,127); //Don't allow a send of zero here for balance purposes
     fsPtr->polyGroup = polyGroup;
     
@@ -821,7 +834,8 @@ float Fretless_move(struct Fretless_context* ctxp, int finger,float fnote,int po
     {
         Fretless_noteTie(ctxp,fsPtr);            
         Fretless_up(ctxp,finger);
-        Fretless_down(ctxp,finger,fnote,existingPolyGroup,fsPtr->velocity/127.0,TRUE);
+        Fretless_beginDown(ctxp,finger);
+        Fretless_endDown(ctxp,finger,fnote,existingPolyGroup,fsPtr->velocity/127.0,TRUE);
     }
     return fnote;
 }
