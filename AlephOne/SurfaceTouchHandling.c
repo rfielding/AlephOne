@@ -20,6 +20,7 @@
 static float chorusLevelDesired = 0;
 static float chorusLevel = 0;
 static float baseVolume = 1.0;
+static int legato = 1;
 
 static struct Fretless_context* fretlessp = NULL;
 static struct PitchHandler_context* phctx = NULL;
@@ -64,10 +65,10 @@ void SurfaceTouchHandling_touchesUp(void* ctx,int finger,void* touch)
         }
     }
     PitchHandler_unpickPitch(phctx,finger);
-    Fretless_up(fretlessp, finger);
+    Fretless_up(fretlessp, finger, legato);
     if(chorusLevel > 0)
     {
-        Fretless_up(fretlessp, finger2);
+        Fretless_up(fretlessp, finger2, legato);
         TouchMapping_unmapFinger2(touch);            
     }
 }
@@ -112,7 +113,6 @@ void SurfaceTouchHandling_touchesDown(void* ctx,int finger,void* touch,int isMov
         float v = baseVolume;
         //float v = area;
         //logger("v=%f velo=%f area=%f\n",v, velocity,area);
-        int legato = 0;
         Fretless_beginDown(fretlessp,finger1); 
         Fretless_express(fretlessp, finger1, 11, expr);
         Fretless_endDown(fretlessp,finger1, note-dx,polyGroup1,v,legato); 
@@ -182,4 +182,14 @@ float SurfaceTouchHandling_getBaseVolume()
 void SurfaceTouchHandling_setBaseVolume(float val)
 {
     baseVolume = val;
+}
+
+void SurfaceTouchHandling_setLegato(int val)
+{
+    legato = val;
+}
+
+int SurfaceTouchHandling_getLegato()
+{
+    return legato;
 }

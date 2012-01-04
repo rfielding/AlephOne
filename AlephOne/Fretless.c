@@ -696,7 +696,10 @@ void Fretless_endDown(struct Fretless_context* ctxp, int finger,float fnote,int 
         {
             ctxp->fail("turningOffPtr->isSupressed should be supressed\n");
         }
-        Fretless_noteTie(ctxp,turningOffPtr);
+        if(legato)
+        {
+            Fretless_noteTie(ctxp,turningOffPtr);            
+        }
         ctxp->midiPutch(MIDI_ON + turningOffPtr->channel);
         ctxp->midiPutch(turningOffPtr->note);
         ctxp->midiPutch(0);
@@ -714,7 +717,7 @@ void Fretless_endDown(struct Fretless_context* ctxp, int finger,float fnote,int 
 
 
 //Free up the finger
-void Fretless_up(struct Fretless_context* ctxp, int finger)
+void Fretless_up(struct Fretless_context* ctxp, int finger,int legato)
 {
     FINGERCHECK(ctxp,finger)
     
@@ -737,7 +740,10 @@ void Fretless_up(struct Fretless_context* ctxp, int finger)
         {
             if(fingerToTurnOn != NOBODY)
             {
-                Fretless_noteTie(ctxp, fsPtr);
+                if(legato)
+                {
+                    Fretless_noteTie(ctxp, fsPtr);                    
+                }
             }
             ctxp->midiPutch(MIDI_ON + fsPtr->channel);
             ctxp->midiPutch(fsPtr->note);
@@ -836,7 +842,7 @@ float Fretless_move(struct Fretless_context* ctxp, int finger,float fnote,int po
     else
     {
         Fretless_noteTie(ctxp,fsPtr);            
-        Fretless_up(ctxp,finger);
+        Fretless_up(ctxp,finger,TRUE);
         Fretless_beginDown(ctxp,finger);
         Fretless_endDown(ctxp,finger,fnote,existingPolyGroup,fsPtr->velocity/127.0,TRUE);
     }

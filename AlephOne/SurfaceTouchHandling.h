@@ -24,3 +24,6 @@ void SurfaceTouchHandling_setChorusLevel(float chorus);
 
 float SurfaceTouchHandling_getBaseVolume();
 void SurfaceTouchHandling_setBaseVolume(float vel);
+
+void SurfaceTouchHandling_setLegato(int val);
+int SurfaceTouchHandling_getLegato();

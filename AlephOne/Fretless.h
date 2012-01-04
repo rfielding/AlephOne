@@ -96,7 +96,7 @@ float Fretless_move(struct Fretless_context* ctxp, int finger,float fnote,int po
  * The finger came up.  It will turn this note off, but it will also trigger the lead note
  * in the same polyphony group if it exists.
  */
-void Fretless_up(struct Fretless_context* ctxp, int finger);
+void Fretless_up(struct Fretless_context* ctxp, int finger,int legato);
 
 /*
  * Mark a boundary for this gesture.  Tell MIDI rendering to mark this point as a boundary.

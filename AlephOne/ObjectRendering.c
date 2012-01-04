@@ -75,6 +75,7 @@ struct Slider_data* midiChannelSlider;
 struct Slider_data* midiChannelSpanSlider;
 struct Slider_data* midiBendSlider;
 
+struct Button_data* legatoButton;
 struct Slider_data* baseVolumeSlider;
 
 struct Button_data* octAutoButton;
@@ -191,6 +192,7 @@ void Page_set(void* ctx, int val)
     midiBendSlider->rect->isActive = FALSE;
     chorusSlider->rect->isActive = FALSE;
     octAutoButton->rect->isActive = FALSE;
+    legatoButton->rect->isActive = FALSE;
     baseVolumeSlider->rect->isActive = FALSE;
     switch(val)
     {
@@ -211,6 +213,7 @@ void Page_set(void* ctx, int val)
             midiBendSlider->rect->isActive = TRUE;            
             break;
         case 3:
+            legatoButton->rect->isActive = TRUE;
             baseVolumeSlider->rect->isActive = TRUE;
             break;
     }
@@ -302,6 +305,16 @@ void OctAuto_set(void* ctx, int val)
 int OctAuto_get(void* ctx)
 {
     return PitchHandler_getOctaveRounding(phctx);
+}
+
+void Legato_set(void* ctx, int val)
+{
+    return SurfaceTouchHandling_setLegato(val);
+}
+
+int Legato_get(void* ctx)
+{
+    return SurfaceTouchHandling_getLegato();
 }
 
 float Vel_get(void* ctx)
@@ -452,6 +465,7 @@ void ObjectRendering_loadImages()
     renderLabel("Chorus", PIC_CHORUSTEXT);
     renderLabel("Oct Auto", PIC_OCTTEXT);
     
+    renderLabel("Legato", PIC_LEGATOTEXT);
     renderLabel("Velocity", PIC_BASEVOLTEXT);
     
     //Render a contiguous group of note pre-rendered images
@@ -508,7 +522,9 @@ void WidgetsAssemble()
     midiChannelSpanSlider = CreateSlider(PIC_MIDISPANTEXT, 0.332,panelBottom, 0.66,panelTop, MidiSpan_set, MidiSpan_get);    
     midiBendSlider = CreateSlider(PIC_MIDIBENDTEXT, 0.662,panelBottom, 0.95,panelTop, MidiBend_set, MidiBend_get);
 
-    baseVolumeSlider = CreateSlider(PIC_BASEVOLTEXT, 0.12,panelBottom, 0.95,panelTop, Vel_set, Vel_get);
+    //Page 4
+    legatoButton = CreateButton(PIC_LEGATOTEXT, 0.12, panelBottom, 0.25, panelTop, Legato_set, Legato_get, 2);
+    baseVolumeSlider = CreateSlider(PIC_BASEVOLTEXT, 0.252,panelBottom, 0.95,panelTop, Vel_set, Vel_get);
     
     //Set us to page 0 to start
     Page_set(NULL, 0);
