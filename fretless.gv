@@ -13,11 +13,11 @@ digraph {
   initialized -> boot [label="Fretless_boot"];
   boot -> accepting; 
   accepting -> channelallocated [label="Fretless_beginDown.finger"];
-  channelallocated -> notedown [label="Fretless_endDown.finger"];
-  channelallocated -> channelallocated [label="Fretless_express.finger"];
-  notedown -> notedown [label="Fretless_move.finger"];
-  notedown -> notedown [label="Fretless_express.finger"];
-  notedown -> noteup [label="Fretless_up.finger"];
+  channelallocated -> notedown [label="Fretless_endDown.finger\n(pitch,vol,polygroup,legato,...)"];
+  channelallocated -> channelallocated [label="Fretless_express.finger\n(cc,val)"];
+  notedown -> notedown [label="Fretless_move.finger\n(pitch,...)"];
+  notedown -> notedown [label="Fretless_express.finger\n(cc,val)"];
+  notedown -> noteup [label="Fretless_up.finger\n(legato)"];
   noteup -> accepting
   noteup -> notcreated [label="Fretless_free"];
   accepting -> boot [label="Fretless_boot"];
