@@ -26,6 +26,7 @@
 #define PIC_OCTTEXT 15
 #define PIC_BASEVOLTEXT 16
 #define PIC_LEGATOTEXT 17
+#define PIC_POLYTEXT 18
 
 #define PIC_NOTE0 32
 #define PIC_NOTE1 33

@@ -76,6 +76,7 @@ struct Slider_data* midiChannelSpanSlider;
 struct Slider_data* midiBendSlider;
 
 struct Button_data* legatoButton;
+struct Button_data* polyButton;
 struct Slider_data* baseVolumeSlider;
 
 struct Button_data* octAutoButton;
@@ -193,6 +194,7 @@ void Page_set(void* ctx, int val)
     chorusSlider->rect->isActive = FALSE;
     octAutoButton->rect->isActive = FALSE;
     legatoButton->rect->isActive = FALSE;
+    polyButton->rect->isActive = FALSE;
     baseVolumeSlider->rect->isActive = FALSE;
     switch(val)
     {
@@ -214,6 +216,7 @@ void Page_set(void* ctx, int val)
             break;
         case 3:
             legatoButton->rect->isActive = TRUE;
+            polyButton->rect->isActive = TRUE;
             baseVolumeSlider->rect->isActive = TRUE;
             break;
     }
@@ -309,12 +312,40 @@ int OctAuto_get(void* ctx)
 
 void Legato_set(void* ctx, int val)
 {
+    char cval = "ndy"[val];
+    sprintf(stringRenderBuffer,"Legato:%c", cval);
+    reRenderString(stringRenderBuffer, PIC_LEGATOTEXT);
     return SurfaceTouchHandling_setLegato(val);
 }
 
 int Legato_get(void* ctx)
 {
     return SurfaceTouchHandling_getLegato();
+}
+
+void Poly_set(void* ctx, int val)
+{
+    if(val == 0)
+    {
+        reRenderString("Mono", PIC_POLYTEXT);        
+    }
+    else
+    {
+        if(val == 1)
+        {
+            reRenderString("String", PIC_POLYTEXT);                    
+        }
+        else
+        {
+            reRenderString("Poly", PIC_POLYTEXT);                                
+        }
+    }
+    return SurfaceTouchHandling_setPoly(val);
+}
+
+int Poly_get(void* ctx)
+{
+    return SurfaceTouchHandling_getPoly();
 }
 
 float Vel_get(void* ctx)
@@ -465,7 +496,8 @@ void ObjectRendering_loadImages()
     renderLabel("Chorus", PIC_CHORUSTEXT);
     renderLabel("Oct Auto", PIC_OCTTEXT);
     
-    renderLabel("Legato", PIC_LEGATOTEXT);
+    renderLabel("Legato:y", PIC_LEGATOTEXT);
+    renderLabel("String", PIC_POLYTEXT);
     renderLabel("Velocity", PIC_BASEVOLTEXT);
     
     //Render a contiguous group of note pre-rendered images
@@ -523,8 +555,9 @@ void WidgetsAssemble()
     midiBendSlider = CreateSlider(PIC_MIDIBENDTEXT, 0.662,panelBottom, 0.95,panelTop, MidiBend_set, MidiBend_get);
 
     //Page 4
-    legatoButton = CreateButton(PIC_LEGATOTEXT, 0.12, panelBottom, 0.25, panelTop, Legato_set, Legato_get, 2);
-    baseVolumeSlider = CreateSlider(PIC_BASEVOLTEXT, 0.252,panelBottom, 0.95,panelTop, Vel_set, Vel_get);
+    legatoButton = CreateButton(PIC_LEGATOTEXT, 0.12, panelBottom, 0.28, panelTop, Legato_set, Legato_get, 3);
+    polyButton = CreateButton(PIC_POLYTEXT, 0.282, panelBottom, 0.5, panelTop, Poly_set, Poly_get, 3);
+    baseVolumeSlider = CreateSlider(PIC_BASEVOLTEXT, 0.502,panelBottom, 0.95,panelTop, Vel_set, Vel_get);
     
     //Set us to page 0 to start
     Page_set(NULL, 0);

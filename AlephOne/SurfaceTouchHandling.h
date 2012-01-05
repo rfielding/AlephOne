@@ -27,3 +27,6 @@ void SurfaceTouchHandling_setBaseVolume(float vel);
 
 void SurfaceTouchHandling_setLegato(int val);
 int SurfaceTouchHandling_getLegato();
+
+void SurfaceTouchHandling_setPoly(int val);
+int SurfaceTouchHandling_getPoly();

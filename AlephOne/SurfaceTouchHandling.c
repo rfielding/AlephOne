@@ -20,7 +20,8 @@
 static float chorusLevelDesired = 0;
 static float chorusLevel = 0;
 static float baseVolume = 1.0;
-static int legato = 1;
+static int legato = 2;
+static int poly = 1;
 
 static struct Fretless_context* fretlessp = NULL;
 static struct PitchHandler_context* phctx = NULL;
@@ -90,13 +91,34 @@ void SurfaceTouchHandling_touchesDown(void* ctx,int finger,void* touch,int isMov
             fail("touch did not map to a finger2\n");   
         }            
     }
+    
     struct FingerInfo* fingerInfo = PitchHandler_pickPitch(phctx,finger1,isMoving,x,y);
     float note = fingerInfo->pitch;
     int polygroup = fingerInfo->string;
     float expr = fingerInfo->expr;
-    int polyGroup1 = polygroup;
-    //This is wrong for more than 8 strings
-    int polyGroup2 = (polygroup+8)%FINGERMAX;
+    
+    //Polyphony type is manipulating the polyphony mode
+    int polyGroup1;
+    int polyGroup2;
+    //Solo-mode with chorusing
+    if(poly == 0)
+    {
+        polyGroup1 = 0;
+        polyGroup2 = 8;
+    }
+    //Per-string polyphony
+    if(poly == 1)
+    {
+        polyGroup1 = polygroup;
+        polyGroup2 = (polygroup+8)%FINGERMAX;        
+    }
+    //Full polyphony
+    if(poly == 2)
+    {
+        polyGroup1 = finger;
+        polyGroup2 = finger2;
+    }
+    
     float dx = (expr*expr*expr*expr)*chorusLevel*0.5;
     if(isMoving)
     {
@@ -192,4 +214,14 @@ void SurfaceTouchHandling_setLegato(int val)
 int SurfaceTouchHandling_getLegato()
 {
     return legato;
+}
+
+void SurfaceTouchHandling_setPoly(int val)
+{
+    poly = val;
+}
+
+int SurfaceTouchHandling_getPoly()
+{
+    return poly;
 }

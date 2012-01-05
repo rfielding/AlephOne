@@ -77,6 +77,10 @@ void Fretless_boot(struct Fretless_context* ctxp);
  *
  * It is split into begin and end so that express calls can be sandwiched in the middle.
  * This ensures that the parameter is correct before the note begins.
+ *
+ *  legato=0 means no legato
+ *  legato=1 means legato on up
+ *  legato=2 means legato on up/down
  */
 void Fretless_beginDown(struct Fretless_context* ctxp, int finger);
 void Fretless_endDown(struct Fretless_context* ctxp, int finger,float fnote,int polyGroup,float velocity,int legato);

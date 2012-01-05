@@ -696,7 +696,7 @@ void Fretless_endDown(struct Fretless_context* ctxp, int finger,float fnote,int 
         {
             ctxp->fail("turningOffPtr->isSupressed should be supressed\n");
         }
-        if(legato)
+        if(legato == 2)
         {
             Fretless_noteTie(ctxp,turningOffPtr);            
         }
@@ -740,7 +740,7 @@ void Fretless_up(struct Fretless_context* ctxp, int finger,int legato)
         {
             if(fingerToTurnOn != NOBODY)
             {
-                if(legato)
+                if(legato > 0)
                 {
                     Fretless_noteTie(ctxp, fsPtr);                    
                 }
@@ -841,10 +841,11 @@ float Fretless_move(struct Fretless_context* ctxp, int finger,float fnote,int po
     }    
     else
     {
+        float oldVelocity = fsPtr->velocity/127.0;
         Fretless_noteTie(ctxp,fsPtr);            
         Fretless_up(ctxp,finger,TRUE);
         Fretless_beginDown(ctxp,finger);
-        Fretless_endDown(ctxp,finger,fnote,existingPolyGroup,fsPtr->velocity/127.0,TRUE);
+        Fretless_endDown(ctxp,finger,fnote,existingPolyGroup,oldVelocity,TRUE);
     }
     return fnote;
 }
