@@ -29,6 +29,7 @@
 
 #include "WidgetConstants.h"
 #include "ChannelOccupancyControl.h"
+#include "ScaleControl.h"
 #include "SliderControl.h"
 #include "ButtonControl.h"
 
@@ -71,6 +72,7 @@ struct Slider_data* intonationSlider;
 struct Slider_data* rootNoteSlider;
 struct Slider_data* chorusSlider;
 
+
 struct Slider_data* midiChannelSlider;
 struct Slider_data* midiChannelSpanSlider;
 struct Slider_data* midiBendSlider;
@@ -80,6 +82,12 @@ struct Button_data* polyButton;
 struct Slider_data* baseVolumeSlider;
 
 struct Button_data* octAutoButton;
+
+struct Button_data* scaleControlButton;
+struct ScaleControl_data* scaleControl;
+struct Button_data* scaleClearButton;
+struct Button_data* scaleToggleButton;
+struct Button_data* scaleCommitButton;
 
 static char stringRenderBuffer[1024];
 
@@ -102,6 +110,7 @@ void ObjectRendering_init(
                            int trianglesArg,
                            int trianglestripArg,
                            int linestripArg,
+                           int linesArg,
                            void* ObjectRendering_imageContextArg,
                            void (*ObjectRendering_imageRenderArg)(void*,char*,unsigned int*,float*,float*,int),
                            void (*ObjectRendering_stringRenderArg)(void*,char*,unsigned int*,float*,float*,int),
@@ -124,6 +133,7 @@ void ObjectRendering_init(
     SliderControl_init(voCtxDynamicArg,phctxArg,trianglesArg,trianglestripArg,linestripArg);
     ButtonControl_init(voCtxDynamicArg,phctxArg,trianglesArg,trianglestripArg);
     ChannelOccupancyControl_touchesInit(triangles,trianglestrip,linestrip,voCtxDynamicArg, fctxArg);
+    ScaleControl_touchesInit(triangles,trianglestrip,linestrip,linesArg,voCtxDynamicArg, fctxArg);
     WidgetsAssemble();
 }
 
@@ -196,6 +206,12 @@ void Page_set(void* ctx, int val)
     legatoButton->rect->isActive = FALSE;
     polyButton->rect->isActive = FALSE;
     baseVolumeSlider->rect->isActive = FALSE;
+    scaleControlButton->rect->isActive = FALSE;
+    scaleControlButton->val = 0;
+    scaleControl->rect->isActive = FALSE;
+    scaleClearButton->rect->isActive = FALSE;
+    scaleToggleButton->rect->isActive = FALSE;
+    scaleCommitButton->rect->isActive = FALSE;
     switch(val)
     {
         case 0:
@@ -218,6 +234,9 @@ void Page_set(void* ctx, int val)
             legatoButton->rect->isActive = TRUE;
             polyButton->rect->isActive = TRUE;
             baseVolumeSlider->rect->isActive = TRUE;
+            break;
+        case 4:
+            scaleControlButton->rect->isActive = TRUE;
             break;
     }
 }
@@ -442,6 +461,51 @@ void Intonation_do(float val)
     }    
 }
 
+void Scale_set(void* ctx,int val)
+{
+    scaleControl->rect->isActive = val;
+    scaleClearButton->rect->isActive = val;
+    scaleToggleButton->rect->isActive = val;
+    scaleCommitButton->rect->isActive = val;
+}
+
+int Scale_get(void* ctx)
+{
+    return 0;
+}
+
+
+void ScaleClear_set(void* ctx,int val)
+{
+    ScaleControl_clear(ctx);
+}
+
+int ScaleClear_get(void* ctx)
+{
+    return 0;
+}
+
+void ScaleToggle_set(void* ctx,int val)
+{
+    ScaleControl_toggle(ctx);
+}
+
+int ScaleToggle_get(void* ctx)
+{
+    return 0;
+}
+
+void ScaleCommit_set(void* ctx,int val)
+{
+    struct Fret_context* fretContext = PitchHandler_frets(phctx);
+    ScaleControl_commit(fretContext);
+}
+
+int ScaleCommit_get(void* ctx)
+{
+    return 0;
+}
+
 void Intonation_set(void* ctx, float val)
 {
     Intonation_do(val);
@@ -500,6 +564,11 @@ void ObjectRendering_loadImages()
     renderLabel("String", PIC_POLYTEXT);
     renderLabel("Velocity", PIC_BASEVOLTEXT);
     
+    renderLabel("Scale Edit", PIC_SCALEBUTTONTEXT);
+    renderLabel("The Octave", PIC_SCALECONTROLTEXT);
+    renderLabel("Clear", PIC_SCALECLEARTEXT);
+    renderLabel("Toggle", PIC_SCALETOGGLETEXT);
+    renderLabel("Commit", PIC_SCALECOMMITTEXT);
     //Render a contiguous group of note pre-rendered images
     //(sharps/flats don't exist for now... a problem I will tackle later)
     for(int n=0; n < 12; n++)
@@ -536,29 +605,34 @@ void WidgetsAssemble()
     float panelBottom = 0.92;
     float panelTop = 1.0;
     //This button cycles through pages of controls
-    CreateButton(PIC_PAGE1TEXT,0.0,panelBottom, 0.11,panelTop, Page_set, Page_get, 5);
+    CreateButton(PIC_PAGE1TEXT,0.0,panelBottom, 0.11,panelTop, Page_set, Page_get, 6);
     
-    //Page 1
+    //Page 0
     widthSlider = CreateSlider(PIC_WIDTHTEXT,0.12,panelBottom, 0.5,panelTop, Cols_set, Cols_get);
     heightSlider = CreateSlider(PIC_HEIGHTTEXT,0.502,panelBottom, 0.80,panelTop, Rows_set, Rows_get);
     baseSlider = CreateSlider(PIC_BASENOTETEXT,0.12,panelBottom-0.07, 0.80,panelBottom, NoteDiff_set, NoteDiff_get);    
     octAutoButton = CreateButton(PIC_OCTTEXT,0.802,panelBottom-0.07, 1,panelTop, OctAuto_set, OctAuto_get, 2);
     
-    //Page 2
+    //Page 1
     intonationSlider = CreateSlider(PIC_SCALETEXT,0.12,panelBottom, 0.33,panelTop, Intonation_set, NULL);
     rootNoteSlider = CreateSlider(PIC_ROOTNOTETEXT,0.332,panelBottom, 0.66,panelTop, RootNote_set, NULL);
     chorusSlider = CreateSlider(PIC_CHORUSTEXT,0.662,panelBottom, 0.95,panelTop, Chorus_set, Chorus_get);
     
-    //Page 3
+    //Page 2
     midiChannelSlider = CreateSlider(PIC_MIDIBASETEXT, 0.12,panelBottom, 0.33,panelTop, MidiBase_set, MidiBase_get);    
     midiChannelSpanSlider = CreateSlider(PIC_MIDISPANTEXT, 0.332,panelBottom, 0.66,panelTop, MidiSpan_set, MidiSpan_get);    
     midiBendSlider = CreateSlider(PIC_MIDIBENDTEXT, 0.662,panelBottom, 0.95,panelTop, MidiBend_set, MidiBend_get);
 
-    //Page 4
+    //Page 3
     legatoButton = CreateButton(PIC_LEGATOTEXT, 0.12, panelBottom, 0.28, panelTop, Legato_set, Legato_get, 3);
     polyButton = CreateButton(PIC_POLYTEXT, 0.282, panelBottom, 0.5, panelTop, Poly_set, Poly_get, 3);
     baseVolumeSlider = CreateSlider(PIC_BASEVOLTEXT, 0.502,panelBottom, 0.95,panelTop, Vel_set, Vel_get);
     
-    //Set us to page 0 to start
+    //Page 4
+    scaleControlButton = CreateButton(PIC_SCALEBUTTONTEXT, 0.12, panelBottom, 0.28, panelTop, Scale_set, Scale_get, 2);
+    scaleControl = ScaleControl_create(0, 0, 1, panelBottom);
+    scaleClearButton = CreateButton(PIC_SCALECLEARTEXT,0.282,panelBottom, 0.48,panelTop, ScaleClear_set,ScaleClear_get,1);
+    scaleToggleButton = CreateButton(PIC_SCALETOGGLETEXT,0.482,panelBottom, 0.68,panelTop, ScaleToggle_set,ScaleToggle_get,1);    
+    scaleCommitButton = CreateButton(PIC_SCALECOMMITTEXT,0.682,panelBottom, 0.88,panelTop, ScaleCommit_set,ScaleCommit_get,1);    //Page last
     Page_set(NULL, 0);
 }

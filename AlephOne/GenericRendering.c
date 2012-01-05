@@ -46,6 +46,7 @@ void GenericRendering_init(
                           GL_TRIANGLES,
                           GL_TRIANGLE_STRIP,
                           GL_LINE_STRIP,
+                          GL_LINES,
                           imageContextArg,
                           imageRenderArg,
                           stringRenderArg,

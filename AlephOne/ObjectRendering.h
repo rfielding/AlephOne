@@ -18,6 +18,7 @@ void ObjectRendering_init(
                            int trianglesArg,
                            int trianglestripArg,
                            int linestripArg,
+                           int linesArg,
                            void* ObjectRendering_imageContextArg,
                            void (*ObjectRendering_imageRenderArg)(void*,char*,unsigned int*,float*,float*,int),
                            void (*ObjectRendering_stringRenderArg)(void*,char*,unsigned int*,float*,float*,int),

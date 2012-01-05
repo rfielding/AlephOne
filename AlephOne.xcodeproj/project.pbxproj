@@ -32,6 +32,7 @@
 		49691AD214B0DD6E009AB83D /* note-6.png in Resources */ = {isa = PBXBuildFile; fileRef = 49691ACD14B0DD6E009AB83D /* note-6.png */; };
 		49691AD314B0DD6E009AB83D /* note-8.png in Resources */ = {isa = PBXBuildFile; fileRef = 49691ACE14B0DD6E009AB83D /* note-8.png */; };
 		49691AD414B0DD6E009AB83D /* note-10.png in Resources */ = {isa = PBXBuildFile; fileRef = 49691ACF14B0DD6E009AB83D /* note-10.png */; };
+		49691ADD14B57412009AB83D /* ScaleControl.c in Sources */ = {isa = PBXBuildFile; fileRef = 49691ADC14B57411009AB83D /* ScaleControl.c */; };
 		499ADD8814AC0A200007CAA3 /* alephonep2.png in Resources */ = {isa = PBXBuildFile; fileRef = 499ADD8714AC0A200007CAA3 /* alephonep2.png */; };
 		49B39079144914DC008C9F6E /* UIKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 49B39078144914DC008C9F6E /* UIKit.framework */; };
 		49B3907B144914DC008C9F6E /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 49B3907A144914DC008C9F6E /* Foundation.framework */; };
@@ -111,6 +112,8 @@
 		49691ACD14B0DD6E009AB83D /* note-6.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "note-6.png"; sourceTree = "<group>"; };
 		49691ACE14B0DD6E009AB83D /* note-8.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "note-8.png"; sourceTree = "<group>"; };
 		49691ACF14B0DD6E009AB83D /* note-10.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "note-10.png"; sourceTree = "<group>"; };
+		49691ADC14B57411009AB83D /* ScaleControl.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = ScaleControl.c; sourceTree = "<group>"; };
+		49691ADE14B5742D009AB83D /* ScaleControl.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ScaleControl.h; sourceTree = "<group>"; };
 		499ADD8714AC0A200007CAA3 /* alephonep2.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = alephonep2.png; sourceTree = "<group>"; };
 		49B39074144914DC008C9F6E /* AlephOne.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = AlephOne.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		49B39078144914DC008C9F6E /* UIKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = UIKit.framework; path = System/Library/Frameworks/UIKit.framework; sourceTree = SDKROOT; };
@@ -353,6 +356,8 @@
 				49C429CC14A462AC00008AB0 /* SliderControl.h */,
 				4963A35A14A9297700CE0C5A /* ButtonControl.c */,
 				4963A35B14A9297700CE0C5A /* ButtonControl.h */,
+				49691ADC14B57411009AB83D /* ScaleControl.c */,
+				49691ADE14B5742D009AB83D /* ScaleControl.h */,
 			);
 			name = PortableCode;
 			sourceTree = "<group>";
@@ -508,6 +513,7 @@
 				49C429C914A45D1200008AB0 /* ChannelOccupancyControl.c in Sources */,
 				49C429CD14A462AC00008AB0 /* SliderControl.c in Sources */,
 				4963A35C14A9297700CE0C5A /* ButtonControl.c in Sources */,
+				49691ADD14B57412009AB83D /* ScaleControl.c in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
