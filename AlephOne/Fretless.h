@@ -81,12 +81,17 @@ void Fretless_boot(struct Fretless_context* ctxp);
  *  legato=0 means no legato
  *  legato=1 means legato on up
  *  legato=2 means legato on up/down
+ *
+ *  after beginDown, you can put in some number of calls to express, but must call
+ *  endDown after that.
  */
 void Fretless_beginDown(struct Fretless_context* ctxp, int finger);
 void Fretless_endDown(struct Fretless_context* ctxp, int finger,float fnote,int polyGroup,float velocity,int legato);
 /*
  * Invoke this from the controller to send expression.  It sends nothing right now, but should
  * send MIDI CCs at some point.
+ *
+ * This can be invoked between beginDown and endDown
  */
 void Fretless_express(struct Fretless_context* ctxp, int finger,int key,float val);
 
