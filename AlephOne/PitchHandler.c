@@ -67,6 +67,7 @@ struct PitchHandler_context* PitchHandler_init(struct Fret_context* fctx,void* (
     for(int i=0; i<FINGERMAX; i++)
     {
         ctx->fingers[i].isActive = 0;
+        ctx->fingers[i].velocity = 0;
         PitchHandler_setTuneInterval(ctx, i, 5);
     }
     return ctx;

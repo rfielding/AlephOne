@@ -15,7 +15,7 @@ struct ChannelOccupancyControl_data
     struct WidgetTree_rect* rect;
 };
 
-void ChannelOccupancyControl_touchesInit(
+void ChannelOccupancyControl_init(
                                          int trianglesArg,
                                          int trianglestripArg,
                                          int linestripArg,

@@ -18,7 +18,6 @@ static int trianglestrip;
 static struct VertexObjectBuilder* voCtxDynamic;
 static struct PitchHandler_context* phctx;
 
-
 void ButtonControl_init(
                         struct VertexObjectBuilder* voCtxDynamicArg,
                         struct PitchHandler_context* phctxArg,
@@ -46,12 +45,21 @@ void Button_render(void* ctx)
             int r = 255 * ((button->val) %2);
             int g = 255 * ((button->val/2) %4);
             int b = 255 * ((button->val/4) %8);
+            if(button->downState)
+            {
+                VertexObjectBuilder_startColoredObject(voCtxDynamic,trianglestrip);
+                VertexObjectBuilder_addColoredVertex(voCtxDynamic, w->x1, w->y1, 0, 255,255,255,100);
+                VertexObjectBuilder_addColoredVertex(voCtxDynamic, w->x1, w->y2, 0, 255,255,255,100);
+                VertexObjectBuilder_addColoredVertex(voCtxDynamic, w->x2, w->y1, 0, 255,255,255,100);
+                VertexObjectBuilder_addColoredVertex(voCtxDynamic, w->x2, w->y2, 0, 255,255,255,100);                            
+            }
             VertexObjectBuilder_startColoredObject(voCtxDynamic,trianglestrip);
             VertexObjectBuilder_addColoredVertex(voCtxDynamic, w->x1, w->y1, 0, r,  g,b,200);
             VertexObjectBuilder_addColoredVertex(voCtxDynamic, w->x1, w->y2, 0, r,  g,b, 80);
             VertexObjectBuilder_addColoredVertex(voCtxDynamic, w->x2, w->y1, 0, r,  g,b,127);
             VertexObjectBuilder_addColoredVertex(voCtxDynamic, w->x2, w->y2, 0, r,  g,b, 80);                
         }
+
         float s = 0.01;
         float dx = 0.4;
         float dy = 0.075;
@@ -65,8 +73,11 @@ void Button_render(void* ctx)
 
 void Button_up(void* ctx,int finger,void* touch)
 {
-    //struct Slider_data* slider = (struct Slider_data*)ctx;
-    //struct WidgetTree_rect* w = WidgetTree_get(slider->widgetId);
+    struct Button_data* button = (struct Button_data*)ctx;
+    if(button)
+    {
+        button->downState = 0;
+    }
 }
 
 void Button_down(void* ctx,int finger,void* touch,int isMoving,float x,float y, float velocity, float area)
@@ -85,6 +96,7 @@ void Button_down(void* ctx,int finger,void* touch,int isMoving,float x,float y, 
                 button->val = newVal;
             }
         }
+        button->downState = 1;
     }
 }
 
@@ -103,6 +115,7 @@ struct Button_data* CreateButton(
     button->stateCount = stateCount;
     button->setter = setter;
     button->getter = getter;
+    button->downState = 0;
     if(button->getter)
     {
         button->val = button->getter(button);

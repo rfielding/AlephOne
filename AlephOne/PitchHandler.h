@@ -30,6 +30,7 @@ struct FingerInfo
     int isActive;
     int string;
     float expr;
+    float velocity;
     float pitchRaw;
     float pitch;
     float beginPitch;

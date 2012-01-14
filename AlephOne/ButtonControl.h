@@ -18,6 +18,7 @@ struct Button_data
     int stateCount;
     void (*setter)(void* ctx,int val);
     int (*getter)(void* ctx);
+    int downState;
 };
 
 void ButtonControl_init(

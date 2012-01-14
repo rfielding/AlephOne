@@ -99,7 +99,7 @@ void Fretless_express(struct Fretless_context* ctxp, int finger,int key,float va
  * Move a finger around, and optionally state if it happened to move into a new logical polyphony
  * group.
  */
-float Fretless_move(struct Fretless_context* ctxp, int finger,float fnote,int polyGroup);
+float Fretless_move(struct Fretless_context* ctxp, int finger,float fnote,float velocity,int polyGroup);
 
 /*
  * The finger came up.  It will turn this note off, but it will also trigger the lead note

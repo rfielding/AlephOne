@@ -83,6 +83,7 @@ struct Fretless_polyState
 struct Fretless_channelState
 {
     int lastBend;
+    int lastAftertouch;
     int currentFingerInChannel;
     int useCount;
 };
@@ -361,6 +362,7 @@ void Fretless_boot(struct Fretless_context* ctxp)
         ctxp->channels[c].lastBend = BENDCENTER;
         ctxp->channels[c].useCount = 0;
         ctxp->channels[c].currentFingerInChannel = NOBODY;
+        ctxp->channels[c].lastAftertouch = 0;
         for(int n=0; n<NOTEMAX; n++)
         {
             ctxp->noteChannelDownCount[n][c] = 0;
@@ -536,22 +538,27 @@ void Fretless_noteTie(struct Fretless_context* ctxp,struct Fretless_fingerState*
     Fretless_numTo7BitNums(1223,&lsb,&msb);
     int channel = fsPtr->channel;
     int note = fsPtr->note;
+    //Coarse parm
     ctxp->midiPutch(0xB0 + channel);
     ctxp->midiPutch(0x63);
     ctxp->midiPutch(msb);
+    //Fine parm
     ctxp->midiPutch(0xB0 + channel);
     ctxp->midiPutch(0x62);
     ctxp->midiPutch(lsb);
+    //Val parm
     ctxp->midiPutch(0xB0 + channel);
     ctxp->midiPutch(0x06);
     ctxp->midiPutch(note);
     ///* I am told that the reset is bad for some synths
+    /*
     ctxp->midiPutch(0xB0 + channel);
     ctxp->midiPutch(0x63);
     ctxp->midiPutch(0x7f);
     ctxp->midiPutch(0xB0 + channel);
     ctxp->midiPutch(0x62);
     ctxp->midiPutch(0x7f);
+     */
      //*/
 }
 
@@ -570,7 +577,22 @@ void Fretless_setCurrentBend(struct Fretless_context* ctxp, int finger)
         Fretless_numTo7BitNums(fsPtr->bend, &lo, &hi);
         ctxp->midiPutch(lo);
         ctxp->midiPutch(hi);   
-        //ctxp->logger("%d:%d\n", fsPtr->channel, fsPtr->bend);
+    }      
+}
+
+void Fretless_setCurrentAftertouch(struct Fretless_context* ctxp, int finger,float velocity)
+{
+    struct Fretless_fingerState* fsPtr = &ctxp->fingers[finger];
+    //Update this finger's velocity
+    fsPtr->velocity = Fretless_limitVal(1,velocity*127.0,127);
+    if(ctxp->channels[fsPtr->channel].lastAftertouch != fsPtr->velocity && 
+       ctxp->channels[fsPtr->channel].currentFingerInChannel == finger &&
+       fsPtr->isOn &&
+       ctxp->supressBends == FALSE)
+    {
+        ctxp->channels[fsPtr->channel].lastAftertouch = fsPtr->velocity;
+        ctxp->midiPutch(0xD0 + fsPtr->channel);
+        ctxp->midiPutch(fsPtr->velocity);
     }      
 }
 
@@ -670,10 +692,7 @@ void Fretless_endDown(struct Fretless_context* ctxp, int finger,float fnote,int 
             ctxp->midiPutch(MIDI_ON + fsPtr->channel);
             ctxp->midiPutch(fsPtr->note);
             ctxp->midiPutch(0);
-            //if( ctxp->noteChannelDownRawBalance[fsPtr->note][fsPtr->channel] > 0 )
-            {
-                ctxp->noteChannelDownRawBalance[fsPtr->note][fsPtr->channel]--;            
-            }
+            ctxp->noteChannelDownRawBalance[fsPtr->note][fsPtr->channel]--;            
         }        
     }
     
@@ -703,15 +722,16 @@ void Fretless_endDown(struct Fretless_context* ctxp, int finger,float fnote,int 
         ctxp->midiPutch(MIDI_ON + turningOffPtr->channel);
         ctxp->midiPutch(turningOffPtr->note);
         ctxp->midiPutch(0);
-        //if( ctxp->noteChannelDownRawBalance[turningOffPtr->note][turningOffPtr->channel] > 0 )
-        {
-            ctxp->noteChannelDownRawBalance[turningOffPtr->note][turningOffPtr->channel]--;
-        }
+        ctxp->noteChannelDownRawBalance[turningOffPtr->note][turningOffPtr->channel]--;
     }
     ctxp->midiPutch(MIDI_ON + fsPtr->channel);
     ctxp->midiPutch(fsPtr->note);
     ctxp->midiPutch(fsPtr->velocity);
     ctxp->noteChannelDownRawBalance[fsPtr->note][fsPtr->channel]++;
+    if( ctxp->noteChannelDownRawBalance[fsPtr->note][fsPtr->channel] > 1 )
+    {
+        ctxp->logger("we sent out a doubled note on down ch%d n%d\n",fsPtr->channel,fsPtr->note);            
+    }
 }
 
 
@@ -748,10 +768,7 @@ void Fretless_up(struct Fretless_context* ctxp, int finger,int legato)
             ctxp->midiPutch(MIDI_ON + fsPtr->channel);
             ctxp->midiPutch(fsPtr->note);
             ctxp->midiPutch(0);
-            //if( ctxp->noteChannelDownRawBalance[fsPtr->note][fsPtr->channel] > 0 )
-            {
-                ctxp->noteChannelDownRawBalance[fsPtr->note][fsPtr->channel]--;            
-            }
+            ctxp->noteChannelDownRawBalance[fsPtr->note][fsPtr->channel]--;            
         }        
     }    
     
@@ -774,6 +791,10 @@ void Fretless_up(struct Fretless_context* ctxp, int finger,int legato)
         ctxp->midiPutch(turningOnPtr->note);
         ctxp->midiPutch(turningOnPtr->velocity);
         ctxp->noteChannelDownRawBalance[turningOnPtr->note][turningOnPtr->channel]++;
+        if( ctxp->noteChannelDownRawBalance[fsPtr->note][fsPtr->channel] > 1 )
+        {
+            ctxp->logger("we sent out a doubled note on up ch%d n%d\n",fsPtr->channel,fsPtr->note);            
+        }
     }
     
     if(ctxp->noteChannelDownCount[fsPtr->note][fsPtr->channel]<0)
@@ -814,7 +835,7 @@ void Fretless_express(struct Fretless_context* ctxp, int finger,int key,float va
     ctxp->midiPutch(((int)(val*127)) % 127);   
 }
 
-float Fretless_move(struct Fretless_context* ctxp, int finger,float fnote,int polyGroup)
+float Fretless_move(struct Fretless_context* ctxp, int finger,float fnote,float velocity,int polyGroup)
 {
     FINGERCHECK(ctxp,finger)
     FNOTECHECK(ctxp,fnote)
@@ -837,15 +858,15 @@ float Fretless_move(struct Fretless_context* ctxp, int finger,float fnote,int po
     if(newNote == fsPtr->note)
     {
         fsPtr->bend = newBend;
+        Fretless_setCurrentAftertouch(ctxp,finger,velocity);
         Fretless_setCurrentBend(ctxp,finger);            
     }    
     else
     {
-        float oldVelocity = fsPtr->velocity/127.0;
         Fretless_noteTie(ctxp,fsPtr);            
         Fretless_up(ctxp,finger,TRUE);
         Fretless_beginDown(ctxp,finger);
-        Fretless_endDown(ctxp,finger,fnote,existingPolyGroup,oldVelocity,TRUE);
+        Fretless_endDown(ctxp,finger,fnote,existingPolyGroup,velocity,TRUE);
     }
     return fnote;
 }

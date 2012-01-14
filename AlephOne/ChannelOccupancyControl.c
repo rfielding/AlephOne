@@ -22,7 +22,7 @@ static int linestrip;
 static struct VertexObjectBuilder* voCtxDynamic;
 static struct Fretless_context* fctx;
 
-void ChannelOccupancyControl_touchesInit(
+void ChannelOccupancyControl_init(
                                       int trianglesArg,
                                       int trianglestripArg,
                                       int linestripArg,

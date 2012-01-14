@@ -46,6 +46,7 @@ static int linestrip;
 static struct VertexObjectBuilder* voCtxDynamic;
 static struct VertexObjectBuilder* voCtxStatic;
 static struct PitchHandler_context* phctx;
+static struct Fret_context* fretctx;
 static struct Fretless_context* fctx;
 
 
@@ -102,6 +103,35 @@ void ObjectRendering_updateLightOrientation(float x,float y, float z)
     lightPosition[2] = z;
 }
 
+//Pass a funtion pointer to this for anything that needs to update a string
+//The impl might need to maintain more state to be efficient.
+void reRenderString(char* val,unsigned int texture)
+{
+    //These need to be re-rendered into the same slot
+    ObjectRendering_stringRender(
+                                 ObjectRendering_imageContext,
+                                 val,
+                                 &textures[texture],
+                                 &textureWidth[texture],
+                                 &textureHeight[texture],
+                                 1
+                                 );    
+    //    *w = textureWidth[texture];
+    //    *h = textureHeight[texture];
+}
+
+void renderLabel(char* label, unsigned int texture)
+{
+    ObjectRendering_stringRender(
+                                 ObjectRendering_imageContext,
+                                 label,
+                                 &textures[texture],
+                                 &textureWidth[texture],
+                                 &textureHeight[texture],
+                                 0
+                                 );    
+}
+
 void ObjectRendering_init(
                            struct VertexObjectBuilder* voCtxDynamicArg,
                            struct VertexObjectBuilder* voCtxStaticArg,
@@ -121,6 +151,7 @@ void ObjectRendering_init(
     voCtxStatic = voCtxStaticArg;
     phctx = phctxArg;
     fctx = fctxArg;
+    fretctx = PitchHandler_frets(phctx);
     triangles = trianglesArg;
     trianglestrip = trianglestripArg;
     linestrip = linestripArg;
@@ -132,39 +163,14 @@ void ObjectRendering_init(
     SurfaceDraw_init(voCtxDynamicArg,voCtxStaticArg,phctxArg,trianglesArg,trianglestripArg,linestripArg);
     SliderControl_init(voCtxDynamicArg,phctxArg,trianglesArg,trianglestripArg,linestripArg);
     ButtonControl_init(voCtxDynamicArg,phctxArg,trianglesArg,trianglestripArg);
-    ChannelOccupancyControl_touchesInit(triangles,trianglestrip,linestrip,voCtxDynamicArg, fctxArg);
-    ScaleControl_touchesInit(triangles,trianglestrip,linestrip,linesArg,voCtxDynamicArg, fctxArg);
+    ChannelOccupancyControl_init(triangles,trianglestrip,linestrip,voCtxDynamicArg, fctxArg);
+    ScaleControl_init(triangles,trianglestrip,linestrip,linesArg,voCtxDynamicArg, fctxArg,fretctx,reRenderString);
     WidgetsAssemble();
 }
 
-//Pass a funtion pointer to this for anything that needs to update a string
-//The impl might need to maintain more state to be efficient.
-void reRenderString(char* val,unsigned int texture)
-{
-    //These need to be re-rendered into the same slot
-    ObjectRendering_stringRender(
-                                 ObjectRendering_imageContext,
-                                 val,
-                                 &textures[texture],
-                                 &textureWidth[texture],
-                                 &textureHeight[texture],
-                                 0
-                                 );    
-//    *w = textureWidth[texture];
-//    *h = textureHeight[texture];
-}
 
-void renderLabel(char* label, unsigned int texture)
-{
-    ObjectRendering_stringRender(
-                                 ObjectRendering_imageContext,
-                                 label,
-                                 &textures[texture],
-                                 &textureWidth[texture],
-                                 &textureHeight[texture],
-                                 0
-                                 );    
-}
+
+
 
 
 
@@ -391,75 +397,6 @@ float MidiBend_get(void* ctx)
 }
 
 
-void Intonation_do(float val)
-{
-    struct Fret_context* frctx = PitchHandler_frets(phctx);
-    Fret_clearFrets(frctx);
-    
-    if(val > 0.9)
-    {
-        Fret_placeFret(frctx, baseNote + 12*0,  3);
-        Fret_placeFret(frctx, baseNote + 12*log2f(6.0/5),  3);
-        Fret_placeFret(frctx, baseNote + 12*log2f(4.0/3),  3);
-        Fret_placeFret(frctx, baseNote + 12*log2f(3.0/2),  3);
-        Fret_placeFret(frctx, baseNote + 12*log2f(4.0/5 * 2), 2);
-        Fret_placeFret(frctx, baseNote + 12*log2f(8.0/9 * 2), 3);
-        
-        if(val > 0.95)
-        {
-            Fret_placeFret(frctx, baseNote + 12*log2f(9.0/8),  3);            
-        }
-        else
-        {
-            Fret_placeFret(frctx, baseNote + 12*log2f(13.0/12),  1);                        
-        }
-    }
-    else
-    {
-        if(val >= 0)
-        {
-            Fret_placeFret(frctx,baseNote +  0.0,3);
-            Fret_placeFret(frctx,baseNote +  3.0,3);            
-            Fret_placeFret(frctx,baseNote +  5.0,3);        
-            Fret_placeFret(frctx,baseNote +  7.0,3);
-            Fret_placeFret(frctx,baseNote + 10.0,3);
-        }
-        if(val > 0.35)
-        {
-            Fret_placeFret(frctx,baseNote +  2.0,3);
-            Fret_placeFret(frctx,baseNote +  6.0,2);
-            Fret_placeFret(frctx,baseNote +  9.0,3);        
-        }
-        if(val > 0.5)
-        {
-            Fret_placeFret(frctx,baseNote +  1.0,2);
-            Fret_placeFret(frctx,baseNote +  4.0,2);
-            Fret_placeFret(frctx,baseNote +  8.0,2);
-            Fret_placeFret(frctx,baseNote + 11.0,2);                
-        }
-        if(val > 0.65 || (val < 0.30 && val > 0.25))
-        {
-            Fret_placeFret(frctx,baseNote + 1.5,1);
-            Fret_placeFret(frctx,baseNote + 8.5,1);                
-        }
-        if(val > 0.65)
-        {
-            Fret_placeFret(frctx,baseNote + 6.5,1);        
-        }
-        if(val > 0.8)
-        {
-            Fret_placeFret(frctx,baseNote +  0.5,1);
-            Fret_placeFret(frctx,baseNote +  2.5,1);
-            Fret_placeFret(frctx,baseNote +  3.5,1);                                    
-            Fret_placeFret(frctx,baseNote +  4.5,1);                                    
-            Fret_placeFret(frctx,baseNote +  5.5,1);                                    
-            Fret_placeFret(frctx,baseNote +  7.5,1);                                    
-            Fret_placeFret(frctx,baseNote +  9.5,1);                                    
-            Fret_placeFret(frctx,baseNote + 10.5,1);                                    
-            Fret_placeFret(frctx,baseNote + 11.5,1);                  
-        }        
-    }    
-}
 
 void Scale_set(void* ctx,int val)
 {
@@ -508,7 +445,8 @@ int ScaleCommit_get(void* ctx)
 
 void Intonation_set(void* ctx, float val)
 {
-    Intonation_do(val);
+    int ival = (int)(8*val);
+    ScaleControl_setCurrentScale(ival);
     intonationSlider->val = val;
 }
 
@@ -518,8 +456,8 @@ void RootNote_set(void* ctx, float val)
     baseNote = (int)(7*((int)(12*val-4+12)) % 12);
     //This state needs to be maintained because we synthesized it
     rootNoteSlider->val = val;
-    //Recompute the intonation with its same slider value
-    Intonation_do(intonationSlider->getter(intonationSlider));
+    
+    ScaleControl_setBaseNote(baseNote);
 }
 
 //This is called when we have set up the OpenGL context already
@@ -635,4 +573,8 @@ void WidgetsAssemble()
     scaleToggleButton = CreateButton(PIC_SCALETOGGLETEXT,0.482,panelBottom, 0.68,panelTop, ScaleToggle_set,ScaleToggle_get,1);    
     scaleCommitButton = CreateButton(PIC_SCALECOMMITTEXT,0.682,panelBottom, 0.88,panelTop, ScaleCommit_set,ScaleCommit_get,1);    //Page last
     Page_set(NULL, 0);
+    
+    ScaleControl_setBaseNote(0);
+    ScaleControl_setCurrentScale(0);
+    ScaleControl_commit(NULL);
 }
