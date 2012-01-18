@@ -44,7 +44,7 @@ static int trianglestrip;
 static int linestrip;
 
 static struct VertexObjectBuilder* voCtxDynamic;
-static struct VertexObjectBuilder* voCtxStatic;
+//static struct VertexObjectBuilder* voCtxStatic;
 static struct PitchHandler_context* phctx;
 static struct Fret_context* fretctx;
 static struct Fretless_context* fctx;
@@ -134,7 +134,7 @@ void renderLabel(char* label, unsigned int texture)
 
 void ObjectRendering_init(
                            struct VertexObjectBuilder* voCtxDynamicArg,
-                           struct VertexObjectBuilder* voCtxStaticArg,
+                           //struct VertexObjectBuilder* voCtxStaticArg,
                            struct PitchHandler_context* phctxArg,
                            struct Fretless_context* fctxArg,
                            int trianglesArg,
@@ -148,7 +148,7 @@ void ObjectRendering_init(
                            )
 {
     voCtxDynamic = voCtxDynamicArg;
-    voCtxStatic = voCtxStaticArg;
+    //voCtxStatic = voCtxStaticArg;
     phctx = phctxArg;
     fctx = fctxArg;
     fretctx = PitchHandler_frets(phctx);
@@ -160,7 +160,7 @@ void ObjectRendering_init(
     ObjectRendering_stringRender = ObjectRendering_stringRenderArg;
     ObjectRendering_drawVO       = ObjectRendering_drawVOArg;
   
-    SurfaceDraw_init(voCtxDynamicArg,voCtxStaticArg,phctxArg,trianglesArg,trianglestripArg,linestripArg);
+    SurfaceDraw_init(voCtxDynamicArg,phctxArg,trianglesArg,trianglestripArg,linestripArg);
     SliderControl_init(voCtxDynamicArg,phctxArg,trianglesArg,trianglestripArg,linestripArg);
     ButtonControl_init(voCtxDynamicArg,phctxArg,trianglesArg,trianglestripArg);
     ChannelOccupancyControl_init(triangles,trianglestrip,linestrip,voCtxDynamicArg, fctxArg);
@@ -192,7 +192,6 @@ void GenericRendering_draw()
             itemP->render(itemP->ctx);            
         }
     }
-    ObjectRendering_drawVO(voCtxStatic);    
     ObjectRendering_drawVO(voCtxDynamic);    
 }
 
@@ -445,7 +444,7 @@ int ScaleCommit_get(void* ctx)
 
 void Intonation_set(void* ctx, float val)
 {
-    int ival = (int)(8*val);
+    int ival = (int)(7.99*val);
     ScaleControl_setCurrentScale(ival);
     intonationSlider->val = val;
 }

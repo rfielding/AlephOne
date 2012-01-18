@@ -11,7 +11,6 @@ struct PitchHandler_context;
 
 void SurfaceDraw_init(
                       struct VertexObjectBuilder* voCtxDynamicArg,
-                      struct VertexObjectBuilder* voCtxStaticArg,
                       struct PitchHandler_context* phctxArg,
                       int trianglesArg,
                       int trianglestripArg,

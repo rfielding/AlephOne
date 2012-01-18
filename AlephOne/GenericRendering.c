@@ -40,7 +40,6 @@ void GenericRendering_init(
 {
     ObjectRendering_init(
                           VertexObjectBuilder_init(malloc,printf),
-                          VertexObjectBuilder_init(malloc,printf),
                           phctxArg,
                           fctxArg,
                           GL_TRIANGLES,

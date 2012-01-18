@@ -17,16 +17,12 @@
 static int triangles;
 static int trianglestrip;
 static int linestrip;
-static struct VertexObjectBuilder* voCtxStatic;
 static struct VertexObjectBuilder* voCtxDynamic;
 static struct PitchHandler_context* phctx;
-
-static int firstDraw = 0;
 
 
 void SurfaceDraw_init(
                           struct VertexObjectBuilder* voCtxDynamicArg,
-                          struct VertexObjectBuilder* voCtxStaticArg,
                           struct PitchHandler_context* phctxArg,
                           int trianglesArg,
                           int trianglestripArg,
@@ -38,7 +34,6 @@ void SurfaceDraw_init(
     linestrip = linestripArg;
     phctx = phctxArg;
     voCtxDynamic = voCtxDynamicArg;
-    voCtxStatic = voCtxStaticArg;
 }
 
 //This is always widget 0 with these bounds!
@@ -56,39 +51,38 @@ struct WidgetTree_rect* SurfaceDraw_create()
 
 void SurfaceDraw_drawBackground()
 {    
-    VertexObjectBuilder_reset(voCtxStatic);
-    VertexObjectBuilder_startTexturedObject(voCtxStatic,trianglestrip,PIC_ALEPHONE);
-    VertexObjectBuilder_addTexturedVertex(voCtxStatic, 0.1+0.00, 0.05+0.00, 0, 0,0);
-    VertexObjectBuilder_addTexturedVertex(voCtxStatic, 0.1+0.00, 0.05+0.25, 0, 0,1);
-    VertexObjectBuilder_addTexturedVertex(voCtxStatic, 0.1+0.20, 0.05+0.00, 0, 1,0);
-    VertexObjectBuilder_addTexturedVertex(voCtxStatic, 0.1+0.20, 0.05+0.25, 0, 1,1);    
-    VertexObjectBuilder_startColoredObject(voCtxStatic,trianglestrip);
-    VertexObjectBuilder_addColoredVertex(voCtxStatic, 0, 0, 0, 0,0,0,200);
-    VertexObjectBuilder_addColoredVertex(voCtxStatic, 0, 1, 0, 0,0,0,200);
-    VertexObjectBuilder_addColoredVertex(voCtxStatic, 1, 0, 0, 0,0,0,200);
-    VertexObjectBuilder_addColoredVertex(voCtxStatic, 1, 1, 0, 0,0,0,200);    
+    VertexObjectBuilder_startTexturedObject(voCtxDynamic,trianglestrip,PIC_ALEPHONE);
+    VertexObjectBuilder_addTexturedVertex(voCtxDynamic, 0.1+0.00, 0.05+0.00, 0, 0,0);
+    VertexObjectBuilder_addTexturedVertex(voCtxDynamic, 0.1+0.00, 0.05+0.25, 0, 0,1);
+    VertexObjectBuilder_addTexturedVertex(voCtxDynamic, 0.1+0.20, 0.05+0.00, 0, 1,0);
+    VertexObjectBuilder_addTexturedVertex(voCtxDynamic, 0.1+0.20, 0.05+0.25, 0, 1,1);    
+    VertexObjectBuilder_startColoredObject(voCtxDynamic,trianglestrip);
+    VertexObjectBuilder_addColoredVertex(voCtxDynamic, 0, 0, 0, 0,0,0,200);
+    VertexObjectBuilder_addColoredVertex(voCtxDynamic, 0, 1, 0, 0,0,0,200);
+    VertexObjectBuilder_addColoredVertex(voCtxDynamic, 1, 0, 0, 0,0,0,200);
+    VertexObjectBuilder_addColoredVertex(voCtxDynamic, 1, 1, 0, 0,0,0,200);    
     
     float cols = PitchHandler_getColCount(phctx);
     float rows = PitchHandler_getRowCount(phctx);
     float dy = 1.0 / rows;
     float ds = dy/2;
-    VertexObjectBuilder_startColoredObject(voCtxStatic,triangles);
+    VertexObjectBuilder_startColoredObject(voCtxDynamic,triangles);
     
     for(float f=ds; f<1.0; f+=dy)
     {        
-        VertexObjectBuilder_addColoredVertex(voCtxStatic, 0, f   , 0, 0,255,255, 40);
-        VertexObjectBuilder_addColoredVertex(voCtxStatic, 1, f   , 0, 0,255,255, 40);
-        VertexObjectBuilder_addColoredVertex(voCtxStatic, 1, f+dy, 0, 0,  0,  0,  0);        
-        VertexObjectBuilder_addColoredVertex(voCtxStatic, 0, f+dy, 0, 0,  0,  0,  0);      
-        VertexObjectBuilder_addColoredVertex(voCtxStatic, 0, f   , 0, 0,255,255, 40);
-        VertexObjectBuilder_addColoredVertex(voCtxStatic, 1, f+dy, 0, 0,  0,  0,  0);
+        VertexObjectBuilder_addColoredVertex(voCtxDynamic, 0, f   , 0, 0,255,255, 40);
+        VertexObjectBuilder_addColoredVertex(voCtxDynamic, 1, f   , 0, 0,255,255, 40);
+        VertexObjectBuilder_addColoredVertex(voCtxDynamic, 1, f+dy, 0, 0,  0,  0,  0);        
+        VertexObjectBuilder_addColoredVertex(voCtxDynamic, 0, f+dy, 0, 0,  0,  0,  0);      
+        VertexObjectBuilder_addColoredVertex(voCtxDynamic, 0, f   , 0, 0,255,255, 40);
+        VertexObjectBuilder_addColoredVertex(voCtxDynamic, 1, f+dy, 0, 0,  0,  0,  0);
         
-        VertexObjectBuilder_addColoredVertex(voCtxStatic, 0, f   , 0, 0,255,255, 40);
-        VertexObjectBuilder_addColoredVertex(voCtxStatic, 1, f   , 0, 0,255,255, 40);
-        VertexObjectBuilder_addColoredVertex(voCtxStatic, 1, f-dy, 0, 0,  0,  0,  0);        
-        VertexObjectBuilder_addColoredVertex(voCtxStatic, 0, f-dy, 0, 0,  0,  0,  0);      
-        VertexObjectBuilder_addColoredVertex(voCtxStatic, 0, f   , 0, 0,255,255, 40);
-        VertexObjectBuilder_addColoredVertex(voCtxStatic, 1, f-dy, 0, 0,  0,  0,  0);
+        VertexObjectBuilder_addColoredVertex(voCtxDynamic, 0, f   , 0, 0,255,255, 40);
+        VertexObjectBuilder_addColoredVertex(voCtxDynamic, 1, f   , 0, 0,255,255, 40);
+        VertexObjectBuilder_addColoredVertex(voCtxDynamic, 1, f-dy, 0, 0,  0,  0,  0);        
+        VertexObjectBuilder_addColoredVertex(voCtxDynamic, 0, f-dy, 0, 0,  0,  0,  0);      
+        VertexObjectBuilder_addColoredVertex(voCtxDynamic, 0, f   , 0, 0,255,255, 40);
+        VertexObjectBuilder_addColoredVertex(voCtxDynamic, 1, f-dy, 0, 0,  0,  0,  0);
     }
     for(float f=ds; f<1.0; f+=dy)
     {
@@ -122,11 +116,11 @@ void SurfaceDraw_drawBackground()
                     g=0;
                     b=0;
             }
-            VertexObjectBuilder_startTexturedObject(voCtxStatic,trianglestrip,(PIC_NOTE0+stdNote));
-            VertexObjectBuilder_addTexturedVertex(voCtxStatic, x-dx, f-iy, 0, 0,0);
-            VertexObjectBuilder_addTexturedVertex(voCtxStatic, x-dx, f+iy, 0, 0,1);
-            VertexObjectBuilder_addTexturedVertex(voCtxStatic, x+dx, f-iy, 0, 1,0);
-            VertexObjectBuilder_addTexturedVertex(voCtxStatic, x+dx, f+iy, 0, 1,1);
+            VertexObjectBuilder_startTexturedObject(voCtxDynamic,trianglestrip,(PIC_NOTE0+stdNote));
+            VertexObjectBuilder_addTexturedVertex(voCtxDynamic, x-dx, f-iy, 0, 0,0);
+            VertexObjectBuilder_addTexturedVertex(voCtxDynamic, x-dx, f+iy, 0, 0,1);
+            VertexObjectBuilder_addTexturedVertex(voCtxDynamic, x+dx, f-iy, 0, 1,0);
+            VertexObjectBuilder_addTexturedVertex(voCtxDynamic, x+dx, f+iy, 0, 1,1);
         }
     }
      //*/
@@ -264,11 +258,7 @@ void drawPitchLocation()
 
 void SurfaceDraw_render(void* ctx)
 {    
-    if(firstDraw == 0)
-    {
-        SurfaceDraw_drawBackground();    
-        firstDraw = 1;
-    }
+    SurfaceDraw_drawBackground();    
     drawMoveableFrets();
     drawFingerLocation();
     drawPitchLocation();

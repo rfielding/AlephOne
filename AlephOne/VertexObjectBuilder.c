@@ -9,7 +9,7 @@
 #include "VertexObjectBuilder.h"
 
 
-#define VOVERTEXMAX (8192*2)
+#define VOVERTEXMAX (8192*8)
 #define VOOBJMAX (256)
 
 struct VertexObjectBuilder
@@ -92,7 +92,7 @@ int VertexObjectBuilder_addColoredVertex(struct VertexObjectBuilder* ctxp,float 
     int vert = ctxp->gridVerticesCount;
     if((4*ctxp->vertexObjects[obj].count + 4) >= VOVERTEXMAX)
     {
-        ctxp->fail("adding too many textured vertices!\n");
+        ctxp->fail("adding too many colored vertices!\n");
         return 0;
     }
     ctxp->gridVertices[3*vert + 0] = x;

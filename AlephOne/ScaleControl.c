@@ -47,53 +47,94 @@ float spRatios[SPRATIOS];
 void ScaleControl_defaults(void*ctx)
 {
     //Diatonic minor
-    etPicked[0][1][0] = 1;
-    etPicked[2][1][0] = 1;
-    etPicked[3][1][0] = 1;
-    etPicked[5][1][0] = 1;
-    etPicked[7][1][0] = 1;
-    etPicked[8][1][0] = 1;
-    etPicked[10][1][0] = 1;
+    etPicked[0][1][0] = 3;
+    etPicked[2][1][0] = 3;
+    etPicked[3][1][0] = 3;
+    etPicked[5][1][0] = 3;
+    etPicked[7][1][0] = 3;
+    etPicked[8][1][0] = 3;
+    etPicked[10][1][0] = 3;
 
     //Harmonic minor
-    etPicked[0][1][1] = 1;
-    etPicked[2][1][1] = 1;
-    etPicked[3][1][1] = 1;
-    etPicked[5][1][1] = 1;
-    etPicked[7][1][1] = 1;
-    etPicked[8][1][1] = 1;
+    etPicked[0][1][1] = 3;
+    etPicked[2][1][1] = 3;
+    etPicked[3][1][1] = 3;
+    etPicked[5][1][1] = 3;
+    etPicked[7][1][1] = 3;
+    etPicked[8][1][1] = 3;
     etPicked[11][1][1] = 1;
 
     //Chromatic
-    etPicked[0][1][2] = 1;
+    etPicked[0][1][2] = 3;
     etPicked[1][1][2] = 1;
-    etPicked[2][1][2] = 1;
-    etPicked[3][1][2] = 1;
+    etPicked[2][1][2] = 3;
+    etPicked[3][1][2] = 3;
     etPicked[4][1][2] = 1;
-    etPicked[5][1][2] = 1;
+    etPicked[5][1][2] = 3;
     etPicked[6][1][2] = 1;
-    etPicked[7][1][2] = 1;
-    etPicked[8][1][2] = 1;
+    etPicked[7][1][2] = 3;
+    etPicked[8][1][2] = 3;
     etPicked[9][1][2] = 1;
-    etPicked[10][1][2] = 1;
+    etPicked[10][1][2] = 3;
     etPicked[11][1][2] = 1;
 
     //Chromatic with quartertones
-    etPicked[0][1][3] = 1;
-    etPicked[1][1][3] = 1;
+    etPicked[0][1][3] = 3;
+    etPicked[1][1][3] = 2;
     etPicked[3][3][3] = 1;
-    etPicked[2][1][3] = 1;
-    etPicked[3][1][3] = 1;
-    etPicked[4][1][3] = 1;
-    etPicked[5][1][3] = 1;
-    etPicked[6][1][3] = 1;
+    etPicked[2][1][3] = 3;
+    etPicked[3][1][3] = 3;
+    etPicked[4][1][3] = 2;
+    etPicked[5][1][3] = 3;
+    etPicked[6][1][3] = 2;
     etPicked[13][3][3] = 1;
-    etPicked[7][1][3] = 1;
-    etPicked[8][1][3] = 1;
+    etPicked[7][1][3] = 3;
+    etPicked[8][1][3] = 3;
     etPicked[17][3][3] = 1;
-    etPicked[9][1][3] = 1;
-    etPicked[10][1][3] = 1;
-    etPicked[11][1][3] = 1;
+    etPicked[9][1][3] = 2;
+    etPicked[10][1][3] = 3;
+    etPicked[11][1][3] = 2;
+  
+    //Partial 53ET
+    etPicked[0][5][4] = 3;
+    etPicked[4][5][4] = 1;
+    etPicked[5][5][4] = 1;
+    etPicked[9][5][4] = 3;
+    etPicked[9+4][5][4] = 1;
+    etPicked[9+5][5][4] = 1;
+    etPicked[9+5+4][5][4] = 1;
+    etPicked[9+5+5][5][4] = 1;
+    
+    etPicked[22+0][5][4] = 3;
+    etPicked[22+4][5][4] = 1;
+    etPicked[22+5][5][4] = 1;
+    etPicked[22+9][5][4] = 3;
+    etPicked[22+9+4][5][4] = 1;
+    etPicked[22+9+5][5][4] = 1;
+    etPicked[22+9+5+4][5][4] = 1;
+    etPicked[22+9+5+5][5][4] = 1;
+    
+    etPicked[44][5][4] = 3;
+    etPicked[44+1][5][4] = 1;
+    etPicked[44+4][5][4] = 1;
+    etPicked[44+5][5][4] = 1;
+    
+    
+    //full 53et
+    for(int i=0;i<53;i++)
+    {
+        etPicked[i][5][5] = 1;
+    }  
+    //full 31et
+    for(int i=0;i<31;i++)
+    {
+        etPicked[i][4][6] = 1;
+    }
+    //full 19et
+    for(int i=0;i<19;i++)
+    {
+        etPicked[i][2][7] = 1;
+    }
     
     ScaleControl_commit(NULL);    
 }
@@ -359,7 +400,7 @@ void ScaleControl_commit(void* ctx)
             {
                 float pitch = fmod(12.0 * f / (1.0*ets[r]) + currentBase, 12.0);
                 //printf("add fret %f\n",pitch);
-                Fret_placeFret(fretCtx, pitch,2);
+                Fret_placeFret(fretCtx, pitch,etPicked[f][r][currentScale]);
             }
         }
     }
