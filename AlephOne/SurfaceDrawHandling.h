@@ -14,7 +14,7 @@ void SurfaceDraw_init(
                       struct PitchHandler_context* phctxArg,
                       int trianglesArg,
                       int trianglestripArg,
-                      int linestrip
+                      int linesArg
                       );
 
 struct WidgetTree_rect* SurfaceDraw_create();

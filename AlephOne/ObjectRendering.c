@@ -90,6 +90,9 @@ struct Button_data* scaleClearButton;
 struct Button_data* scaleToggleButton;
 struct Button_data* scaleCommitButton;
 
+struct Button_data* initialSnapButton;
+struct Slider_data* snapSpeedSlider;
+
 static char stringRenderBuffer[1024];
 
 static float baseNote = 2.0;
@@ -160,7 +163,7 @@ void ObjectRendering_init(
     ObjectRendering_stringRender = ObjectRendering_stringRenderArg;
     ObjectRendering_drawVO       = ObjectRendering_drawVOArg;
   
-    SurfaceDraw_init(voCtxDynamicArg,phctxArg,trianglesArg,trianglestripArg,linestripArg);
+    SurfaceDraw_init(voCtxDynamicArg,phctxArg,trianglesArg,trianglestripArg,linesArg);
     SliderControl_init(voCtxDynamicArg,phctxArg,trianglesArg,trianglestripArg,linestripArg);
     ButtonControl_init(voCtxDynamicArg,phctxArg,trianglesArg,trianglestripArg);
     ChannelOccupancyControl_init(triangles,trianglestrip,linestrip,voCtxDynamicArg, fctxArg);
@@ -217,6 +220,8 @@ void Page_set(void* ctx, int val)
     scaleClearButton->rect->isActive = FALSE;
     scaleToggleButton->rect->isActive = FALSE;
     scaleCommitButton->rect->isActive = FALSE;
+    initialSnapButton->rect->isActive = FALSE;
+    snapSpeedSlider->rect->isActive = FALSE;
     switch(val)
     {
         case 0:
@@ -242,6 +247,10 @@ void Page_set(void* ctx, int val)
             break;
         case 4:
             scaleControlButton->rect->isActive = TRUE;
+            break;
+        case 5:
+            initialSnapButton->rect->isActive = TRUE;
+            snapSpeedSlider->rect->isActive = TRUE;
             break;
     }
 }
@@ -287,6 +296,25 @@ float Rows_get(void* ctx)
     return (PitchHandler_getRowCount(phctx)-2)/6;
 }
 
+void SnapSpeed_set(void* ctx, float val)
+{
+    PitchHandler_setTuneSpeed(phctx,val);
+}
+
+float SnapSpeed_get(void* ctx)
+{
+    return PitchHandler_getTuneSpeed(phctx);
+}
+
+void Snap_set(void* ctx, int val)
+{
+    PitchHandler_setSnap(phctx, val);
+}
+
+int Snap_get(void* ctx)
+{
+    return PitchHandler_getSnap(phctx);
+}
 
 void Chorus_set(void* ctx, float val)
 {
@@ -506,6 +534,10 @@ void ObjectRendering_loadImages()
     renderLabel("Clear", PIC_SCALECLEARTEXT);
     renderLabel("Toggle", PIC_SCALETOGGLETEXT);
     renderLabel("Commit", PIC_SCALECOMMITTEXT);
+    
+    renderLabel("Down Snap", PIC_INITIALSNAPTEXT);
+    renderLabel("Snap Speed", PIC_SNAPSPEEDTEXT);
+    
     //Render a contiguous group of note pre-rendered images
     //(sharps/flats don't exist for now... a problem I will tackle later)
     for(int n=0; n < 12; n++)
@@ -542,7 +574,7 @@ void WidgetsAssemble()
     float panelBottom = 0.92;
     float panelTop = 1.0;
     //This button cycles through pages of controls
-    CreateButton(PIC_PAGE1TEXT,0.0,panelBottom, 0.11,panelTop, Page_set, Page_get, 6);
+    CreateButton(PIC_PAGE1TEXT,0.0,panelBottom, 0.11,panelTop, Page_set, Page_get, 7);
     
     //Page 0
     widthSlider = CreateSlider(PIC_WIDTHTEXT,0.12,panelBottom, 0.5,panelTop, Cols_set, Cols_get);
@@ -570,7 +602,13 @@ void WidgetsAssemble()
     scaleControl = ScaleControl_create(0, 0, 1, panelBottom);
     scaleClearButton = CreateButton(PIC_SCALECLEARTEXT,0.282,panelBottom, 0.48,panelTop, ScaleClear_set,ScaleClear_get,1);
     scaleToggleButton = CreateButton(PIC_SCALETOGGLETEXT,0.482,panelBottom, 0.68,panelTop, ScaleToggle_set,ScaleToggle_get,1);    
-    scaleCommitButton = CreateButton(PIC_SCALECOMMITTEXT,0.682,panelBottom, 0.88,panelTop, ScaleCommit_set,ScaleCommit_get,1);    //Page last
+    scaleCommitButton = CreateButton(PIC_SCALECOMMITTEXT,0.682,panelBottom, 0.88,panelTop, ScaleCommit_set,ScaleCommit_get,1);
+    
+    //Page 5
+    initialSnapButton = CreateButton(PIC_INITIALSNAPTEXT, 0.12, panelBottom, 0.48, panelTop, Snap_set, Snap_get, 2);
+    snapSpeedSlider = CreateSlider(PIC_SNAPSPEEDTEXT, 0.482, panelBottom, 0.88, panelTop, SnapSpeed_set, SnapSpeed_get);
+    
+    //Page last
     Page_set(NULL, 0);
     
     ScaleControl_setBaseNote(0);

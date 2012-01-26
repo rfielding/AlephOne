@@ -73,11 +73,13 @@ void PitchHandler_unpickPitch(struct PitchHandler_context* ctx, int finger);
 float PitchHandler_getTuneSpeed(struct PitchHandler_context* ctx);
 void PitchHandler_setTuneSpeed(struct PitchHandler_context* ctx, float tuneSpeed);
 
+int PitchHandler_getSnap(struct PitchHandler_context* ctx);
+void PitchHandler_setSnap(struct PitchHandler_context* ctx, int isSnap);
+
 void PitchHandler_tick(struct PitchHandler_context * ctx);
 
 
-
-
+float PitchHandler_getStrDetune(struct PitchHandler_context* ctx, int str);
 
 
 void PitchHandler_getFretsBegin(struct PitchHandler_context* ctx);

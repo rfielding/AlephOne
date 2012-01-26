@@ -12,11 +12,12 @@
 #include "SurfaceTouchHandling.h"
 #include "WidgetTree.h"
 #include "WidgetConstants.h"
+#include <math.h>
 
 #define NULL ((void*)0)
 static int triangles;
 static int trianglestrip;
-static int linestrip;
+static int lines;
 static struct VertexObjectBuilder* voCtxDynamic;
 static struct PitchHandler_context* phctx;
 
@@ -26,12 +27,12 @@ void SurfaceDraw_init(
                           struct PitchHandler_context* phctxArg,
                           int trianglesArg,
                           int trianglestripArg,
-                          int linestripArg
+                          int linesArg
                       )
 {
     triangles = trianglesArg;
     trianglestrip = trianglestripArg;
-    linestrip = linestripArg;
+    lines = linesArg;
     phctx = phctxArg;
     voCtxDynamic = voCtxDynamicArg;
 }
@@ -51,6 +52,7 @@ struct WidgetTree_rect* SurfaceDraw_create()
 
 void SurfaceDraw_drawBackground()
 {    
+    //Draw the app logo
     VertexObjectBuilder_startTexturedObject(voCtxDynamic,trianglestrip,PIC_ALEPHONE);
     VertexObjectBuilder_addTexturedVertex(voCtxDynamic, 0.1+0.00, 0.05+0.00, 0, 0,0);
     VertexObjectBuilder_addTexturedVertex(voCtxDynamic, 0.1+0.00, 0.05+0.25, 0, 0,1);
@@ -68,6 +70,7 @@ void SurfaceDraw_drawBackground()
     float ds = dy/2;
     VertexObjectBuilder_startColoredObject(voCtxDynamic,triangles);
     
+    //Draw strings
     for(float f=ds; f<1.0; f+=dy)
     {        
         VertexObjectBuilder_addColoredVertex(voCtxDynamic, 0, f   , 0, 0,255,255, 40);
@@ -84,15 +87,27 @@ void SurfaceDraw_drawBackground()
         VertexObjectBuilder_addColoredVertex(voCtxDynamic, 0, f   , 0, 0,255,255, 40);
         VertexObjectBuilder_addColoredVertex(voCtxDynamic, 1, f-dy, 0, 0,  0,  0,  0);
     }
-    for(float f=ds; f<1.0; f+=dy)
+    
+    float dx = 0.023;
+    float iy = 0.023;
+    //Start at bottom corner, increment a chromatic until we are off the screen,
+    //then move to next string and detune 
+    //and repeat until we are out of strings.
+    float bottomLeftNote = PitchHandler_findStandardNote(phctx,0,0);
+    //use <0.5, 0.5> as starting point
+    float y = 0.5 / rows;
+    float x = 0.5 / cols;
+    int stdNote = 0;
+    float cumulativeDetune = 0;
+    int str = 0;
+    //Traverse strings
+    while(y<1.0)
     {
-        float dx = 0.023;
-        float iy = 0.023;
-        int stdNoteBase = ((int)PitchHandler_findStandardNote(phctx,0.5/cols,f));
-        for(int c=0; c<cols; c++)
-        {            
-            float x = (1.0*c + 0.5)/cols;
-            int stdNote = (stdNoteBase + c)%12;
+        //Traverse frets
+        while(x<1.0)
+        {
+            stdNote = ((int)(x*cols + bottomLeftNote + cumulativeDetune))%12;
+            //Given the standard note name, draw it
             int r;
             int g;
             int b;
@@ -117,13 +132,24 @@ void SurfaceDraw_drawBackground()
                     b=0;
             }
             VertexObjectBuilder_startTexturedObject(voCtxDynamic,trianglestrip,(PIC_NOTE0+stdNote));
-            VertexObjectBuilder_addTexturedVertex(voCtxDynamic, x-dx, f-iy, 0, 0,0);
-            VertexObjectBuilder_addTexturedVertex(voCtxDynamic, x-dx, f+iy, 0, 0,1);
-            VertexObjectBuilder_addTexturedVertex(voCtxDynamic, x+dx, f-iy, 0, 1,0);
-            VertexObjectBuilder_addTexturedVertex(voCtxDynamic, x+dx, f+iy, 0, 1,1);
+            VertexObjectBuilder_addTexturedVertex(voCtxDynamic, x-dx, y-iy, 0, 0,0);
+            VertexObjectBuilder_addTexturedVertex(voCtxDynamic, x-dx, y+iy, 0, 0,1);
+            VertexObjectBuilder_addTexturedVertex(voCtxDynamic, x+dx, y-iy, 0, 1,0);
+            VertexObjectBuilder_addTexturedVertex(voCtxDynamic, x+dx, y+iy, 0, 1,1);
+            //move up a fret
+            x += (1.0)/cols;
         }
+        float detune = PitchHandler_getStrDetune(phctx,str);
+        cumulativeDetune += detune;
+        //Move up a string
+        y += 1.0/rows;
+        str = (int)(y*rows);
+        //Get the incremental detune and move back x as far as we must
+        do
+        {
+            x -= detune/cols;        
+        }while(x > 0);
     }
-     //*/
 }
 
 
@@ -196,7 +222,7 @@ void drawMoveableFrets()
 
 void drawFingerLocation()
 {
-    float dx = 0.05;
+    float dx = 0.0125;
     float dy = 0.3;
     
     VertexObjectBuilder_startColoredObject(voCtxDynamic, triangles);
@@ -227,7 +253,7 @@ void drawFingerLocation()
 
 void drawPitchLocation()
 {
-    float dx = 0.05;
+    float dx = 0.0125;
     float dy = 0.3;
     
     VertexObjectBuilder_startColoredObject(voCtxDynamic, triangles);
@@ -254,6 +280,58 @@ void drawPitchLocation()
             
         }
     }    
+    float cols = PitchHandler_getColCount(phctx);
+    float rows = PitchHandler_getRowCount(phctx);
+    VertexObjectBuilder_startColoredObject(voCtxDynamic, lines);
+    for(int f=0; f<16; f++)
+    {
+        struct FingerInfo* fInfo = PitchHandler_fingerState(phctx,f);
+        if(fInfo->isActive)
+        {
+            //TODO: this is ONLY right for uniform tunings
+            float y = ((int)(rows*fInfo->pitchY) + 0.5)/rows;
+            float dy = 1.0/rows;
+            float detune;
+            float detune2;
+            
+            detune = PitchHandler_getStrDetune(phctx,(int)(fInfo->pitchY*rows));
+            float dx3 = (12*log2f(3.0/2) - detune)/cols;
+            float dx4 = (12*log2f(4.0/3) - detune)/cols;
+            float dx5 = (12*log2f(5.0/4) - detune)/cols;
+            float dx6 = (12*log2f(6.0/5) - detune)/cols;
+            VertexObjectBuilder_addColoredVertex(voCtxDynamic,fInfo->pitchX,    y,0,  0,0, 255,255);            
+            VertexObjectBuilder_addColoredVertex(voCtxDynamic,fInfo->pitchX+0.75*dx3,    y+0.75*dy,0,  0,0, 255,0);  
+            
+            VertexObjectBuilder_addColoredVertex(voCtxDynamic,fInfo->pitchX,    y,0,  0,0,255,255);            
+            VertexObjectBuilder_addColoredVertex(voCtxDynamic,fInfo->pitchX+dx4, y+dy,0,  0,0,255,0);      
+            
+            VertexObjectBuilder_addColoredVertex(voCtxDynamic,fInfo->pitchX,    y,0,  0,255, 0,255);            
+            VertexObjectBuilder_addColoredVertex(voCtxDynamic,fInfo->pitchX+0.75*dx5, y+0.75*dy,0,  0,255, 0,0);    
+            
+            VertexObjectBuilder_addColoredVertex(voCtxDynamic,fInfo->pitchX,    y,0,  50,255, 0,255);            
+            VertexObjectBuilder_addColoredVertex(voCtxDynamic,fInfo->pitchX+0.75*dx6, y+0.75*dy,0,  50,255, 0,0);            
+            
+            if((int)(fInfo->pitchY*rows) > 0)
+            {
+                detune2 = PitchHandler_getStrDetune(phctx,(int)(fInfo->pitchY*rows - 1));                
+                float dx32 = (12*log2f(3.0/2) - detune2)/cols;
+                float dx42 = (12*log2f(4.0/3) - detune2)/cols;
+                float dx52 = (12*log2f(5.0/4) - detune2)/cols;
+                float dx62 = (12*log2f(6.0/5) - detune2)/cols;
+                VertexObjectBuilder_addColoredVertex(voCtxDynamic,fInfo->pitchX,    y,0,  0,0, 255,255);            
+                VertexObjectBuilder_addColoredVertex(voCtxDynamic,fInfo->pitchX-0.75*dx32,    y-0.75*dy,0,  0,0, 255,0);    
+                
+                VertexObjectBuilder_addColoredVertex(voCtxDynamic,fInfo->pitchX,    y,0,  0,0, 255,255);            
+                VertexObjectBuilder_addColoredVertex(voCtxDynamic,fInfo->pitchX-dx42, y-dy,0,  0,0,255,0);      
+                
+                VertexObjectBuilder_addColoredVertex(voCtxDynamic,fInfo->pitchX,    y,0,  0,255, 0,255);            
+                VertexObjectBuilder_addColoredVertex(voCtxDynamic,fInfo->pitchX-0.75*dx52, y-0.75*dy,0,  0,255, 0,0);      
+                
+                VertexObjectBuilder_addColoredVertex(voCtxDynamic,fInfo->pitchX,    y,0,  50,255, 0,255);            
+                VertexObjectBuilder_addColoredVertex(voCtxDynamic,fInfo->pitchX-0.75*dx62, y-0.75*dy,0,  50,255, 0,0);            
+            }            
+        }
+    } 
 }
 
 void SurfaceDraw_render(void* ctx)

@@ -42,6 +42,7 @@ struct PitchHandler_context
     float fretoffsetX;
     float fretoffsetYInitial;
     float fretoffsetXInitial;    
+    int initSnap;
 };
 
 struct PitchHandler_context* PitchHandler_init(struct Fret_context* fctx,void* (*allocFn)(unsigned long),int (*fail)(const char*,...),int (*logger)(const char*,...))
@@ -64,6 +65,7 @@ struct PitchHandler_context* PitchHandler_init(struct Fret_context* fctx,void* (
     ctx->doOctaveRounding = 1;
     ctx->fail = fail;
     ctx->logger = logger;
+    ctx->initSnap = 1;
     for(int i=0; i<FINGERMAX; i++)
     {
         ctx->fingers[i].isActive = 0;
@@ -71,6 +73,16 @@ struct PitchHandler_context* PitchHandler_init(struct Fret_context* fctx,void* (
         PitchHandler_setTuneInterval(ctx, i, 5);
     }
     return ctx;
+}
+
+int PitchHandler_getSnap(struct PitchHandler_context* ctx)
+{
+    return ctx->initSnap;
+}
+
+void PitchHandler_setSnap(struct PitchHandler_context* ctx, int isSnap)
+{
+    ctx->initSnap = isSnap;
 }
 
 struct FingerInfo* PitchHandler_fingerState(struct PitchHandler_context* ctx, int finger)
@@ -156,6 +168,14 @@ void PitchHandler_unpickPitch(struct PitchHandler_context* ctx, int finger)
     ctx->fingers[finger].isActive = 0;
 }
 
+float PitchHandler_getStrDetune(struct PitchHandler_context* ctx, int str)
+{
+    return ctx->tuneInterval[str];
+}
+
+
+
+
 float PitchHandler_findStandardNote(struct PitchHandler_context* ctx, float x, float y)
 {
     return (x * ctx->colCount) + ctx->tuneIntervalCumulative[(int)(y * ctx->rowCount)] + ctx->noteDiff;
@@ -214,7 +234,14 @@ struct FingerInfo* PitchHandler_pickPitch(struct PitchHandler_context* ctx, int 
     }
     else
     {
-        ctx->pitchDiffByFinger[finger] = targetDrift;        
+        if(ctx->initSnap)
+        {
+            ctx->pitchDiffByFinger[finger] = targetDrift;                    
+        }
+        else
+        {
+            ctx->pitchDiffByFinger[finger] = -0.5;
+        }
     }
     thisPitch += ctx->pitchDiffByFinger[finger];
     

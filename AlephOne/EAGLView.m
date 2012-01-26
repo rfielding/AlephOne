@@ -140,7 +140,7 @@ static struct Fret_context* frctx;
     CGContextClearRect(context, CGRectMake(0, 0, width, height));
     
     // Get the font.
-    UIFont *font = [UIFont fontWithName:@"Helvetica" size:20];
+    UIFont *font = [UIFont fontWithName:@"Helvetica" size:24];
     
     /*
     CGContextSaveGState(context);
@@ -206,7 +206,8 @@ static struct Fret_context* frctx;
     for(int s=0; s<16; s++)
     {
         //Set to Just fourths
-        PitchHandler_setTuneInterval(phctx,s,4.9804499913461244);
+//        PitchHandler_setTuneInterval(phctx,s,4.9804499913461244);
+//        PitchHandler_setTuneInterval(phctx,s,7);
     }
     PitchHandler_setNoteDiff(phctx,45); //A is bottom corner
     PitchHandler_setTuneSpeed(phctx,0.25);
