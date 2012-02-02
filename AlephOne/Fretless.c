@@ -784,6 +784,8 @@ void Fretless_up(struct Fretless_context* ctxp, int finger,int legato)
         {
             ctxp->fail("turningOffPtr->isSupressed should not be supressed\n");
         }
+        //Set the bend wrong to force a re-send (note ups dont happen often enough that its a problem)
+        ctxp->channels[turningOnPtr->channel].lastBend = -1;
         Fretless_setCurrentBend(ctxp,fingerToTurnOn);
         //Adopt the velocity of the note that uncovers us
         turningOnPtr->velocity = oldVelocity;
