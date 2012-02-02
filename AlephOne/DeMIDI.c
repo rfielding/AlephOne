@@ -25,6 +25,7 @@ int   midiBend;
 char  intLow;
 char  intHi;
 int   midiExpr;
+int   midiExprParm; //??? expression isn't a single item, it's a parm with a value
 int   midiChannelPress;
 int   midiPitchBendSemis = 2;
 int   doNoteAttack;
@@ -35,7 +36,8 @@ float exprVal;
 //We have 16 note polyphony available
 void UpdateEngine()
 {
-    //doNoteAttack,pitch,volVal,exprVal,midiChannel,expr should be sufficient.
+    //Something like this...
+    //rawEngine(midiChannel,doNoteAttack,pitch,volVal,midiExprParm,midiExpr);
 }
 
 void DeMIDI_start()
@@ -99,9 +101,8 @@ void DeMIDI_flush()
         else
         if(midiStatus == 0x0D)
         {
-            //A rare 2 byte message.   Essentially updates volume(?) Beware!!
-            //If we get lost during decode, that ends up creating stuff like stuck notes!
-            midiChannelPress = buffer[dataByte] & 0x7F;
+            //Treating this as a volume update
+            midiVol = buffer[dataByte] & 0x7F;
             dataByte+=1;
         }        
         
@@ -110,7 +111,7 @@ void DeMIDI_flush()
         {
             midiPitch = 1.0 * midiNote + (midiPitchBendSemis*(midiBend - 8192))/8192.0;
         }
-        if(midiStatus == 0x09 || midiStatus == 0x08)
+        if(midiStatus == 0x09 || midiStatus == 0x08 || midiStatus == 0x0D)
         {
             volVal = midiVol / 127.0;            
         }
