@@ -60,6 +60,7 @@
 		49C429C614A459E000008AB0 /* SurfaceDrawHandling.c in Sources */ = {isa = PBXBuildFile; fileRef = 49C429C414A459DF00008AB0 /* SurfaceDrawHandling.c */; };
 		49C429C914A45D1200008AB0 /* ChannelOccupancyControl.c in Sources */ = {isa = PBXBuildFile; fileRef = 49C429C714A45D1100008AB0 /* ChannelOccupancyControl.c */; };
 		49C429CD14A462AC00008AB0 /* SliderControl.c in Sources */ = {isa = PBXBuildFile; fileRef = 49C429CB14A462AB00008AB0 /* SliderControl.c */; };
+		49C8C39114DA303E00388555 /* DeMIDI.c in Sources */ = {isa = PBXBuildFile; fileRef = 49C8C39014DA303E00388555 /* DeMIDI.c */; };
 		49CB084014888CA3003DEA9D /* PitchHandler.c in Sources */ = {isa = PBXBuildFile; fileRef = 49CB083E14888CA3003DEA9D /* PitchHandler.c */; };
 		49CB084414888E55003DEA9D /* TouchMapping.c in Sources */ = {isa = PBXBuildFile; fileRef = 49CB084214888E55003DEA9D /* TouchMapping.c */; };
 		49CB084714889D4C003DEA9D /* ControlRegistry.c in Sources */ = {isa = PBXBuildFile; fileRef = 49CB084514889D4B003DEA9D /* ControlRegistry.c */; };
@@ -152,6 +153,8 @@
 		49C429CA14A45DC900008AB0 /* WidgetConstants.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = WidgetConstants.h; sourceTree = "<group>"; };
 		49C429CB14A462AB00008AB0 /* SliderControl.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = SliderControl.c; sourceTree = "<group>"; };
 		49C429CC14A462AC00008AB0 /* SliderControl.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SliderControl.h; sourceTree = "<group>"; };
+		49C8C39014DA303E00388555 /* DeMIDI.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = DeMIDI.c; sourceTree = "<group>"; };
+		49C8C39214DA305300388555 /* DeMIDI.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = DeMIDI.h; sourceTree = "<group>"; };
 		49CB083E14888CA3003DEA9D /* PitchHandler.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = PitchHandler.c; sourceTree = "<group>"; };
 		49CB083F14888CA3003DEA9D /* PitchHandler.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PitchHandler.h; sourceTree = "<group>"; };
 		49CB084214888E55003DEA9D /* TouchMapping.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = TouchMapping.c; sourceTree = "<group>"; };
@@ -224,6 +227,8 @@
 				49B390BE144915CB008C9F6E /* Fretless.h */,
 				49400BD1149DBB2700F5B7C0 /* Fret.c */,
 				49400BD2149DBB2700F5B7C0 /* Fret.h */,
+				49C8C39014DA303E00388555 /* DeMIDI.c */,
+				49C8C39214DA305300388555 /* DeMIDI.h */,
 			);
 			name = ProjectAgnostic;
 			sourceTree = "<group>";
@@ -514,6 +519,7 @@
 				49C429CD14A462AC00008AB0 /* SliderControl.c in Sources */,
 				4963A35C14A9297700CE0C5A /* ButtonControl.c in Sources */,
 				49691ADD14B57412009AB83D /* ScaleControl.c in Sources */,
+				49C8C39114DA303E00388555 /* DeMIDI.c in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
