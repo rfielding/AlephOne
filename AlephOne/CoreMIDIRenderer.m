@@ -10,7 +10,7 @@
 #import <CoreMIDI/CoreMIDI.h>
 #import "CoreMIDIRenderer.h"
 #import <stdarg.h>
-
+#import "DeMIDI.h"
 
 #define MIDIBUFFERSIZE 1024
 static MIDIPortRef midiOutPort = 0;
@@ -30,6 +30,7 @@ static void CoreMIDIRenderer_midiStateChangedHander(const MIDINotification *mess
 
 void CoreMIDIRenderer_midiInit(struct Fretless_context* ctxp)
 {
+    DeMIDI_start();
     if(midiOutPort)return;
     for(int i=0;i<MIDIBUFFERSIZE;i++)
     {
@@ -74,6 +75,8 @@ void CoreMIDIRenderer_midiPutch(char c)
     //Keep a record of the message
     logBuffer[logFromLastPassed % MIDIBUFFERSIZE] = c;
     logFromLastPassed++;
+    
+    DeMIDI_putch(c);
 }
 
 void CoreMIDIRenderer_midiFlush()
@@ -104,6 +107,7 @@ void CoreMIDIRenderer_midiFlush()
         }
     }
     midiBufferCount = 0;    
+    DeMIDI_flush();
 }
 
 void CoreMIDIRenderer_midiPassed()
