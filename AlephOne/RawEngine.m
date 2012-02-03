@@ -22,6 +22,13 @@ AudioStreamBasicDescription audioFormat;
 static const float kSampleRate = 44100.0;
 static const unsigned int kOutputBus = 0;
 
+#define WAVEMAX 4096
+#define MAXCHANNELS 16
+float notePitch[MAXCHANNELS];
+float noteVol[MAXCHANNELS];
+float notePhase[MAXCHANNELS];
+float waveSustain[WAVEMAX];
+
 static void audioSessionInterruptionCallback(void *inUserData, UInt32 interruptionState) {
     if (interruptionState == kAudioSessionEndInterruption) {
         AudioSessionSetActive(YES);
@@ -33,14 +40,66 @@ static void audioSessionInterruptionCallback(void *inUserData, UInt32 interrupti
     }
 }
 
-static void renderNoise(long* dataL, long* dataR, unsigned long frames)
+static void initNoise()
 {
-    /*
-    for(int i=0; i<frames; i++)
+    //Zero out state variables
+    for(int i=0; i<MAXCHANNELS; i++)
     {
-        dataL[i] = LONG_MAX * sinf(i * M_PI/1000);
-        dataR[i] = LONG_MAX * sinf(i * M_PI/1000);
-    }*/
+        notePitch[i] = 0;
+        noteVol[i]   = 0;
+        notePhase[i] = 0;
+    }
+    //Scribble a sin wave into the buffer for now
+    for(int i=0; i<WAVEMAX;i++)
+    {
+        waveSustain[i] = LONG_MAX * sinf( ((2*M_PI) * i )/ WAVEMAX ) * 0.125;
+    }
+}
+
+static void renderNoise(long* dataL, long* dataR, unsigned long samples)
+{
+    for(int i=0; i<samples; i++)
+    {
+        dataL[i] = 0;
+        dataR[i] = 0;
+    }
+    //Go in channel major order because we skip by volume
+    for(int f=0; f<MAXCHANNELS; f++)
+    {
+        float v = noteVol[f];
+        if(v > 0)
+        {
+            float p = notePhase[f];
+            //note 33 is our center pitch, and it's 440hz
+            float cyclesPerSample = powf(2,(notePitch[f]-33)/12) * (440/44100.0);
+            //If non-zero volume, then we must add in
+            for(int i=0; i<samples; i++)
+            {
+                float cycles = i*cyclesPerSample + p;
+                float cycleLocation = (cycles - (int)cycles); // 0 .. 1
+                int j = (int)(cycleLocation*WAVEMAX);
+                int s = v * waveSustain[j];
+                dataL[i] += v * s;
+                dataR[i] += dataL[i];
+            }     
+            notePhase[f] += (cyclesPerSample*samples);
+        }
+    }
+}
+
+void rawEngine(char midiChannel,int doNoteAttack,float pitch,float volVal,int midiExprParm,int midiExpr)
+{
+    //We limit to one note per midi channel now
+    int note = (int)midiChannel;
+    if(doNoteAttack)
+    {
+        //Set to beginning of sustain phase.
+        //In the future, the attack and decase phase will have its own envelope, and this
+        //will be how impulses, etc get handled.
+        notePhase[note] = 0;
+    }
+    noteVol[note] = volVal;
+    notePitch[note] = pitch;
 }
 
 static OSStatus fixGDLatency()
@@ -80,6 +139,7 @@ void SoundEngine_wake()
     NSError *categoryError = nil;
     [[AVAudioSession sharedInstance] setCategory:AVAudioSessionCategoryPlayback error:&categoryError];
     fixGDLatency();
+    initNoise();
 }
 
 
@@ -201,6 +261,10 @@ void SoundEngine_start()
                         {
                           NSLog(@"AudioUnitStart:%ld",status);
                         }
+                        else
+                        {
+                            SoundEngine_wake();
+                        }
                     }
                 }
             }
@@ -210,8 +274,8 @@ void SoundEngine_start()
 
 void rawEngineStart()
 {
-    //SoundEngine_start();
-    //NSLog(@"rawEngineStart");
+    SoundEngine_start();
+    NSLog(@"rawEngineStart");
 }
 
 void rawEngineStop()
@@ -219,8 +283,4 @@ void rawEngineStop()
     NSLog(@"rawEngineStop");    
 }
 
-void rawEngine(char midiChannel,int doNoteAttack,float pitch,float volVal,int midiExprParm,int midiExpr)
-{
-    //NSLog(@"rawEngine %d %d %f %f %d %d", (int)midiChannel,doNoteAttack,pitch,volVal,midiExprParm,midiExpr);
-}
 

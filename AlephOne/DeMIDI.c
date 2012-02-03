@@ -32,6 +32,10 @@ static int   doNoteAttack;
 static float midiPitch;
 static float volVal;
 static float exprVal;
+static char coarse;
+static char fine;
+static char rpnVal;
+static char rpnFoo; //Not sure what this is
 
 static void (*rawEngine)(char midiChannel,int doNoteAttack,float pitch,float volVal,int midiExprParm,int midiExpr);
 
@@ -77,7 +81,7 @@ void DeMIDI_flush()
         {
             midiNote = (buffer[dataByte] & 0x7F);
             midiVol  = (buffer[dataByte+1] & 0x7F);
-            doNoteAttack = 1;  //TODO: can be modified by note tie!
+            doNoteAttack = (midiVol != 0);  //TODO: can be modified by note tie!
             dataByte+=2;
             somethingChanged = 1;
         }
@@ -108,11 +112,55 @@ void DeMIDI_flush()
             somethingChanged = 1;
         }        
         else
+        if(midiStatus == 0x0B)
+        {
+            intLow = buffer[dataByte] & 0x7F;
+            intHi = buffer[dataByte+1] & 0x7F;
+            if(intLow == 0x63)
+            {
+                coarse = intLow;
+            }
+            else
+            if(intLow == 0x62)
+            {
+                fine = intLow;
+            }
+            else
+            if(intLow == 101)
+            {
+                coarse = intLow;
+            }
+            else
+            if(intLow == 100)
+            {
+                fine = intLow;
+            }            
+            else
+            if(intLow == 6)
+            {
+                rpnVal = intHi;
+                somethingChanged = 1;
+            }
+            else
+            if(intLow == 38)
+            {
+                rpnFoo = intHi;
+            }            
+            //Just ignore status bytes for now
+            dataByte+=2;
+        }
+        else
         {
             //Skip until status because we are lost
+            int gotLost = 0;
             while(dataByte < bufferIdx && (buffer[dataByte] & 0x80)==0)
             {
                 dataByte++;
+                gotLost=1;
+            }
+            if(gotLost)
+            {
+                printf("we got lost in midi parsing on %d!\n", (int)midiStatus);
             }
         }
         
@@ -126,6 +174,14 @@ void DeMIDI_flush()
             {
                 volVal = midiVol / 127.0;            
             }
+            if(midiStatus == 0x0B)
+            {
+                if(intLow == 6 && coarse == 101 && fine == 100)
+                {
+                    midiPitchBendSemis = rpnVal;
+                }
+            }
+            printf("rawEngine(%d,%d,%f,%f,%d,%d)\n",(int)midiChannel,doNoteAttack,midiPitch,volVal,midiExprParm,midiExpr);
             rawEngine(midiChannel,doNoteAttack,midiPitch,volVal,midiExprParm,midiExpr);
         }        
     }
