@@ -27,23 +27,18 @@ static char  intLow;
 static char  intHi;
 static int   midiExpr;
 static int   midiExprParm; //??? expression isn't a single item, it's a parm with a value
-static int   midiChannelPress;
 static int   midiPitchBendSemis = 2;
 static int   doNoteAttack;
 static float midiPitch;
 static float volVal;
 static float exprVal;
 
-//We have 16 note polyphony available
-void UpdateEngine()
-{
-    //Something like this...
-    //rawEngine(midiChannel,doNoteAttack,pitch,volVal,midiExprParm,midiExpr);
-    //printf("raw %d,%d,%f,%f,%d,%d\n",(int)midiChannel,doNoteAttack,midiPitch,volVal,midiExprParm,midiExpr);
-}
+static void (*rawEngine)(char midiChannel,int doNoteAttack,float pitch,float volVal,int midiExprParm,int midiExpr);
 
-void DeMIDI_start()
+
+void DeMIDI_start(void (*rawEngineArg)(char midiChannel,int doNoteAttack,float pitch,float volVal,int midiExprParm,int midiExpr))
 {
+    rawEngine = rawEngineArg;
     //Start the sound engine
 }
 
@@ -131,7 +126,7 @@ void DeMIDI_flush()
             {
                 volVal = midiVol / 127.0;            
             }
-            UpdateEngine();    
+            rawEngine(midiChannel,doNoteAttack,midiPitch,volVal,midiExprParm,midiExpr);
         }        
     }
     //TODO: do something with our pitch information

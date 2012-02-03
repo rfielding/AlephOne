@@ -11,6 +11,7 @@
 #import "CoreMIDIRenderer.h"
 #import <stdarg.h>
 #import "DeMIDI.h"
+#import "RawEngine.h"
 
 #define MIDIBUFFERSIZE 1024
 static MIDIPortRef midiOutPort = 0;
@@ -23,6 +24,8 @@ static struct Fretless_context* fretlessp = NULL;
 static int logFromLastPassed=0;
 static Byte logBuffer[MIDIBUFFERSIZE];
 
+
+
 static void CoreMIDIRenderer_midiStateChangedHander(const MIDINotification *message, void *refCon)
 {
     NSLog(@"midiState changed\n");
@@ -30,7 +33,9 @@ static void CoreMIDIRenderer_midiStateChangedHander(const MIDINotification *mess
 
 void CoreMIDIRenderer_midiInit(struct Fretless_context* ctxp)
 {
-    DeMIDI_start();
+    rawEngineStart();
+    DeMIDI_start(rawEngine);
+    
     if(midiOutPort)return;
     for(int i=0;i<MIDIBUFFERSIZE;i++)
     {

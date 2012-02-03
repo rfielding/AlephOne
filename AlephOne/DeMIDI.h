@@ -4,7 +4,7 @@
    Its main interface with the outside world is putch/flush.
  */
 
-void DeMIDI_start();
+void DeMIDI_start(void (*rawEngine)(char midiChannel,int doNoteAttack,float pitch,float volVal,int midiExprParm,int midiExpr));
 void DeMIDI_stop();
 
 void DeMIDI_putch(char c);

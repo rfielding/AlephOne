@@ -67,6 +67,10 @@
 		49CB084A1488C11A003DEA9D /* GenericTouchHandling.c in Sources */ = {isa = PBXBuildFile; fileRef = 49CB08481488C119003DEA9D /* GenericTouchHandling.c */; };
 		49CB0855148A8F8B003DEA9D /* VertexObjectBuilder.c in Sources */ = {isa = PBXBuildFile; fileRef = 49CB0853148A8F8B003DEA9D /* VertexObjectBuilder.c */; };
 		49DB469E148B37E500C7AA76 /* CoreMIDI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 49DB469D148B37E500C7AA76 /* CoreMIDI.framework */; };
+		49DE52B514DB771500970F58 /* RawEngine.m in Sources */ = {isa = PBXBuildFile; fileRef = 49DE52B414DB771500970F58 /* RawEngine.m */; };
+		49DE52BA14DB7AC100970F58 /* AudioToolbox.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 49DE52B714DB7AC100970F58 /* AudioToolbox.framework */; };
+		49DE52BC14DB7AC100970F58 /* CoreAudio.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 49DE52B914DB7AC100970F58 /* CoreAudio.framework */; };
+		49DE52BE14DB7EF400970F58 /* AVFoundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 49DE52BD14DB7EF400970F58 /* AVFoundation.framework */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -166,6 +170,11 @@
 		49CB0853148A8F8B003DEA9D /* VertexObjectBuilder.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = VertexObjectBuilder.c; sourceTree = "<group>"; };
 		49CB0854148A8F8B003DEA9D /* VertexObjectBuilder.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = VertexObjectBuilder.h; sourceTree = "<group>"; };
 		49DB469D148B37E500C7AA76 /* CoreMIDI.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreMIDI.framework; path = System/Library/Frameworks/CoreMIDI.framework; sourceTree = SDKROOT; };
+		49DE52B314DB771500970F58 /* RawEngine.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RawEngine.h; sourceTree = "<group>"; };
+		49DE52B414DB771500970F58 /* RawEngine.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = RawEngine.m; sourceTree = "<group>"; };
+		49DE52B714DB7AC100970F58 /* AudioToolbox.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AudioToolbox.framework; path = System/Library/Frameworks/AudioToolbox.framework; sourceTree = SDKROOT; };
+		49DE52B914DB7AC100970F58 /* CoreAudio.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreAudio.framework; path = System/Library/Frameworks/CoreAudio.framework; sourceTree = SDKROOT; };
+		49DE52BD14DB7EF400970F58 /* AVFoundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AVFoundation.framework; path = System/Library/Frameworks/AVFoundation.framework; sourceTree = SDKROOT; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -179,6 +188,9 @@
 				49B3907F144914DC008C9F6E /* QuartzCore.framework in Frameworks */,
 				49B39081144914DC008C9F6E /* OpenGLES.framework in Frameworks */,
 				49DB469E148B37E500C7AA76 /* CoreMIDI.framework in Frameworks */,
+				49DE52BA14DB7AC100970F58 /* AudioToolbox.framework in Frameworks */,
+				49DE52BC14DB7AC100970F58 /* CoreAudio.framework in Frameworks */,
+				49DE52BE14DB7EF400970F58 /* AVFoundation.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -240,6 +252,8 @@
 				4959A8D9149842BC00D4F03B /* PressureSensor.m */,
 				496862841481FB7600460B4B /* CoreMIDIRenderer.h */,
 				496862851481FB7600460B4B /* CoreMIDIRenderer.m */,
+				49DE52B314DB771500970F58 /* RawEngine.h */,
+				49DE52B414DB771500970F58 /* RawEngine.m */,
 			);
 			name = ProjectAgnostic;
 			sourceTree = "<group>";
@@ -265,6 +279,9 @@
 		49B39077144914DC008C9F6E /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				49DE52BD14DB7EF400970F58 /* AVFoundation.framework */,
+				49DE52B714DB7AC100970F58 /* AudioToolbox.framework */,
+				49DE52B914DB7AC100970F58 /* CoreAudio.framework */,
 				49DB469D148B37E500C7AA76 /* CoreMIDI.framework */,
 				49B39078144914DC008C9F6E /* UIKit.framework */,
 				49B3907A144914DC008C9F6E /* Foundation.framework */,
@@ -520,6 +537,7 @@
 				4963A35C14A9297700CE0C5A /* ButtonControl.c in Sources */,
 				49691ADD14B57412009AB83D /* ScaleControl.c in Sources */,
 				49C8C39114DA303E00388555 /* DeMIDI.c in Sources */,
+				49DE52B514DB771500970F58 /* RawEngine.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
