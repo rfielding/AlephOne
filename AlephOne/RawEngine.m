@@ -274,7 +274,7 @@ void SoundEngine_start()
 
 void rawEngineStart()
 {
-    SoundEngine_start();
+    //SoundEngine_start();
     NSLog(@"rawEngineStart");
 }
 
