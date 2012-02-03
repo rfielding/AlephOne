@@ -14,17 +14,17 @@
 #include <stdio.h>
 
 #define BUFFERMAX 2048
-static char buffer[BUFFERMAX];
+static unsigned char buffer[BUFFERMAX];
 static int bufferIdx = 0;
 
 //This state is used to forward pitches to the audio engine
-static char  midiStatus;
-static char  midiChannel;
-static char  midiVol;
-static char  midiNote;
+static unsigned char  midiStatus;
+static unsigned char  midiChannel;
+static unsigned char  midiVol;
+static unsigned char  midiNote;
 static int   midiBend;
-static char  intLow;
-static char  intHi;
+static unsigned char  intLow;
+static unsigned char  intHi;
 static int   midiExpr;
 static int   midiExprParm; //??? expression isn't a single item, it's a parm with a value
 static int   midiPitchBendSemis = 2;
@@ -32,10 +32,10 @@ static int   doNoteAttack;
 static float midiPitch;
 static float volVal;
 static float exprVal;
-static char coarse;
-static char fine;
-static char rpnVal;
-static char rpnFoo; //Not sure what this is
+static unsigned char coarse;
+static unsigned char fine;
+static unsigned char rpnVal;
+static unsigned char rpnFoo; //Not sure what this is
 
 static void (*rawEngine)(char midiChannel,int doNoteAttack,float pitch,float volVal,int midiExprParm,int midiExpr);
 
@@ -74,11 +74,14 @@ void DeMIDI_flush()
         {
             midiStatus = (buffer[dataByte] & 0xF0) >> 4;
             midiChannel = (buffer[dataByte] & 0x0F);
+            printf("status:%d %d\n",(int)midiStatus,(int)midiChannel);
             dataByte++;
         }      
         
         if(midiStatus == 0x09)
         {
+            if(buffer[dataByte] & 0x80)printf("bad byte in 0x09 note\n");
+            if(buffer[dataByte+1] & 0x80)printf("bad byte in 0x09 vol\n");
             midiNote = (buffer[dataByte] & 0x7F);
             midiVol  = (buffer[dataByte+1] & 0x7F);
             doNoteAttack = (midiVol != 0);  //TODO: can be modified by note tie!
@@ -88,6 +91,8 @@ void DeMIDI_flush()
         else
         if(midiStatus == 0x08)
         {
+            if(buffer[dataByte] & 0x80)printf("bad byte in 0x08 note\n");
+            if(buffer[dataByte+1] & 0x80)printf("bad byte in 0x08 vol\n");
             midiNote = (buffer[dataByte] & 0x7F);
             midiVol  = 0;  //Ignore its value
             dataByte+=2;
@@ -96,6 +101,8 @@ void DeMIDI_flush()
         else
         if(midiStatus == 0x0E)
         {
+            if(buffer[dataByte] & 0x80)printf("bad byte in 0x0E bend low\n");
+            if(buffer[dataByte+1] & 0x80)printf("bad byte in 0x0E bend high\n");
             intLow = buffer[dataByte] & 0x7F;
             intHi = buffer[dataByte+1] & 0x7F;
             //14bit MIDI bend
@@ -106,6 +113,7 @@ void DeMIDI_flush()
         else
         if(midiStatus == 0x0D)
         {
+            if(buffer[dataByte] & 0x80)printf("bad byte in 0x0D chan press data\n");
             //Treating this as a volume update
             midiVol = buffer[dataByte] & 0x7F;
             dataByte+=1;
@@ -114,6 +122,8 @@ void DeMIDI_flush()
         else
         if(midiStatus == 0x0B)
         {
+            if(buffer[dataByte] & 0x80)printf("bad byte in 0x0B parm low\n");
+            if(buffer[dataByte+1] & 0x80)printf("bad byte in 0x0B  parm high\n");
             intLow = buffer[dataByte] & 0x7F;
             intHi = buffer[dataByte+1] & 0x7F;
             if(intLow == 0x63)
@@ -139,7 +149,7 @@ void DeMIDI_flush()
             if(intLow == 6)
             {
                 rpnVal = intHi;
-                somethingChanged = 1;
+                //somethingChanged = 1;
             }
             else
             if(intLow == 38)
