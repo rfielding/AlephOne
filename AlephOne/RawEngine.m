@@ -22,7 +22,7 @@ AudioStreamBasicDescription audioFormat;
 static const float kSampleRate = 44100.0;
 static const unsigned int kOutputBus = 0;
 
-#define WAVEMAX (2048*2)
+#define WAVEMAX (2048*4)
 #define MAXCHANNELS 16
 #define EXPRLEVELS 32
 float notePitch[MAXCHANNELS];
@@ -42,13 +42,13 @@ float harmonicsLoTotal=1;
 float harmonicsLo[HARMONICSMAX] =
 {
     // 1  2  3  4  5  6  7  8  9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31 32
-       8, 4, 0, 2, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
+       8, 4, 1, 2, 0, 1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
 };
 float harmonicsHiTotal=1;
 float harmonicsHi[HARMONICSMAX] =
 {
     // 1  2  3  4  5  6  7  8  9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31 32
-       1, 1, 1, 1, 1, 1, 1,16, 8, 1, 2, 4, 1, 1, 1, 2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1
+       0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
 };
 float harmonicsTotal=1;
 float harmonics[HARMONICSMAX];
