@@ -116,6 +116,8 @@ void DeMIDI_flush()
             if(buffer[dataByte] & 0x80)printf("bad byte in 0x0D chan press data\n");
             //Treating this as a volume update
             midiVol = buffer[dataByte] & 0x7F;
+            //midiExpr = buffer[dataByte] & 0x7F;
+            //midiExprParm = 0;
             dataByte+=1;
             somethingChanged = 1;
         }        
@@ -149,13 +151,20 @@ void DeMIDI_flush()
             if(intLow == 6)
             {
                 rpnVal = intHi;
-                //somethingChanged = 1;
+                somethingChanged = 1;
             }
             else
             if(intLow == 38)
             {
                 rpnFoo = intHi;
             }            
+            else
+            if(intLow == 11)
+            {
+                midiExprParm = intLow;
+                midiExpr = intHi;
+                somethingChanged = 1;
+            }
             //Just ignore status bytes for now
             dataByte+=2;
         }
