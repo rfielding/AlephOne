@@ -27,7 +27,7 @@ static unsigned char  intLow;
 static unsigned char  intHi;
 static int   midiExpr;
 static int   midiExprParm; //??? expression isn't a single item, it's a parm with a value
-static int   midiPitchBendSemis = 12;
+static int   midiPitchBendSemis = 2;
 static int   doNoteAttack;
 static float midiPitch;
 static float volVal;

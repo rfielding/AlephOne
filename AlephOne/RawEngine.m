@@ -22,9 +22,9 @@ AudioStreamBasicDescription audioFormat;
 static const float kSampleRate = 44100.0;
 static const unsigned int kOutputBus = 0;
 
-#define WAVEMAX (2048)
+#define WAVEMAX (2048*2)
 #define MAXCHANNELS 16
-#define EXPRLEVELS 64
+#define EXPRLEVELS 32
 float notePitch[MAXCHANNELS];
 float noteVol[MAXCHANNELS];
 float notePitchTarget[MAXCHANNELS];
@@ -48,7 +48,7 @@ float harmonicsHiTotal=1;
 float harmonicsHi[HARMONICSMAX] =
 {
     // 1  2  3  4  5  6  7  8  9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31 32
-       1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1
+       1, 1, 1, 1, 1, 1, 1,16, 8, 1, 2, 4, 1, 1, 1, 2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1
 };
 float harmonicsTotal=1;
 float harmonics[HARMONICSMAX];
@@ -71,7 +71,7 @@ static void setExprMixForLevel(int exprLevel)
         harmonicsHiTotal += harmonicsHi[i];
     }
     
-    float mix = exprLevel / EXPRLEVELS;
+    float mix = (1.0 * exprLevel) / EXPRLEVELS;
     
     //Mix together the current waveform
     float lowMix = (1-mix) / harmonicsLoTotal;
@@ -82,20 +82,17 @@ static void setExprMixForLevel(int exprLevel)
     {
         harmonics[h] = lowMix * harmonicsLo[h] + hiMix * harmonicsHi[h]; 
     }        
-    for(int i=0; i<WAVEMAX;i++)
-    {
-        waveSustain[exprLevel][i] = 0;
-    }
     //Scribble a wave into the buffer
     //It is VERY important that it comes out to 0 at the beginning and the end
     //to prevent impulses
     for(int i=0; i<WAVEMAX;i++)
     {
+        float sampleValue = 0;
         for(int h=0; h<HARMONICSMAX; h++)
         {
-            int vol = (int) (LONG_MAX * (harmonics[h]) * 0.25);
-            waveSustain[exprLevel][i] += vol * sinf( ((h+1) * (2*M_PI) * i )/ WAVEMAX );            
+            sampleValue += harmonics[h]/MAXCHANNELS * sinf( ((h+1) * (2*M_PI) * i )/ WAVEMAX );            
         }
+        waveSustain[exprLevel][i] = (int) (LONG_MAX * sampleValue);
     }       
 }
 
@@ -130,6 +127,7 @@ static void initNoise()
         notePitch[i] = 0;
         noteVol[i]   = 0;
         notePhase[i] = 0;
+        noteExpr[i] = EXPRLEVELS/2;
     }
     //Set the wave for the finger
     setExprMix();
@@ -154,12 +152,13 @@ static void renderNoise(long* dataL, long* dataR, unsigned long samples)
             //note 33 is our center pitch, and it's 440hz
             float cyclesPerSample = powf(2,(notePitch[f]-33)/12) * (440/(44100.0 * 32));
             //If non-zero volume, then we must add in
+            int expr = noteExpr[f];
             for(int i=0; i<samples; i++)
             {
                 float cycles = i*cyclesPerSample + p;
                 float cycleLocation = (cycles - (int)cycles); // 0 .. 1
                 int j = (int)(cycleLocation*WAVEMAX);
-                int s = v * waveSustain[noteExpr[f]][j];
+                int s = v * waveSustain[expr][j];
                 dataL[i] += v * s;
                 dataR[i] += dataL[i];
             }     
