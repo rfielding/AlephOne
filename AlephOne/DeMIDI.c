@@ -27,7 +27,7 @@ static unsigned char  intLow;
 static unsigned char  intHi;
 static int   midiExpr;
 static int   midiExprParm; //??? expression isn't a single item, it's a parm with a value
-static int   midiPitchBendSemis = 2;
+static int   midiPitchBendSemis = 12;
 static int   doNoteAttack;
 static float midiPitch;
 static float volVal;
@@ -74,7 +74,7 @@ void DeMIDI_flush()
         {
             midiStatus = (buffer[dataByte] & 0xF0) >> 4;
             midiChannel = (buffer[dataByte] & 0x0F);
-            printf("status:%d %d\n",(int)midiStatus,(int)midiChannel);
+            //printf("status:%d %d\n",(int)midiStatus,(int)midiChannel);
             dataByte++;
         }      
         
@@ -191,7 +191,7 @@ void DeMIDI_flush()
                     midiPitchBendSemis = rpnVal;
                 }
             }
-            printf("rawEngine(%d,%d,%f,%f,%d,%d)\n",(int)midiChannel,doNoteAttack,midiPitch,volVal,midiExprParm,midiExpr);
+            //printf("rawEngine(%d,%d,%f,%f,%d,%d)\n",(int)midiChannel,doNoteAttack,midiPitch,volVal,midiExprParm,midiExpr);
             rawEngine(midiChannel,doNoteAttack,midiPitch,volVal,midiExprParm,midiExpr);
         }        
     }
