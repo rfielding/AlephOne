@@ -143,7 +143,7 @@ static void renderNoise(long* dataL, long* dataR, unsigned long samples)
     //Go in channel major order because we skip by volume
     for(int f=0; f<MAXCHANNELS; f++)
     {
-        noteVol[f] = noteVol[f] * 0.001 + noteVolTarget[f] * 0.990;
+        noteVol[f] = noteVol[f] * 0.001 + noteVolTarget[f] * 0.999;
         notePitch[f] = notePitch[f] * 0.01 + notePitchTarget[f] * 0.99;
         float v = noteVol[f];
         if(v > 0)

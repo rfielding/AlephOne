@@ -323,7 +323,7 @@ void Fretless_setMidiHintChannelBendSemis(struct Fretless_context* ctxp, int sem
             ctxp->midiPutch(0xB0 + channel);
             ctxp->midiPutch(100);
             ctxp->midiPutch(127);
-            ctxp->logger("set ch%d bend width to %d semitones up/down\n",channel,semitones);
+            //ctxp->logger("set ch%d bend width to %d semitones up/down\n",channel,semitones);
         }
     }
 }

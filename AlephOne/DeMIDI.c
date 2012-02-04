@@ -15,10 +15,10 @@
 
 #define CHANNELMAX 16
 
-static void (*rawEngine)(char midiChannel,int doNoteAttack,float pitch,float volVal,int midiExprParm,int midiExpr);
+static void (*rawEngine)(int midiChannel,int doNoteAttack,float pitch,float volVal,int midiExprParm,int midiExpr);
 
 
-void DeMIDI_start(void (*rawEngineArg)(char midiChannel,int doNoteAttack,float pitch,float volVal,int midiExprParm,int midiExpr))
+void DeMIDI_start(void (*rawEngineArg)(int midiChannel,int doNoteAttack,float pitch,float volVal,int midiExprParm,int midiExpr))
 {
     rawEngine = rawEngineArg;
     //Start the sound engine
@@ -68,7 +68,7 @@ float volVal = 0;
 int midiExprParm = 0;
 int midiExpr = 0;
 int midiPitchBendSemis = 2;
-int midiBend[CHANNELMAX];
+int midiBend = 8192;
 int nrpnKeyLo;
 int nrpnKeyHi;
 int rpnKeyLo;
@@ -80,7 +80,7 @@ int isRegistered = 0;
 
 void computePitch()
 {
-    midiPitch = 1.0 * midiNote + (midiPitchBendSemis*(midiBend[midiChannel] - 8192))/8192.0;    
+    midiPitch = 1.0 * midiNote + (midiPitchBendSemis*(midiBend - 8192))/8192.0;    
 }
 
 void computeVol()
@@ -93,16 +93,7 @@ void computeVol()
  The nrpn/rpn stuff is just nuts...
  */
 void DeMIDI_putch(char c)
-{
-    //We only get into this state on startup
-    if(expectState == S_EXPECT_STATUS)
-    {
-        for(int c=0; c<CHANNELMAX; c++)
-        {
-            midiBend[c] = 8192;
-        }
-    }
-    
+{    
     //Handle status bytes to get overall state
     if( c & 0x80 )
     {
@@ -144,7 +135,7 @@ void DeMIDI_putch(char c)
                 expectState = S_ON_BYTE_NOTE;
                 computePitch();
                 computeVol();
-                //printf("v %d:%d:%d\n",midiChannel,midiNote,midiVol);
+                //printf("v %d:%d:%d\n",midiChannel,midiNote[midiChannel],midiVol[midiChannel]);
                 rawEngine(midiChannel,doNoteAttack,midiPitch,volVal,midiExprParm,midiExpr);
                 return;
                 
@@ -156,18 +147,19 @@ void DeMIDI_putch(char c)
                 midiVol = 0;
                 expectState = S_OFF_BYTE_NOTE;
                 volVal = 0;
-                //printf("v %d:%d:%d\n",midiChannel,midiNote,midiVol);
+                //printf("v %d:%d:%d\n",midiChannel,midiNote[midiChannel],midiVol[midiChannel]);
                 rawEngine(midiChannel,doNoteAttack,midiPitch,volVal,midiExprParm,midiExpr);
                 return;
                 
             case S_BEND_LO:
-                midiBend[midiChannel] = (int)(c & 0x7F);
+                midiBend = (int)(c & 0x7F);
                 expectState = S_BEND_HI;
                 return;
             case S_BEND_HI:
-                midiBend[midiChannel] = (((int)(c & 0x7F))<<7) + midiBend[midiChannel];
+                midiBend = (((int)(c & 0x7F))<<7) + midiBend;
                 expectState = S_BEND_LO;
                 computePitch();
+                //printf("b %d:%d:%d\n",midiChannel,midiNote[midiChannel],midiVol[midiChannel]);
                 //rawEngine(midiChannel,doNoteAttack,midiPitch,volVal,midiExprParm,midiExpr);
                 return;
             
