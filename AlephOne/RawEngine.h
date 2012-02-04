@@ -8,6 +8,6 @@
 
 
 
-void rawEngine(char midiChannel,int doNoteAttack,float pitch,float volVal,int midiExprParm,int midiExpr);
+void rawEngine(int midiChannel,int doNoteAttack,float pitch,float volVal,int midiExprParm,int midiExpr);
 void rawEngineStart();
 void rawEngineStop();

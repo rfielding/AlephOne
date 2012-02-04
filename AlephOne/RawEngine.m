@@ -167,20 +167,20 @@ static void renderNoise(long* dataL, long* dataR, unsigned long samples)
     }
 }
 
-void rawEngine(char midiChannel,int doNoteAttack,float pitch,float volVal,int midiExprParm,int midiExpr)
+void rawEngine(int midiChannel,int doNoteAttack,float pitch,float volVal,int midiExprParm,int midiExpr)
 {
     //We limit to one note per midi channel now
-    int note = (int)midiChannel;
+    int channel = midiChannel;
     if(doNoteAttack)
     {
         //Set to beginning of sustain phase.
         //In the future, the attack and decase phase will have its own envelope, and this
         //will be how impulses, etc get handled.
-        notePhase[note] = 0;
+        notePhase[channel] = 0;
     }
-    noteVolTarget[note] = volVal;
-    notePitchTarget[note] = pitch;
-    noteExpr[note] = (int) ( (midiExpr/127.0) * EXPRLEVELS );
+    noteVolTarget[channel] = volVal;
+    notePitchTarget[channel] = pitch;
+    noteExpr[channel] = (int) ( (midiExpr/127.0) * EXPRLEVELS );
 }
 
 static OSStatus fixGDLatency()
