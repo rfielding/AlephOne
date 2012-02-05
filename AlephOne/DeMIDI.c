@@ -61,15 +61,13 @@ int expectState=S_EXPECT_STATUS;
 int midiStatus = 0;
 int midiChannel = 0;
 int expectDataBytes = 0;
-int midiNote = 0;
+int midiNote[CHANNELMAX];
 int midiVol[CHANNELMAX];
 int doNoteAttack = 0;
-float midiPitch = 0;
-float volVal = 0;
 int midiExprParm = 0;
 int midiExpr = 0;
 int midiPitchBendSemis = 2;
-int midiBend = 8192;
+int midiBend[CHANNELMAX];
 int nrpnKeyLo;
 int nrpnKeyHi;
 int rpnKeyLo;
@@ -79,14 +77,14 @@ int expectNoteTie = 0;
 //Handle ambiguity if 6 and 38 in nrpn setting here.
 int isRegistered = 0;
 
-void computePitch()
+float computePitch(int channel)
 {
-    midiPitch = 1.0 * midiNote + (midiPitchBendSemis*(midiBend - 8192))/8192.0;    
+    return 1.0 * midiNote[channel] + (midiPitchBendSemis*(midiBend[channel] - 8192))/8192.0;    
 }
 
-void computeVol(int channel)
+float computeVol(int channel)
 {
-    volVal = midiVol[channel] / 127.0;                
+    return midiVol[channel] / 127.0;                
 }
 
 /**
@@ -95,6 +93,13 @@ void computeVol(int channel)
  */
 void DeMIDI_putch(char c)
 {    
+    if(expectState == S_EXPECT_STATUS)
+    {
+        for(int i=0; i<CHANNELMAX; i++)
+        {
+            midiBend[i] = 8192;
+        }
+    }
     //Handle status bytes to get overall state
     if( c & 0x80 )
     {
@@ -128,41 +133,33 @@ void DeMIDI_putch(char c)
         switch( expectState)
         {
             case S_ON_BYTE_NOTE:
-                midiNote = (int)(c & 0x7F);
+                midiNote[midiChannel] = (int)(c & 0x7F);
                 expectState = S_ON_BYTE_VOL;
                 return;
             case S_ON_BYTE_VOL:
                 midiVol[midiChannel] = (int)(c & 0x7F);
                 expectState = S_ON_BYTE_NOTE;
-                computePitch();
-                computeVol(midiChannel);
-                //printf("v %d:%d:%d\n",midiChannel,midiNote[midiChannel],midiVol[midiChannel]);
-                rawEngine(midiChannel,doNoteAttack,midiPitch,volVal,midiExprParm,midiExpr);
+                rawEngine(midiChannel,doNoteAttack,computePitch(midiChannel),computeVol(midiChannel),midiExprParm,midiExpr);
                 return;
                 
             case S_OFF_BYTE_NOTE:
-                midiNote = (int)(c & 0x7F);
+                midiNote[midiChannel] = (int)(c & 0x7F);
                 expectState = S_OFF_BYTE_NOTE;
                 return;
             case S_OFF_BYTE_VOL:
                 midiVol[midiChannel] = 0;
                 expectState = S_OFF_BYTE_NOTE;
-                volVal = 0;
-                //printf("v %d:%d:%d\n",midiChannel,midiNote[midiChannel],midiVol[midiChannel]);
-                rawEngine(midiChannel,doNoteAttack,midiPitch,volVal,midiExprParm,midiExpr);
+                rawEngine(midiChannel,doNoteAttack,computePitch(midiChannel),0,midiExprParm,midiExpr);
                 return;
                 
             case S_BEND_LO:
-                midiBend = (int)(c & 0x7F);
+                midiBend[midiChannel] = (int)(c & 0x7F);
                 expectState = S_BEND_HI;
                 return;
             case S_BEND_HI:
-                midiBend = (((int)(c & 0x7F))<<7) + midiBend;
+                midiBend[midiChannel] = (((int)(c & 0x7F))<<7) + midiBend[midiChannel];
                 expectState = S_BEND_LO;
-                computePitch();
-                computeVol(midiChannel);
-                //printf("b %d:%d:%d\n",midiChannel,midiNote[midiChannel],midiVol[midiChannel]);
-                rawEngine(midiChannel,doNoteAttack,midiPitch,volVal,midiExprParm,midiExpr);
+                rawEngine(midiChannel,doNoteAttack,computePitch(midiChannel),computeVol(midiChannel),midiExprParm,midiExpr);
                 return;
             
             case S_RPN_LO:
@@ -214,8 +211,9 @@ void DeMIDI_putch(char c)
                 
             case S_CH_PRESS:
                 midiVol[midiChannel] = (int)(c & 0x7F);
-                computeVol(midiChannel);
-                rawEngine(midiChannel,doNoteAttack,midiPitch,volVal,midiExprParm,midiExpr);
+                //computePitch();
+                //computeVol(midiChannel);
+                //rawEngine(midiChannel,doNoteAttack,midiPitch,volVal,midiExprParm,midiExpr);
                 return;
                 
             case S_RPN_LO_KEY:
@@ -229,8 +227,8 @@ void DeMIDI_putch(char c)
             case S_RPN_11:
                 midiExprParm = 11;
                 midiExpr = (int)(c & 0x7F);
-                computeVol(midiChannel);
-                rawEngine(midiChannel,doNoteAttack,midiPitch,volVal,midiExprParm,midiExpr);
+                //computeVol(midiChannel);
+                //rawEngine(midiChannel,doNoteAttack,midiPitch,volVal,midiExprParm,midiExpr);
                 return;
                 
                 

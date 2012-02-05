@@ -22,7 +22,7 @@ AudioStreamBasicDescription audioFormat;
 static const float kSampleRate = 44100.0;
 static const unsigned int kOutputBus = 0;
 
-#define WAVEMAX (2048*4)
+#define WAVEMAX (2048*2)
 #define MAXCHANNELS 16
 #define EXPRLEVELS 32
 float notePitch[MAXCHANNELS];
@@ -31,6 +31,7 @@ float notePitchTarget[MAXCHANNELS];
 float noteVolTarget[MAXCHANNELS];
 float notePhase[MAXCHANNELS];
 int   noteExpr[MAXCHANNELS];
+int   noteExprTarget[MAXCHANNELS];
 float waveSustain[EXPRLEVELS][WAVEMAX];
 
 
@@ -82,18 +83,22 @@ static void setExprMixForLevel(int exprLevel)
     {
         harmonics[h] = lowMix * harmonicsLo[h] + hiMix * harmonicsHi[h]; 
     }        
-    //Scribble a wave into the buffer
-    //It is VERY important that it comes out to 0 at the beginning and the end
-    //to prevent impulses
+    
     for(int i=0; i<WAVEMAX;i++)
     {
-        float sampleValue = 0;
-        for(int h=0; h<HARMONICSMAX; h++)
-        {
-            sampleValue += harmonics[h]/MAXCHANNELS * sinf( ((h+1) * (2*M_PI) * i )/ WAVEMAX );            
-        }
-        waveSustain[exprLevel][i] = (int) (LONG_MAX * sampleValue);
+        waveSustain[exprLevel][i] = 0;
     }       
+    for(int h=0; h<HARMONICSMAX; h++)
+    {
+        if(harmonics[h] > 0)
+        {
+            for(int i=0; i<WAVEMAX;i++)
+            {
+                float sampleValue = harmonics[h]/MAXCHANNELS * sinf( ((h+1) * (2*M_PI) * i )/ WAVEMAX );
+                waveSustain[exprLevel][i] += (int) (LONG_MAX * sampleValue);
+            }
+        }
+    }
 }
 
 static void setExprMix()
@@ -128,6 +133,7 @@ static void initNoise()
         noteVol[i]   = 0;
         notePhase[i] = 0;
         noteExpr[i] = EXPRLEVELS/2;
+        noteExprTarget[i] = noteExpr[i];
     }
     //Set the wave for the finger
     setExprMix();
@@ -143,8 +149,10 @@ static void renderNoise(long* dataL, long* dataR, unsigned long samples)
     //Go in channel major order because we skip by volume
     for(int f=0; f<MAXCHANNELS; f++)
     {
-        noteVol[f] = noteVol[f] * 0.001 + noteVolTarget[f] * 0.999;
+        noteVol[f] = noteVol[f] * 0.00001 + noteVolTarget[f] * 0.99999;
         notePitch[f] = notePitch[f] * 0.01 + notePitchTarget[f] * 0.99;
+        if(noteExpr[f] < noteExprTarget[f])noteExpr[f]++;
+        if(noteExpr[f] >= noteExprTarget[f])noteExpr[f]--;
         float v = noteVol[f];
         if(v > 0)
         {
@@ -176,11 +184,11 @@ void rawEngine(int midiChannel,int doNoteAttack,float pitch,float volVal,int mid
         //Set to beginning of sustain phase.
         //In the future, the attack and decase phase will have its own envelope, and this
         //will be how impulses, etc get handled.
-        notePhase[channel] = 0;
+        //notePhase[channel] = 0;
     }
     noteVolTarget[channel] = volVal;
     notePitchTarget[channel] = pitch;
-    noteExpr[channel] = (int) ( (midiExpr/127.0) * EXPRLEVELS );
+    noteExprTarget[channel] = (int) ( (midiExpr/127.0) * EXPRLEVELS );
 }
 
 static OSStatus fixGDLatency()
