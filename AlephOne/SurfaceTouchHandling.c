@@ -47,7 +47,7 @@ void SurfaceTouchHandling_touchesInit(
     
     Fretless_boot(fretlessp);     
     
-    SurfaceTouchHandling_setChorusLevel(0.25);    
+    //SurfaceTouchHandling_setChorusLevel(0.25);    
 }
 
 void SurfaceTouchHandling_touchesUp(void* ctx,int finger,void* touch)
@@ -119,7 +119,7 @@ void SurfaceTouchHandling_touchesDown(void* ctx,int finger,void* touch,int isMov
         polyGroup2 = finger2;
     }
     
-    float e = (1-expr);
+    float e = (1-0.5);
     float dx = (e*e*e*e)*chorusLevel*0.0125;
     float v = baseVolume;
     fingerInfo->velocity = v;
