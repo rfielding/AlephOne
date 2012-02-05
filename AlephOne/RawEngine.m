@@ -166,7 +166,7 @@ static void renderNoise(long* dataL, long* dataR, unsigned long samples)
                 float cycles = i*cyclesPerSample + p;
                 float cycleLocation = (cycles - (int)cycles); // 0 .. 1
                 int j = (int)(cycleLocation*WAVEMAX);
-                int s = v * waveSustain[expr][j];
+                long s = v * waveSustain[expr][j];
                 dataL[i] += v * s;
                 dataR[i] += dataL[i];
             }     
