@@ -24,7 +24,7 @@ static const unsigned int kOutputBus = 0;
 
 #define WAVEMAX (2048)
 #define MAXCHANNELS 16
-#define EXPRLEVELS 32
+#define EXPRLEVELS 64
 float notePitch[MAXCHANNELS];
 float noteVol[MAXCHANNELS];
 float notePitchTarget[MAXCHANNELS];
@@ -38,7 +38,6 @@ float totalNoteVolume=0;
 float exprMixLevel[MAXCHANNELS];
 
 #define HARMONICSMAX 32
-float waveAtPoint[EXPRLEVELS][EXPRLEVELS][WAVEMAX];
 float waveMix[2][2][WAVEMAX];
 float harmonicsTotal[2][2];
 float harmonics[2][2][HARMONICSMAX] =
@@ -82,24 +81,8 @@ static void setupWaves()
         }
     }
     
-    //Get a total to normalize harmonics by
-    for(int dist=0; dist<2; dist++)
-    {
-        for(int expr=0; expr<2; expr++)
-        {
-            harmonicsTotal[dist][expr] = 0;
-            for(int harmonic=0; harmonic<HARMONICSMAX; harmonic++)
-            {
-                harmonicsTotal[dist][expr] += harmonics[dist][expr][harmonic];                
-            }
-            for(int harmonic=0; harmonic<HARMONICSMAX; harmonic++)
-            {
-                harmonics[dist][expr][harmonic] /= harmonicsTotal[dist][expr];                
-            }
-        }
-    }  
     
-    //Compute the squared off versions of our waves
+    //Compute the squared off versions of our waves (not yet normalized)
     for(int expr=0; expr<2; expr++)
     {
         for(int harmonic=0; harmonic<HARMONICSMAX; harmonic++)
@@ -117,8 +100,36 @@ static void setupWaves()
                     harmonics[1][expr][s] += harmonics[0][expr][harmonic] / s;                                                                    
                 }
             }
+            for(int squareHarmonic=0; squareHarmonic<10; squareHarmonic++)
+            {
+                int s = squareHarmonic+1;
+                if(s<HARMONICSMAX)
+                {
+                    harmonics[1][expr][s] += harmonics[0][expr][harmonic] / s;                                                                    
+                }
+            }
         }
     }
+    
+    
+    //Normalize the harmonics
+    for(int dist=0; dist<2; dist++)
+    {
+        for(int expr=0; expr<2; expr++)
+        {
+            harmonicsTotal[dist][expr] = 0;
+            for(int harmonic=0; harmonic<HARMONICSMAX; harmonic++)
+            {
+                harmonicsTotal[dist][expr] += harmonics[dist][expr][harmonic];                
+            }
+            for(int harmonic=0; harmonic<HARMONICSMAX; harmonic++)
+            {
+                harmonics[dist][expr][harmonic] /= harmonicsTotal[dist][expr];                
+            }
+        }
+    }  
+    
+
     
     //Convolute into the wave buffers
     for(int dist=0; dist<2; dist++)
@@ -137,10 +148,6 @@ static void setupWaves()
                 {
                     waveMix[dist][expr][sample] += sinf(h * sample * 2.0 * M_PI / WAVEMAX) * v;
                 }
-            }
-            for(int sample=0; sample<WAVEMAX; sample++)
-            {
-                waveMix[dist][expr][sample] /= harmonicsTotal[dist][expr];                
             }
         }
     }
@@ -193,20 +200,34 @@ static void renderNoise(long* dataL, long* dataR, unsigned long samples)
         dataL[i] = 0;
         dataR[i] = 0;
     }
+    //Compute overvolume
     totalNoteVolume = 0;
+    int fingersDown=0;
     for(int f=0; f<MAXCHANNELS; f++)
     {
         totalNoteVolume += noteVol[f];
+        if(noteVol[f]>0)
+        {
+            fingersDown++;
+        }
     }
+    totalNoteVolume*=2;
+    float scaleFinger=1;
+    if(totalNoteVolume > 1)
+    {
+        scaleFinger = 1/totalNoteVolume;
+    }
+    //NSLog(@"scaleFinger %f ",scaleFinger);
     
     //Go in channel major order because we skip by volume
     for(int f=0; f<MAXCHANNELS; f++)
     {
-        noteVol[f] = noteVolTarget[f] * 0.3 + noteVol[f] * 0.7;
-        notePitch[f] = notePitchTarget[f] * 0.99 + notePitch[f] * 0.01;
+        noteVol[f] = noteVolTarget[f] * 0.01 + noteVol[f] * 0.99;
+        notePitch[f] = notePitchTarget[f] * 0.95 + notePitch[f] * 0.05;
         if(noteVol[f]==0)
         {
             notePhase[f] = 0;
+            notePitch[f] = notePitchTarget[f];
         }
         if(noteExpr[f] < noteExprTarget[f])noteExpr[f]++;
         if(noteExpr[f] >= noteExprTarget[f])noteExpr[f]--;
@@ -220,10 +241,14 @@ static void renderNoise(long* dataL, long* dataR, unsigned long samples)
             //computeNoteMixPerChannel(f);
             for(int i=0; i<samples; i++)
             {
+                noteVol[f] = noteVolTarget[f] * 0.0005 + noteVol[f] * 0.9995;
+                v = noteVol[f];
                 float cycles = i*cyclesPerSample + p;
                 float cycleLocation = (cycles - (int)cycles); // 0 .. 1
                 int j = (int)(cycleLocation*WAVEMAX);
-                long s = INT_MAX * v * (waveMix[0][0][j]*e + waveMix[1][1][j]*(1-e)) * 0.01;
+                long s = INT_MAX/64 * v * 
+                    ((waveMix[0][0][j]*e + waveMix[0][1][j]*(1-e)) * (scaleFinger)) +
+                    ((waveMix[1][0][j]*e + waveMix[1][1][j]*(1-e)) * (1-scaleFinger));
                 dataL[i] += s;
                 dataR[i] += s;
             }     

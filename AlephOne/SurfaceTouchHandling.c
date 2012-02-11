@@ -17,7 +17,7 @@
 #define NULL ((void*)0)
 
 
-static float chorusLevelDesired = 0;
+static float chorusLevelDesired = 0.1;
 static float chorusLevel = 0;
 static float baseVolume = 1.0;
 static int legato = 2;
