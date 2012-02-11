@@ -92,7 +92,7 @@ static void setupWaves()
         //Convolute non distorted harmonics with square wave harmonics
         for(int harmonic=0; harmonic<HARMONICSMAX; harmonic++)
         {
-            for(int squareHarmonic=0; squareHarmonic<10; squareHarmonic++)
+            for(int squareHarmonic=0; squareHarmonic<5; squareHarmonic++)
             {
                 int s = squareHarmonic*2+1;
                 if(s<HARMONICSMAX)
