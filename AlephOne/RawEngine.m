@@ -92,7 +92,7 @@ static void setupWaves()
         //Convolute non distorted harmonics with square wave harmonics
         for(int harmonic=0; harmonic<HARMONICSMAX; harmonic++)
         {
-            for(int squareHarmonic=0; squareHarmonic<5; squareHarmonic++)
+            for(int squareHarmonic=0; squareHarmonic<10; squareHarmonic++)
             {
                 int s = squareHarmonic*2+1;
                 if(s<HARMONICSMAX)
@@ -222,8 +222,7 @@ static void renderNoise(long* dataL, long* dataR, unsigned long samples)
     //Go in channel major order because we skip by volume
     for(int f=0; f<MAXCHANNELS; f++)
     {
-        noteVol[f] = noteVolTarget[f] * 0.01 + noteVol[f] * 0.99;
-        notePitch[f] = notePitchTarget[f] * 0.95 + notePitch[f] * 0.05;
+        notePitch[f] = notePitchTarget[f] * 0.75 + notePitch[f] * 0.25;
         if(noteVol[f]==0)
         {
             notePhase[f] = 0;
@@ -232,8 +231,8 @@ static void renderNoise(long* dataL, long* dataR, unsigned long samples)
         if(noteExpr[f] < noteExprTarget[f])noteExpr[f]++;
         if(noteExpr[f] >= noteExprTarget[f])noteExpr[f]--;
         float e = (1.0 * noteExpr[f]) / EXPRLEVELS;
-        float v = noteVol[f];
-        if(v > 0)
+        //float v = noteVol[f];
+        if(noteVol[f] > 0 || noteVolTarget[f] > 0)
         {
             float p = notePhase[f];
             //note 33 is our center pitch, and it's 440hz
@@ -242,7 +241,7 @@ static void renderNoise(long* dataL, long* dataR, unsigned long samples)
             for(int i=0; i<samples; i++)
             {
                 noteVol[f] = noteVolTarget[f] * 0.0005 + noteVol[f] * 0.9995;
-                v = noteVol[f];
+                float v = noteVol[f];
                 float cycles = i*cyclesPerSample + p;
                 float cycleLocation = (cycles - (int)cycles); // 0 .. 1
                 int j = (int)(cycleLocation*WAVEMAX);
