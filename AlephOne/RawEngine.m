@@ -22,7 +22,7 @@ AudioStreamBasicDescription audioFormat;
 static const float kSampleRate = 44100.0;
 static const unsigned int kOutputBus = 0;
 
-#define WAVEMAX (2048*2)
+#define WAVEMAX (2048)
 #define MAXCHANNELS 16
 #define EXPRLEVELS 32
 float notePitch[MAXCHANNELS];
@@ -32,81 +32,128 @@ float noteVolTarget[MAXCHANNELS];
 float notePhase[MAXCHANNELS];
 int   noteExpr[MAXCHANNELS];
 int   noteExprTarget[MAXCHANNELS];
-float waveSustain[EXPRLEVELS][WAVEMAX];
+float   noteMixPerChannel[MAXCHANNELS][2][2];
+float totalNoteVolume=0;
+
+float exprMixLevel[MAXCHANNELS];
+
+#define HARMONICSMAX 32
+float waveAtPoint[EXPRLEVELS][EXPRLEVELS][WAVEMAX];
+float waveMix[2][2][WAVEMAX];
+float harmonicsTotal[2][2];
+float harmonics[2][2][HARMONICSMAX] =
+{
+    {
+        {8, 4, 1, 2, 0, 1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},  
+        {0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}
+    },
+    {
+        {8, 4, 1, 2, 0, 1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},  
+        {0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}
+    },
+};
 
 
 /**
- We fade between two sets of harmonics based on expr
+   Create four waves:
+ 
+   Their harmonics:
+ 
+     harmonics[0][0] = A ; arbitrary harmonics
+     harmonics[0][1] = B ; arbitrary harmonics
+ 
+     harmonics[1][0] = A x Sq ; A convoluted with early odd harmonics
+     harmonics[1][1] = B x Sq ; B convoluted with early odd harmonics
+ 
+   And convoluted into waveMix, where the intent is to
+   use weighted sums of the 4 possible waves.
  */
-#define HARMONICSMAX 32
-float harmonicsLoTotal=1;
-float harmonicsLo[HARMONICSMAX] =
+static void setupWaves()
 {
-    // 1  2  3  4  5  6  7  8  9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31 32
-       8, 4, 1, 2, 0, 1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
-};
-float harmonicsHiTotal=1;
-float harmonicsHi[HARMONICSMAX] =
-{
-    // 1  2  3  4  5  6  7  8  9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31 32
-       0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
-};
-float harmonicsTotal=1;
-float harmonics[HARMONICSMAX];
-
-/*
-   We set two sets of harmonic content, and expr fades between the two of them.
- */
-//exprLevel 0..EXPRLEVELS
-static void setExprMixForLevel(int exprLevel)
-{
-    harmonicsLoTotal = 0;
-    for(int i=0; i<HARMONICSMAX; i++)
+    //Initialize memory
+    for(int dist=0; dist<2; dist++)
     {
-        harmonicsLoTotal += harmonicsLo[i];
-    }
-    
-    harmonicsHiTotal = 0;
-    for(int i=0; i<HARMONICSMAX; i++)
-    {
-        harmonicsHiTotal += harmonicsHi[i];
-    }
-    
-    float mix = (1.0 * exprLevel) / EXPRLEVELS;
-    
-    //Mix together the current waveform
-    float lowMix = (1-mix) / harmonicsLoTotal;
-    float hiMix = (mix) / harmonicsHiTotal;
-    
-    //Note: sum(harmonics[h]) == 1
-    for(int h=0; h<HARMONICSMAX; h++)
-    {
-        harmonics[h] = lowMix * harmonicsLo[h] + hiMix * harmonicsHi[h]; 
-    }        
-    
-    for(int i=0; i<WAVEMAX;i++)
-    {
-        waveSustain[exprLevel][i] = 0;
-    }       
-    for(int h=0; h<HARMONICSMAX; h++)
-    {
-        if(harmonics[h] > 0)
+        for(int expr=0; expr<2; expr++)
         {
-            for(int i=0; i<WAVEMAX;i++)
+            for(int channel=0; channel<MAXCHANNELS; channel++)
             {
-                float sampleValue = harmonics[h]/MAXCHANNELS * sinf( ((h+1) * (2*M_PI) * i )/ WAVEMAX );
-                waveSustain[exprLevel][i] += (int) (LONG_MAX * sampleValue);
+                noteMixPerChannel[channel][dist][expr] = 0;
+            }
+        }
+    }
+    
+    //Get a total to normalize harmonics by
+    for(int dist=0; dist<2; dist++)
+    {
+        for(int expr=0; expr<2; expr++)
+        {
+            harmonicsTotal[dist][expr] = 0;
+            for(int harmonic=0; harmonic<HARMONICSMAX; harmonic++)
+            {
+                harmonicsTotal[dist][expr] += harmonics[dist][expr][harmonic];                
+            }
+            for(int harmonic=0; harmonic<HARMONICSMAX; harmonic++)
+            {
+                harmonics[dist][expr][harmonic] /= harmonicsTotal[dist][expr];                
+            }
+        }
+    }  
+    
+    //Compute the squared off versions of our waves
+    for(int expr=0; expr<2; expr++)
+    {
+        for(int harmonic=0; harmonic<HARMONICSMAX; harmonic++)
+        {
+            harmonics[1][expr][harmonic] = 0;                        
+        }
+        //Convolute non distorted harmonics with square wave harmonics
+        for(int harmonic=0; harmonic<HARMONICSMAX; harmonic++)
+        {
+            for(int squareHarmonic=0; squareHarmonic<5; squareHarmonic++)
+            {
+                int s = squareHarmonic*2+1;
+                if(s<HARMONICSMAX)
+                {
+                    harmonics[1][expr][s] += harmonics[0][expr][harmonic] / s;                                                                    
+                }
+            }
+        }
+    }
+    
+    //Convolute into the wave buffers
+    for(int dist=0; dist<2; dist++)
+    {
+        for(int expr=0; expr<2; expr++)
+        {
+            for(int sample=0; sample<WAVEMAX; sample++)
+            {
+                waveMix[dist][expr][sample] = 0;                
+            }
+            for(int harmonic=0; harmonic<HARMONICSMAX; harmonic++)
+            {
+                float h = harmonic+1;
+                float v = harmonics[dist][expr][harmonic];
+                for(int sample=0; sample<WAVEMAX; sample++)
+                {
+                    waveMix[dist][expr][sample] += sinf(h * sample * 2.0 * M_PI / WAVEMAX) * v;
+                }
+            }
+            for(int sample=0; sample<WAVEMAX; sample++)
+            {
+                waveMix[dist][expr][sample] /= harmonicsTotal[dist][expr];                
             }
         }
     }
 }
 
+/*
+   We set two sets of harmonic content, and expr fades between the two of them.
+ */
+
+
 static void setExprMix()
 {
-    for(int i=0; i<EXPRLEVELS;i++)
-    {
-        setExprMixForLevel(i);
-    }
+    setupWaves();
 }
 
 
@@ -146,29 +193,39 @@ static void renderNoise(long* dataL, long* dataR, unsigned long samples)
         dataL[i] = 0;
         dataR[i] = 0;
     }
+    totalNoteVolume = 0;
+    for(int f=0; f<MAXCHANNELS; f++)
+    {
+        totalNoteVolume += noteVol[f];
+    }
+    
     //Go in channel major order because we skip by volume
     for(int f=0; f<MAXCHANNELS; f++)
     {
-        noteVol[f] = noteVol[f] * 0.00001 + noteVolTarget[f] * 0.99999;
-        notePitch[f] = notePitch[f] * 0.01 + notePitchTarget[f] * 0.99;
+        noteVol[f] = noteVolTarget[f] * 0.3 + noteVol[f] * 0.7;
+        notePitch[f] = notePitchTarget[f] * 0.99 + notePitch[f] * 0.01;
+        if(noteVol[f]==0)
+        {
+            notePhase[f] = 0;
+        }
         if(noteExpr[f] < noteExprTarget[f])noteExpr[f]++;
         if(noteExpr[f] >= noteExprTarget[f])noteExpr[f]--;
+        float e = (1.0 * noteExpr[f]) / EXPRLEVELS;
         float v = noteVol[f];
         if(v > 0)
         {
             float p = notePhase[f];
             //note 33 is our center pitch, and it's 440hz
             float cyclesPerSample = powf(2,(notePitch[f]-33)/12) * (440/(44100.0 * 32));
-            //If non-zero volume, then we must add in
-            int expr = noteExpr[f];
+            //computeNoteMixPerChannel(f);
             for(int i=0; i<samples; i++)
             {
                 float cycles = i*cyclesPerSample + p;
                 float cycleLocation = (cycles - (int)cycles); // 0 .. 1
                 int j = (int)(cycleLocation*WAVEMAX);
-                long s = v * waveSustain[expr][j];
-                dataL[i] += v * s;
-                dataR[i] += dataL[i];
+                long s = INT_MAX * v * (waveMix[0][0][j]*e + waveMix[1][1][j]*(1-e)) * 0.01;
+                dataL[i] += s;
+                dataR[i] += s;
             }     
             notePhase[f] = (cyclesPerSample*samples) + p;
         }
