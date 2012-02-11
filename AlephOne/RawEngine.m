@@ -43,7 +43,7 @@ float harmonicsTotal[2][2];
 float harmonics[2][2][HARMONICSMAX] =
 {
     {
-        {4, 2, 1, 2, 0, 1, 0, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},  
+        {8, 4, 1, 2, 0, 1, 0, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},  
         {0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}
     },
     {
@@ -91,7 +91,7 @@ static void setupWaves()
         }
         //Convolute non distorted harmonics with square wave harmonics
         for(int harmonic=0; harmonic<HARMONICSMAX; harmonic++)
-        {
+        {            
             for(int squareHarmonic=0; squareHarmonic<5; squareHarmonic++)
             {
                 int s = squareHarmonic*2+1;
@@ -213,7 +213,7 @@ static void renderNoise(long* dataL, long* dataR, unsigned long samples)
             fingersDown++;
         }
     }
-    totalNoteVolume*=2;
+    totalNoteVolume*=8;
     float scaleFinger=1;
     if(totalNoteVolume > 1)
     {
@@ -242,12 +242,12 @@ static void renderNoise(long* dataL, long* dataR, unsigned long samples)
             //computeNoteMixPerChannel(f);
             for(int i=0; i<samples; i++)
             {
-                noteVol[f] = noteVolTarget[f] * 0.0005 + noteVol[f] * 0.9995;
+                noteVol[f] = noteVolTarget[f] * 0.001 + noteVol[f] * 0.999;
                 float v = noteVol[f];
                 float cycles = i*cyclesPerSample + p;
                 float cycleLocation = (cycles - (int)cycles); // 0 .. 1
                 int j = (int)(cycleLocation*WAVEMAX);
-                long s = INT_MAX/64 * v * 
+                long s = INT_MAX/16 * v * 
                     ((waveMix[0][0][j]*e + waveMix[0][1][j]*(1-e)) * (scaleFinger)) +
                     ((waveMix[1][0][j]*e + waveMix[1][1][j]*(1-e)) * (1-scaleFinger));
                 dataL[i] += s;
