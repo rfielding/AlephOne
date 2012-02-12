@@ -25,6 +25,53 @@ static const unsigned int kOutputBus = 0;
 #define WAVEMAX (2048)
 #define MAXCHANNELS 16
 #define EXPRLEVELS 64
+
+struct ramp {
+    long startSample;
+    long stopSample;
+    float startValue;
+    float stopValue;
+    float value;
+};
+
+struct fingerData {
+    struct ramp pitchRamp;
+    struct ramp volRamp;
+    struct ramp exprRamp;
+    float phase;
+};
+
+struct fingersData {
+    struct fingerData finger[MAXCHANNELS];
+    long  sampleCount;
+};
+
+static struct fingersData allFingers;
+
+void setRamp(struct ramp* r, long samples, float stopValue)
+{
+    r->startValue = r->stopValue;
+    r->startSample = allFingers.sampleCount;
+    r->stopValue = stopValue;
+    r->stopSample = r->startSample + samples;
+}
+
+void doRamp(struct ramp* r)
+{
+    long sampleDiff = r->stopSample - r->startSample;
+    r->value = r->startValue + r->stopValue * sampleDiff;
+}
+
+void doRamps()
+{
+    for(int f=0; f<MAXCHANNELS; f++)
+    {
+        doRamp(&allFingers.finger[f].pitchRamp);
+        doRamp(&allFingers.finger[f].volRamp);
+        doRamp(&allFingers.finger[f].exprRamp);
+    }
+}
+
 float notePitch[MAXCHANNELS];
 float noteVol[MAXCHANNELS];
 float notePitchTarget[MAXCHANNELS];
@@ -32,10 +79,9 @@ float noteVolTarget[MAXCHANNELS];
 float notePhase[MAXCHANNELS];
 float noteExpr[MAXCHANNELS];
 float noteExprTarget[MAXCHANNELS];
-float   noteMixPerChannel[MAXCHANNELS][2][2];
 float totalNoteVolume=0;
 
-float exprMixLevel[MAXCHANNELS];
+
 
 #define HARMONICSMAX 32
 float waveMix[2][2][WAVEMAX];
@@ -69,18 +115,7 @@ float harmonics[2][2][HARMONICSMAX] =
  */
 static void setupWaves()
 {
-    //Initialize memory
-    for(int dist=0; dist<2; dist++)
-    {
-        for(int expr=0; expr<2; expr++)
-        {
-            for(int channel=0; channel<MAXCHANNELS; channel++)
-            {
-                noteMixPerChannel[channel][dist][expr] = 0;
-            }
-        }
-    }
-    
+
     
     //Compute the squared off versions of our waves (not yet normalized)
     for(int expr=0; expr<2; expr++)
@@ -224,6 +259,10 @@ static void renderNoise(long* dataL, long* dataR, unsigned long samples)
     //Go in channel major order because we skip by volume
     for(int f=0; f<MAXCHANNELS; f++)
     {
+        doRamp(&allFingers.finger[f].pitchRamp);
+        doRamp(&allFingers.finger[f].volRamp);
+        doRamp(&allFingers.finger[f].exprRamp);
+        
         notePitch[f] = notePitchTarget[f] * 0.75 + notePitch[f] * 0.25;
         if(noteVol[f]==0)
         {
@@ -238,29 +277,25 @@ static void renderNoise(long* dataL, long* dataR, unsigned long samples)
             //computeNoteMixPerChannel(f);
             for(int i=0; i<samples; i++)
             {
+                doRamp(&allFingers.finger[f].volRamp);
+                doRamp(&allFingers.finger[f].exprRamp);
                 noteExpr[f] = noteExprTarget[f] * 0.01 + noteExpr[f] * 0.99;
                 float e = (noteExpr[f]);
-                if(noteVol[f] > noteVolTarget[f])
-                {
-                    noteVol[f] = noteVolTarget[f] * 0.0005 + noteVol[f] * 0.9995;                    
-                }
-                else
-                {
-                    noteVol[f] = noteVolTarget[f] * 0.001 + noteVol[f] * 0.999;                                        
-                }
+                noteVol[f] = noteVolTarget[f] * 0.0001 + noteVol[f] * 0.9999;                    
                 float v = noteVol[f];
                 float cycles = i*cyclesPerSample + p;
                 float cycleLocation = (cycles - (int)cycles); // 0 .. 1
                 int j = (int)(cycleLocation*WAVEMAX);
-                long s = INT_MAX/16 * v * 
+                long s = INT_MAX/8 * v * 
                     ((waveMix[0][0][j]*e + waveMix[0][1][j]*(1-e)) * (scaleFinger)) +
                     ((waveMix[1][0][j]*e + waveMix[1][1][j]*(1-e)) * (1-scaleFinger));
-                dataL[i] += s;
-                dataR[i] += s;
+                dataL[i] = s;
+                dataR[i] = s;
             }     
             notePhase[f] = (cyclesPerSample*samples) + p;
         }
     }
+    allFingers.sampleCount += samples;
 }
 
 void rawEngine(int midiChannel,int doNoteAttack,float pitch,float volVal,int midiExprParm,int midiExpr)
@@ -277,6 +312,10 @@ void rawEngine(int midiChannel,int doNoteAttack,float pitch,float volVal,int mid
     noteVolTarget[channel] = volVal;
     notePitchTarget[channel] = pitch;
     noteExprTarget[channel] = midiExpr/127.0;
+    
+    setRamp(&allFingers.finger[channel].volRamp, 4096, volVal);
+    setRamp(&allFingers.finger[channel].pitchRamp, 4096, volVal);
+    setRamp(&allFingers.finger[channel].exprRamp, 4096, volVal);
 }
 
 static OSStatus fixGDLatency()
