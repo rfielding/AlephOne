@@ -48,7 +48,7 @@ struct fingersData {
 
 static struct fingersData allFingers;
 
-void setRamp(struct ramp* r, long samples, float stopValue)
+static inline void setRamp(struct ramp* r, long samples, float stopValue)
 {
     r->startValue = r->stopValue;
     r->startSample = allFingers.sampleCount;
@@ -56,10 +56,14 @@ void setRamp(struct ramp* r, long samples, float stopValue)
     r->stopSample = r->startSample + samples;
 }
 
-void doRamp(struct ramp* r)
+static inline void doRamp(struct ramp* r,long sample)
 {
-    long sampleDiff = r->stopSample - r->startSample;
-    r->value = r->startValue + r->stopValue * sampleDiff;
+    long rampLength = r->stopSample - r->startSample;
+    long rampPosition = sample - r->startSample;
+    float rampRatio = (rampLength * 1.0) / rampPosition;
+    r->value = 
+        (allFingers.sampleCount > r->stopSample) ? 
+            r->stopValue : (r->startValue + r->stopValue * rampRatio);
 }
 
 
@@ -119,16 +123,7 @@ static void setupWaves()
                     harmonics[1][expr][s] += harmonics[0][expr][harmonic] / s;                                                                    
                 }
             }
-            /*
-            for(int squareHarmonic=0; squareHarmonic<10; squareHarmonic++)
-            {
-                int s = squareHarmonic+1;
-                if(s<HARMONICSMAX)
-                {
-                    harmonics[1][expr][s] += harmonics[0][expr][harmonic] / s;                                                                    
-                }
-            }
-             */
+
         }
     }
     
@@ -174,11 +169,6 @@ static void setupWaves()
     }
 }
 
-/*
-   We set two sets of harmonic content, and expr fades between the two of them.
- */
-
-
 static void setExprMix()
 {
     setupWaves();
@@ -217,7 +207,7 @@ static void renderNoise(long* dataL, long* dataR, unsigned long samples)
     int fingersDown=0;
     for(int f=0; f<MAXCHANNELS; f++)
     {
-        doRamp(&allFingers.finger[f].volRamp);
+        doRamp(&allFingers.finger[f].volRamp,allFingers.sampleCount);
         float val = allFingers.finger[f].volRamp.value;
         totalNoteVolume += val;
         if(val>0)
@@ -235,8 +225,8 @@ static void renderNoise(long* dataL, long* dataR, unsigned long samples)
     //Go in channel major order because we skip by volume
     for(int f=0; f<MAXCHANNELS; f++)
     {
-        doRamp(&allFingers.finger[f].pitchRamp);
-        doRamp(&allFingers.finger[f].exprRamp);
+        doRamp(&allFingers.finger[f].pitchRamp,allFingers.sampleCount);
+        doRamp(&allFingers.finger[f].exprRamp,allFingers.sampleCount);
         
         float currentVolume = allFingers.finger[f].volRamp.value;
         float targetVolume = allFingers.finger[f].volRamp.stopValue;
@@ -245,14 +235,15 @@ static void renderNoise(long* dataL, long* dataR, unsigned long samples)
         if(isActive)
         {
             float notep = allFingers.finger[f].pitchRamp.value;
+            //NSLog(@"pitch %f",notep);
             float p = allFingers.finger[f].phase;
             //note 33 is our center pitch, and it's 440hz
             float cyclesPerSample = powf(2,(notep-33)/12) * (440/(44100.0 * 32));
             //computeNoteMixPerChannel(f);
             for(int i=0; i<samples; i++)
             {
-                doRamp(&allFingers.finger[f].volRamp);
-                doRamp(&allFingers.finger[f].exprRamp);
+                doRamp(&allFingers.finger[f].volRamp,allFingers.sampleCount+i);
+                doRamp(&allFingers.finger[f].exprRamp,allFingers.sampleCount+i);
                 float e = allFingers.finger[f].exprRamp.value;
                 float v = allFingers.finger[f].volRamp.value;
                 float cycles = i*cyclesPerSample + p;
