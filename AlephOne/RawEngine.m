@@ -30,8 +30,8 @@ float noteVol[MAXCHANNELS];
 float notePitchTarget[MAXCHANNELS];
 float noteVolTarget[MAXCHANNELS];
 float notePhase[MAXCHANNELS];
-int   noteExpr[MAXCHANNELS];
-int   noteExprTarget[MAXCHANNELS];
+float noteExpr[MAXCHANNELS];
+float noteExprTarget[MAXCHANNELS];
 float   noteMixPerChannel[MAXCHANNELS][2][2];
 float totalNoteVolume=0;
 
@@ -188,7 +188,7 @@ static void initNoise()
         notePitch[i] = 0;
         noteVol[i]   = 0;
         notePhase[i] = 0;
-        noteExpr[i] = EXPRLEVELS/2;
+        noteExpr[i] = 0.5;
         noteExprTarget[i] = noteExpr[i];
     }
     //Set the wave for the finger
@@ -230,10 +230,6 @@ static void renderNoise(long* dataL, long* dataR, unsigned long samples)
             notePhase[f] = 0;
             notePitch[f] = notePitchTarget[f];
         }
-        if(noteExpr[f] < noteExprTarget[f])noteExpr[f]++;
-        if(noteExpr[f] >= noteExprTarget[f])noteExpr[f]--;
-        float e = (1.0 * noteExpr[f]) / EXPRLEVELS;
-        //float v = noteVol[f];
         if(noteVol[f] > 0 || noteVolTarget[f] > 0)
         {
             float p = notePhase[f];
@@ -242,7 +238,16 @@ static void renderNoise(long* dataL, long* dataR, unsigned long samples)
             //computeNoteMixPerChannel(f);
             for(int i=0; i<samples; i++)
             {
-                noteVol[f] = noteVolTarget[f] * 0.001 + noteVol[f] * 0.999;
+                noteExpr[f] = noteExprTarget[f] * 0.01 + noteExpr[f] * 0.99;
+                float e = (noteExpr[f]);
+                if(noteVol[f] > noteVolTarget[f])
+                {
+                    noteVol[f] = noteVolTarget[f] * 0.0005 + noteVol[f] * 0.9995;                    
+                }
+                else
+                {
+                    noteVol[f] = noteVolTarget[f] * 0.0005 + noteVol[f] * 0.9995;                                        
+                }
                 float v = noteVol[f];
                 float cycles = i*cyclesPerSample + p;
                 float cycleLocation = (cycles - (int)cycles); // 0 .. 1
@@ -271,7 +276,7 @@ void rawEngine(int midiChannel,int doNoteAttack,float pitch,float volVal,int mid
     }
     noteVolTarget[channel] = volVal;
     notePitchTarget[channel] = pitch;
-    noteExprTarget[channel] = (int) ( (midiExpr/127.0) * EXPRLEVELS );
+    noteExprTarget[channel] = midiExpr/127.0;
 }
 
 static OSStatus fixGDLatency()

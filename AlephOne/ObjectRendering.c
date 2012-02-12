@@ -32,7 +32,7 @@
 #include "ScaleControl.h"
 #include "SliderControl.h"
 #include "ButtonControl.h"
-
+#include "RawEngine.h"
 
 static void* ObjectRendering_imageContext;
 static void (*ObjectRendering_imageRender)(void*,char*,unsigned int*,float*,float*,int);
@@ -92,6 +92,8 @@ struct Button_data* scaleCommitButton;
 
 struct Button_data* initialSnapButton;
 struct Slider_data* snapSpeedSlider;
+
+struct Button_data* engineButton;
 
 static char stringRenderBuffer[1024];
 
@@ -222,6 +224,7 @@ void Page_set(void* ctx, int val)
     scaleCommitButton->rect->isActive = FALSE;
     initialSnapButton->rect->isActive = FALSE;
     snapSpeedSlider->rect->isActive = FALSE;
+    engineButton->rect->isActive = FALSE;
     switch(val)
     {
         case 0:
@@ -251,6 +254,7 @@ void Page_set(void* ctx, int val)
         case 5:
             initialSnapButton->rect->isActive = TRUE;
             snapSpeedSlider->rect->isActive = TRUE;
+            engineButton->rect->isActive = TRUE;
             break;
     }
 }
@@ -470,6 +474,12 @@ int ScaleCommit_get(void* ctx)
     return 0;
 }
 
+void Engine_set(void* ctx,int val)
+{
+    rawEngineStart();
+}
+
+
 void Intonation_set(void* ctx, float val)
 {
     int ival = (int)(7.99*val);
@@ -537,6 +547,7 @@ void ObjectRendering_loadImages()
     
     renderLabel("Down Snap", PIC_INITIALSNAPTEXT);
     renderLabel("Snap Speed", PIC_SNAPSPEEDTEXT);
+    renderLabel("Internal", PIC_ENGINETEXT);
     
     //Render a contiguous group of note pre-rendered images
     //(sharps/flats don't exist for now... a problem I will tackle later)
@@ -606,7 +617,8 @@ void WidgetsAssemble()
     
     //Page 5
     initialSnapButton = CreateButton(PIC_INITIALSNAPTEXT, 0.12, panelBottom, 0.48, panelTop, Snap_set, Snap_get, 2);
-    snapSpeedSlider = CreateSlider(PIC_SNAPSPEEDTEXT, 0.482, panelBottom, 0.88, panelTop, SnapSpeed_set, SnapSpeed_get);
+    snapSpeedSlider = CreateSlider(PIC_SNAPSPEEDTEXT, 0.482, panelBottom, 0.78, panelTop, SnapSpeed_set, SnapSpeed_get);
+    engineButton = CreateButton(PIC_ENGINETEXT, 0.78, panelBottom, 0.95, panelTop, Engine_set, NULL,2);
     
     //Page last
     Page_set(NULL, 0);

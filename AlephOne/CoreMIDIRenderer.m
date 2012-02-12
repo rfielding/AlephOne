@@ -33,7 +33,7 @@ static void CoreMIDIRenderer_midiStateChangedHander(const MIDINotification *mess
 
 void CoreMIDIRenderer_midiInit(struct Fretless_context* ctxp)
 {
-    rawEngineStart();
+    //rawEngineStart();
     DeMIDI_start(rawEngine);
     
     if(midiOutPort)return;
