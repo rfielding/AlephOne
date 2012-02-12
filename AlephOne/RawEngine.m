@@ -246,7 +246,7 @@ static void renderNoise(long* dataL, long* dataR, unsigned long samples)
                 }
                 else
                 {
-                    noteVol[f] = noteVolTarget[f] * 0.0005 + noteVol[f] * 0.9995;                                        
+                    noteVol[f] = noteVolTarget[f] * 0.001 + noteVol[f] * 0.999;                                        
                 }
                 float v = noteVol[f];
                 float cycles = i*cyclesPerSample + p;
