@@ -62,23 +62,7 @@ void doRamp(struct ramp* r)
     r->value = r->startValue + r->stopValue * sampleDiff;
 }
 
-void doRamps()
-{
-    for(int f=0; f<MAXCHANNELS; f++)
-    {
-        doRamp(&allFingers.finger[f].pitchRamp);
-        doRamp(&allFingers.finger[f].volRamp);
-        doRamp(&allFingers.finger[f].exprRamp);
-    }
-}
 
-float notePitch[MAXCHANNELS];
-float noteVol[MAXCHANNELS];
-float notePitchTarget[MAXCHANNELS];
-float noteVolTarget[MAXCHANNELS];
-float notePhase[MAXCHANNELS];
-float noteExpr[MAXCHANNELS];
-float noteExprTarget[MAXCHANNELS];
 float totalNoteVolume=0;
 
 
@@ -217,15 +201,6 @@ static void audioSessionInterruptionCallback(void *inUserData, UInt32 interrupti
 
 static void initNoise()
 {
-    //Zero out state variables
-    for(int i=0; i<MAXCHANNELS; i++)
-    {
-        notePitch[i] = 0;
-        noteVol[i]   = 0;
-        notePhase[i] = 0;
-        noteExpr[i] = 0.5;
-        noteExprTarget[i] = noteExpr[i];
-    }
     //Set the wave for the finger
     setExprMix();
 }
@@ -242,8 +217,10 @@ static void renderNoise(long* dataL, long* dataR, unsigned long samples)
     int fingersDown=0;
     for(int f=0; f<MAXCHANNELS; f++)
     {
-        totalNoteVolume += noteVol[f];
-        if(noteVol[f]>0)
+        doRamp(&allFingers.finger[f].volRamp);
+        float val = allFingers.finger[f].volRamp.value;
+        totalNoteVolume += val;
+        if(val>0)
         {
             fingersDown++;
         }
@@ -254,45 +231,40 @@ static void renderNoise(long* dataL, long* dataR, unsigned long samples)
     {
         scaleFinger = 1/totalNoteVolume;
     }
-    //NSLog(@"scaleFinger %f ",scaleFinger);
     
     //Go in channel major order because we skip by volume
     for(int f=0; f<MAXCHANNELS; f++)
     {
         doRamp(&allFingers.finger[f].pitchRamp);
-        doRamp(&allFingers.finger[f].volRamp);
         doRamp(&allFingers.finger[f].exprRamp);
         
-        notePitch[f] = notePitchTarget[f] * 0.75 + notePitch[f] * 0.25;
-        if(noteVol[f]==0)
+        float currentVolume = allFingers.finger[f].volRamp.value;
+        float targetVolume = allFingers.finger[f].volRamp.stopValue;
+        int isActive = (currentVolume > 0) || (targetVolume > 0);
+        
+        if(isActive)
         {
-            notePhase[f] = 0;
-            notePitch[f] = notePitchTarget[f];
-        }
-        if(noteVol[f] > 0 || noteVolTarget[f] > 0)
-        {
-            float p = notePhase[f];
+            float notep = allFingers.finger[f].pitchRamp.value;
+            float p = allFingers.finger[f].phase;
             //note 33 is our center pitch, and it's 440hz
-            float cyclesPerSample = powf(2,(notePitch[f]-33)/12) * (440/(44100.0 * 32));
+            float cyclesPerSample = powf(2,(notep-33)/12) * (440/(44100.0 * 32));
             //computeNoteMixPerChannel(f);
             for(int i=0; i<samples; i++)
             {
                 doRamp(&allFingers.finger[f].volRamp);
                 doRamp(&allFingers.finger[f].exprRamp);
-                noteExpr[f] = noteExprTarget[f] * 0.01 + noteExpr[f] * 0.99;
-                float e = (noteExpr[f]);
-                noteVol[f] = noteVolTarget[f] * 0.0001 + noteVol[f] * 0.9999;                    
-                float v = noteVol[f];
+                float e = allFingers.finger[f].exprRamp.value;
+                float v = allFingers.finger[f].volRamp.value;
                 float cycles = i*cyclesPerSample + p;
                 float cycleLocation = (cycles - (int)cycles); // 0 .. 1
                 int j = (int)(cycleLocation*WAVEMAX);
                 long s = INT_MAX/8 * v * 
                     ((waveMix[0][0][j]*e + waveMix[0][1][j]*(1-e)) * (scaleFinger)) +
                     ((waveMix[1][0][j]*e + waveMix[1][1][j]*(1-e)) * (1-scaleFinger));
-                dataL[i] = s;
-                dataR[i] = s;
+                dataL[i] += s;
+                dataR[i] += s;
             }     
-            notePhase[f] = (cyclesPerSample*samples) + p;
+            allFingers.finger[f].phase = (cyclesPerSample*samples) + p;
         }
     }
     allFingers.sampleCount += samples;
@@ -309,13 +281,10 @@ void rawEngine(int midiChannel,int doNoteAttack,float pitch,float volVal,int mid
         //will be how impulses, etc get handled.
         //notePhase[channel] = 0;
     }
-    noteVolTarget[channel] = volVal;
-    notePitchTarget[channel] = pitch;
-    noteExprTarget[channel] = midiExpr/127.0;
     
     setRamp(&allFingers.finger[channel].volRamp, 4096, volVal);
-    setRamp(&allFingers.finger[channel].pitchRamp, 4096, volVal);
-    setRamp(&allFingers.finger[channel].exprRamp, 4096, volVal);
+    setRamp(&allFingers.finger[channel].pitchRamp, 4096, pitch);
+    setRamp(&allFingers.finger[channel].exprRamp, 4096, midiExpr/127.0);
 }
 
 static OSStatus fixGDLatency()
