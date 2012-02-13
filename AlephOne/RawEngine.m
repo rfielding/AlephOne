@@ -120,7 +120,7 @@ static void setupWaves()
         //Convolute non distorted harmonics with square wave harmonics
         for(int harmonic=0; harmonic<HARMONICSMAX; harmonic++)
         {            
-            for(int squareHarmonic=0; squareHarmonic<6; squareHarmonic++)
+            for(int squareHarmonic=0; squareHarmonic<10; squareHarmonic++)
             {
                 int s = squareHarmonic*2+1;
                 if(s<HARMONICSMAX)
@@ -262,7 +262,7 @@ static void renderNoise(long* dataL, long* dataR, unsigned long samples)
                 float s2=scaleFinger;
                 float unSquished = (waveMix[0][0][j]*s2 + waveMix[1][0][j]*(1-s2))*e + waveMix[0][1][j]*(1-e);
                 float unAliased = unSquished*(1-pitchLocation) + waveFundamental[j]*(pitchLocation);
-                long s = INT_MAX * v * (unAliased) * scaleFinger * 0.15;
+                long s = INT_MAX * v * (unAliased) * scaleFinger * 0.06;
                 dataL[i] += s;
                 dataR[i] += s;
             }     
