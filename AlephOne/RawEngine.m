@@ -77,6 +77,7 @@ float totalNoteVolume=0;
 
 #define HARMONICSMAX 32
 float waveMix[2][2][WAVEMAX];
+float waveFundamental[WAVEMAX];
 float harmonicsTotal[2][2];
 float harmonics[2][2][HARMONICSMAX] =
 {
@@ -119,7 +120,7 @@ static void setupWaves()
         //Convolute non distorted harmonics with square wave harmonics
         for(int harmonic=0; harmonic<HARMONICSMAX; harmonic++)
         {            
-            for(int squareHarmonic=0; squareHarmonic<5; squareHarmonic++)
+            for(int squareHarmonic=0; squareHarmonic<8; squareHarmonic++)
             {
                 int s = squareHarmonic*2+1;
                 if(s<HARMONICSMAX)
@@ -159,6 +160,7 @@ static void setupWaves()
             for(int sample=0; sample<WAVEMAX; sample++)
             {
                 waveMix[dist][expr][sample] = 0;                
+                waveFundamental[sample] = sinf( sample * 2.0 * M_PI / WAVEMAX );
             }
             for(int harmonic=0; harmonic<HARMONICSMAX; harmonic++)
             {
@@ -260,9 +262,12 @@ static void renderNoise(long* dataL, long* dataR, unsigned long samples)
                 float cycles = i*cyclesPerSample + p;
                 float cycleLocation = (cycles - (int)cycles); // 0 .. 1
                 int j = (int)(cycleLocation*WAVEMAX);
-                float unSquished = waveMix[0][0][j]*e + waveMix[1][1][j]*(1-e);
-                float squished = waveMix[1][0][j]*e + waveMix[1][1][j]*(1-e);
-                long s = INT_MAX * v * (unSquished) * scaleFinger * 0.25;
+                float pitchLocation = notep/127.0;
+                float unSquished = waveMix[0][0][j]*e + waveMix[0][1][j]*(1-e);
+                float squished = waveMix[1][0][j]*e + waveMix[0][1][j]*(1-e);
+                float mashed = unSquished * (scaleFinger) + squished * (1-scaleFinger);
+                float unAliased = mashed*(1-pitchLocation) + waveFundamental[j]*(pitchLocation);
+                long s = INT_MAX * v * (unAliased) * scaleFinger * 0.25;
                 
                 //    ((waveMix[0][0][j]*e + waveMix[0][1][j]*(1-e)) * (scaleFinger)) +
                 //    ((waveMix[1][0][j]*e + waveMix[1][1][j]*(1-e)) * (1-scaleFinger));
