@@ -261,13 +261,8 @@ static void renderNoise(long* dataL, long* dataR, unsigned long samples)
                 float pitchLocation = notep/127.0;
                 float s2=scaleFinger;
                 float unSquished = (waveMix[0][0][j]*s2 + waveMix[1][0][j]*(1-s2))*e + waveMix[0][1][j]*(1-e);
-                //float squished = waveMix[1][0][j]*e + waveMix[0][1][j]*(1-e);
-                //float mashed = unSquished * (scaleFinger) + squished * (1-scaleFinger);
                 float unAliased = unSquished*(1-pitchLocation) + waveFundamental[j]*(pitchLocation);
-                long s = INT_MAX * v * (unAliased) * scaleFinger * 0.125;
-                
-                //    ((waveMix[0][0][j]*e + waveMix[0][1][j]*(1-e)) * (scaleFinger)) +
-                //    ((waveMix[1][0][j]*e + waveMix[1][1][j]*(1-e)) * (1-scaleFinger));
+                long s = INT_MAX * v * (unAliased) * scaleFinger * 0.15;
                 dataL[i] += s;
                 dataR[i] += s;
             }     
