@@ -58,12 +58,16 @@ static inline void setRamp(struct ramp* r, long samples, float stopValue)
 
 static inline void doRamp(struct ramp* r,long sample)
 {
+    ///*
     long rampLength = r->stopSample - r->startSample;
     long rampPosition = sample - r->startSample;
-    float rampRatio = (rampLength * 1.0) / rampPosition;
+    float rampRatio = (rampPosition * 1.0) / rampLength;
+    float rampDiff = r->stopValue - r->startValue;
     r->value = 
-        (allFingers.sampleCount > r->stopSample) ? 
-            r->stopValue : (r->startValue + r->stopValue * rampRatio);
+        (allFingers.sampleCount >= r->stopSample) ? 
+        r->stopValue : (r->startValue + rampDiff * rampRatio);
+    // */
+    //r->value = r->stopValue; 
 }
 
 
@@ -225,8 +229,13 @@ static void renderNoise(long* dataL, long* dataR, unsigned long samples)
     //Go in channel major order because we skip by volume
     for(int f=0; f<MAXCHANNELS; f++)
     {
+        if(allFingers.finger[f].volRamp.value == 0)
+        {
+            allFingers.finger[f].phase = 0;
+        }
         doRamp(&allFingers.finger[f].pitchRamp,allFingers.sampleCount);
         doRamp(&allFingers.finger[f].exprRamp,allFingers.sampleCount);
+        doRamp(&allFingers.finger[f].volRamp,allFingers.sampleCount);
         
         float currentVolume = allFingers.finger[f].volRamp.value;
         float targetVolume = allFingers.finger[f].volRamp.stopValue;
@@ -239,6 +248,7 @@ static void renderNoise(long* dataL, long* dataR, unsigned long samples)
             float p = allFingers.finger[f].phase;
             //note 33 is our center pitch, and it's 440hz
             float cyclesPerSample = powf(2,(notep-33)/12) * (440/(44100.0 * 32));
+            //NSLog(@"%d %f %f %f",f,allFingers.finger[f].exprRamp.value,allFingers.finger[f].volRamp.value,allFingers.finger[f].pitchRamp.value);
             //computeNoteMixPerChannel(f);
             for(int i=0; i<samples; i++)
             {
@@ -249,9 +259,12 @@ static void renderNoise(long* dataL, long* dataR, unsigned long samples)
                 float cycles = i*cyclesPerSample + p;
                 float cycleLocation = (cycles - (int)cycles); // 0 .. 1
                 int j = (int)(cycleLocation*WAVEMAX);
-                long s = INT_MAX/8 * v * 
-                    ((waveMix[0][0][j]*e + waveMix[0][1][j]*(1-e)) * (scaleFinger)) +
-                    ((waveMix[1][0][j]*e + waveMix[1][1][j]*(1-e)) * (1-scaleFinger));
+                float unSquished = waveMix[0][0][j]*e + waveMix[0][1][j]*(1-e);
+                float squished = waveMix[1][0][j]*e + waveMix[1][1][j]*(1-e);
+                long s = INT_MAX * v * (unSquished) * scaleFinger;
+                
+                //    ((waveMix[0][0][j]*e + waveMix[0][1][j]*(1-e)) * (scaleFinger)) +
+                //    ((waveMix[1][0][j]*e + waveMix[1][1][j]*(1-e)) * (1-scaleFinger));
                 dataL[i] += s;
                 dataR[i] += s;
             }     
@@ -274,8 +287,8 @@ void rawEngine(int midiChannel,int doNoteAttack,float pitch,float volVal,int mid
     }
     
     setRamp(&allFingers.finger[channel].volRamp, 4096, volVal);
-    setRamp(&allFingers.finger[channel].pitchRamp, 4096, pitch);
-    setRamp(&allFingers.finger[channel].exprRamp, 4096, midiExpr/127.0);
+    setRamp(&allFingers.finger[channel].pitchRamp, 128, pitch);
+    setRamp(&allFingers.finger[channel].exprRamp, 128, midiExpr/127.0);
 }
 
 static OSStatus fixGDLatency()
