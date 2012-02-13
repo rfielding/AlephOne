@@ -120,7 +120,7 @@ static void setupWaves()
         //Convolute non distorted harmonics with square wave harmonics
         for(int harmonic=0; harmonic<HARMONICSMAX; harmonic++)
         {            
-            for(int squareHarmonic=0; squareHarmonic<8; squareHarmonic++)
+            for(int squareHarmonic=0; squareHarmonic<6; squareHarmonic++)
             {
                 int s = squareHarmonic*2+1;
                 if(s<HARMONICSMAX)
@@ -220,7 +220,6 @@ static void renderNoise(long* dataL, long* dataR, unsigned long samples)
             fingersDown++;
         }
     }
-    totalNoteVolume*=8;
     float scaleFinger=1;
     if(totalNoteVolume > 1)
     {
@@ -260,11 +259,12 @@ static void renderNoise(long* dataL, long* dataR, unsigned long samples)
                 float cycleLocation = (cycles - (int)cycles); // 0 .. 1
                 int j = (int)(cycleLocation*WAVEMAX);
                 float pitchLocation = notep/127.0;
-                float unSquished = (waveMix[0][0][j]*scaleFinger + waveMix[1][0][j]*(1-scaleFinger))*e + waveMix[0][1][j]*(1-e);
+                float s2=scaleFinger;
+                float unSquished = (waveMix[0][0][j]*s2 + waveMix[1][0][j]*(1-s2))*e + waveMix[0][1][j]*(1-e);
                 //float squished = waveMix[1][0][j]*e + waveMix[0][1][j]*(1-e);
                 //float mashed = unSquished * (scaleFinger) + squished * (1-scaleFinger);
                 float unAliased = unSquished*(1-pitchLocation) + waveFundamental[j]*(pitchLocation);
-                long s = INT_MAX * v * (unAliased) * scaleFinger * 0.25;
+                long s = INT_MAX * v * (unAliased) * scaleFinger * 0.125;
                 
                 //    ((waveMix[0][0][j]*e + waveMix[0][1][j]*(1-e)) * (scaleFinger)) +
                 //    ((waveMix[1][0][j]*e + waveMix[1][1][j]*(1-e)) * (1-scaleFinger));
