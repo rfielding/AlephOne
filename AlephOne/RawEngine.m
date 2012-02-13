@@ -263,10 +263,10 @@ static void renderNoise(long* dataL, long* dataR, unsigned long samples)
                 float cycleLocation = (cycles - (int)cycles); // 0 .. 1
                 int j = (int)(cycleLocation*WAVEMAX);
                 float pitchLocation = notep/127.0;
-                float unSquished = waveMix[0][0][j]*e + waveMix[0][1][j]*(1-e);
-                float squished = waveMix[1][0][j]*e + waveMix[0][1][j]*(1-e);
-                float mashed = unSquished * (scaleFinger) + squished * (1-scaleFinger);
-                float unAliased = mashed*(1-pitchLocation) + waveFundamental[j]*(pitchLocation);
+                float unSquished = (waveMix[0][0][j]*scaleFinger + waveMix[1][0][j]*(1-scaleFinger))*e + waveMix[0][1][j]*(1-e);
+                //float squished = waveMix[1][0][j]*e + waveMix[0][1][j]*(1-e);
+                //float mashed = unSquished * (scaleFinger) + squished * (1-scaleFinger);
+                float unAliased = unSquished*(1-pitchLocation) + waveFundamental[j]*(pitchLocation);
                 long s = INT_MAX * v * (unAliased) * scaleFinger * 0.25;
                 
                 //    ((waveMix[0][0][j]*e + waveMix[0][1][j]*(1-e)) * (scaleFinger)) +
