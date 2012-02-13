@@ -214,7 +214,7 @@ static void renderNoise(long* dataL, long* dataR, unsigned long samples)
     for(int f=0; f<MAXCHANNELS; f++)
     {
         float val = allFingers.finger[f].volRamp.stopValue;
-        totalNoteVolume += val;
+        totalNoteVolume += val*val;
         if(val>0)
         {
             fingersDown++;
@@ -255,6 +255,7 @@ static void renderNoise(long* dataL, long* dataR, unsigned long samples)
                 doRamp(&allFingers.finger[f].exprRamp,allFingers.sampleCount+i);
                 float e = allFingers.finger[f].exprRamp.value;
                 float v = allFingers.finger[f].volRamp.value;
+                v = v*v;
                 float cycles = i*cyclesPerSample + p;
                 float cycleLocation = (cycles - (int)cycles); // 0 .. 1
                 int j = (int)(cycleLocation*WAVEMAX);
