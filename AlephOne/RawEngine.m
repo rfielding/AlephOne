@@ -213,8 +213,7 @@ static void renderNoise(long* dataL, long* dataR, unsigned long samples)
     int fingersDown=0;
     for(int f=0; f<MAXCHANNELS; f++)
     {
-        doRamp(&allFingers.finger[f].volRamp,allFingers.sampleCount);
-        float val = allFingers.finger[f].volRamp.value;
+        float val = allFingers.finger[f].volRamp.stopValue;
         totalNoteVolume += val;
         if(val>0)
         {
@@ -237,8 +236,6 @@ static void renderNoise(long* dataL, long* dataR, unsigned long samples)
             allFingers.finger[f].pitchRamp.value = allFingers.finger[f].pitchRamp.stopValue;
         }
         doRamp(&allFingers.finger[f].pitchRamp,allFingers.sampleCount);
-        doRamp(&allFingers.finger[f].exprRamp,allFingers.sampleCount);
-        doRamp(&allFingers.finger[f].volRamp,allFingers.sampleCount);
         
         float currentVolume = allFingers.finger[f].volRamp.value;
         float targetVolume = allFingers.finger[f].volRamp.stopValue;
