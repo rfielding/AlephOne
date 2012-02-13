@@ -232,6 +232,7 @@ static void renderNoise(long* dataL, long* dataR, unsigned long samples)
         if(allFingers.finger[f].volRamp.value == 0)
         {
             allFingers.finger[f].phase = 0;
+            allFingers.finger[f].pitchRamp.value = allFingers.finger[f].pitchRamp.stopValue;
         }
         doRamp(&allFingers.finger[f].pitchRamp,allFingers.sampleCount);
         doRamp(&allFingers.finger[f].exprRamp,allFingers.sampleCount);
@@ -259,9 +260,9 @@ static void renderNoise(long* dataL, long* dataR, unsigned long samples)
                 float cycles = i*cyclesPerSample + p;
                 float cycleLocation = (cycles - (int)cycles); // 0 .. 1
                 int j = (int)(cycleLocation*WAVEMAX);
-                float unSquished = waveMix[0][0][j]*e + waveMix[0][1][j]*(1-e);
+                float unSquished = waveMix[0][0][j]*e + waveMix[1][1][j]*(1-e);
                 float squished = waveMix[1][0][j]*e + waveMix[1][1][j]*(1-e);
-                long s = INT_MAX * v * (unSquished) * scaleFinger;
+                long s = INT_MAX * v * (unSquished) * scaleFinger * 0.25;
                 
                 //    ((waveMix[0][0][j]*e + waveMix[0][1][j]*(1-e)) * (scaleFinger)) +
                 //    ((waveMix[1][0][j]*e + waveMix[1][1][j]*(1-e)) * (1-scaleFinger));
@@ -281,12 +282,12 @@ void rawEngine(int midiChannel,int doNoteAttack,float pitch,float volVal,int mid
     if(doNoteAttack)
     {
         //Set to beginning of sustain phase.
-        //In the future, the attack and decase phase will have its own envelope, and this
+        //In the future, the attack and decay phase will have its own envelope, and this
         //will be how impulses, etc get handled.
         //notePhase[channel] = 0;
     }
     
-    setRamp(&allFingers.finger[channel].volRamp, 4096, volVal);
+    setRamp(&allFingers.finger[channel].volRamp, 4096-(int)(16*pitch), volVal);
     setRamp(&allFingers.finger[channel].pitchRamp, 128, pitch);
     setRamp(&allFingers.finger[channel].exprRamp, 128, midiExpr/127.0);
 }
@@ -469,6 +470,7 @@ void rawEngineStart()
 
 void rawEngineStop()
 {
+    AudioOutputUnitStop(audioUnit);    
     NSLog(@"rawEngineStop");    
 }
 

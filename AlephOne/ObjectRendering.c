@@ -476,7 +476,14 @@ int ScaleCommit_get(void* ctx)
 
 void Engine_set(void* ctx,int val)
 {
-    rawEngineStart();
+    if(val)
+    {
+        rawEngineStart();        
+    }
+    else
+    {
+        rawEngineStop();
+    }
 }
 
 
