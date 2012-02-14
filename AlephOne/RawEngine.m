@@ -65,7 +65,7 @@ static inline void doRamp(struct ramp* r,long sample)
     float rampDiff = r->stopValue - r->startValue;
     r->value = 
         (allFingers.sampleCount >= r->stopSample) ? 
-        r->stopValue : (r->startValue + rampDiff * rampRatio);
+    r->stopValue : ((rampDiff>0) ? (r->startValue + rampDiff * rampRatio) : r->startValue);
     // */
     //r->value = r->stopValue; 
 }
@@ -75,19 +75,27 @@ float totalNoteVolume=0;
 
 
 
-#define HARMONICSMAX 32
+#define HARMONICSMAX 64
 float waveMix[2][2][WAVEMAX];
 float waveFundamental[WAVEMAX];
 float harmonicsTotal[2][2];
 float harmonics[2][2][HARMONICSMAX] =
 {
     {
-        {8, 4, 1, 2, 0, 1, 0, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},  
-        {0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}
+        {8, 4, 1, 2, 0, 1, 0, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+         0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+        },  
+        {0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+         0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+        }
     },
     {
-        {8, 4, 1, 2, 0, 1, 0, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},  
-        {0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}
+        {8, 4, 1, 2, 0, 1, 0, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+        },  
+        {0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+        }
     },
 };
 
@@ -120,7 +128,15 @@ static void setupWaves()
         //Convolute non distorted harmonics with square wave harmonics
         for(int harmonic=0; harmonic<HARMONICSMAX; harmonic++)
         {            
-            for(int squareHarmonic=0; squareHarmonic<10; squareHarmonic++)
+            for(int squareHarmonic=0; squareHarmonic<HARMONICSMAX; squareHarmonic++)
+            {
+                int s = squareHarmonic+1;
+                if(s<HARMONICSMAX)
+                {
+                    harmonics[1][expr][s] += harmonics[0][expr][harmonic] / (4*s);                                                                    
+                }
+            }
+            for(int squareHarmonic=0; squareHarmonic<HARMONICSMAX; squareHarmonic++)
             {
                 int s = squareHarmonic*2+1;
                 if(s<HARMONICSMAX)
@@ -128,7 +144,6 @@ static void setupWaves()
                     harmonics[1][expr][s] += harmonics[0][expr][harmonic] / s;                                                                    
                 }
             }
-
         }
     }
     
@@ -225,7 +240,6 @@ static void renderNoise(long* dataL, long* dataR, unsigned long samples)
     {
         scaleFinger = 1/totalNoteVolume;
     }
-    
     //Go in channel major order because we skip by volume
     for(int f=0; f<MAXCHANNELS; f++)
     {
@@ -260,9 +274,9 @@ static void renderNoise(long* dataL, long* dataR, unsigned long samples)
                 int j = (int)(cycleLocation*WAVEMAX);
                 float pitchLocation = notep/127.0;
                 float s2=scaleFinger;
-                float unSquished = (waveMix[0][0][j]*s2 + waveMix[1][0][j]*(1-s2))*e + waveMix[0][1][j]*(1-e);
-                float unAliased = unSquished*(1-pitchLocation) + waveFundamental[j]*(pitchLocation);
-                long s = INT_MAX * v * (unAliased) * scaleFinger * 0.06;
+                float unSquished = (waveMix[0][0][j]*s2 + waveMix[1][0][j]*(1-s2))*e + (waveMix[0][1][j]*s2 + waveMix[1][1][j]*(1-s2))*(1-e);
+                float unAliased = unSquished*(1-pitchLocation*pitchLocation) + waveFundamental[j]*(pitchLocation*pitchLocation);
+                long s = INT_MAX * v * (unAliased) * scaleFinger * 0.06 * 0.25;
                 dataL[i] += s;
                 dataR[i] += s;
             }     
@@ -284,9 +298,9 @@ void rawEngine(int midiChannel,int doNoteAttack,float pitch,float volVal,int mid
         //notePhase[channel] = 0;
     }
     
-    setRamp(&allFingers.finger[channel].volRamp, 4096-(int)(16*pitch), volVal);
+    setRamp(&allFingers.finger[channel].volRamp, 256, volVal);
     setRamp(&allFingers.finger[channel].pitchRamp, 128, pitch);
-    setRamp(&allFingers.finger[channel].exprRamp, 128, midiExpr/127.0);
+    setRamp(&allFingers.finger[channel].exprRamp, 256, midiExpr/127.0);
 }
 
 static OSStatus fixGDLatency()
