@@ -58,16 +58,13 @@ static inline void setRamp(struct ramp* r, long samples, float stopValue)
 
 static inline void doRamp(struct ramp* r,long sample)
 {
-    ///*
-    long rampLength = r->stopSample - r->startSample;
-    long rampPosition = sample - r->startSample;
-    float rampRatio = (rampPosition * 1.0) / rampLength;
-    float rampDiff = r->stopValue - r->startValue;
-    r->value = 
-        (allFingers.sampleCount >= r->stopSample) ? 
-    r->stopValue : ((rampDiff>0) ? (r->startValue + rampDiff * rampRatio) : r->startValue);
-    // */
-    //r->value = r->stopValue; 
+    /*
+    r->value = (allFingers.sampleCount >= r->stopSample) ? 
+        r->stopValue : 
+        r->startValue + ((sample - r->startSample) / (r->stopSample - r->startSample)) * (r->stopValue - r->startValue);
+     */
+    //I don't know why that doesn't work yet.
+    r->value = r->stopValue;
 }
 
 
