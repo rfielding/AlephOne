@@ -133,7 +133,7 @@ static void setupWaves()
                 int s = squareHarmonic+1;
                 if(s<HARMONICSMAX)
                 {
-                    harmonics[1][expr][s] += harmonics[0][expr][harmonic] / (4*s);                                                                    
+ //                   harmonics[1][expr][s] += harmonics[0][expr][harmonic] / (4*s);                                                                    
                 }
             }
             for(int squareHarmonic=0; squareHarmonic<HARMONICSMAX; squareHarmonic++)
