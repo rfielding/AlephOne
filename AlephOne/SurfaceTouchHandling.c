@@ -119,8 +119,8 @@ void SurfaceTouchHandling_touchesDown(void* ctx,int finger,void* touch,int isMov
         polyGroup2 = finger2;
     }
     
-    float e = (1-0.5);
-    float dx = (e*e*e*e)*chorusLevel*0.0125;
+    float e = expr;
+    float dx = (e*e*e*e)*chorusLevel*0.0000000125;
     float v = baseVolume;
     fingerInfo->velocity = v;
     if(isMoving)
