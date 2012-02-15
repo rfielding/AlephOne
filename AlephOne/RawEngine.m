@@ -28,8 +28,8 @@ static const unsigned int kOutputBus = 0;
 
 struct ramp {
     long startSample;
-    long stopSample;
-    float startValue;
+    //long stopSample;
+    //float startValue;
     float stopValue;
     float slope;
     float value;
@@ -49,24 +49,25 @@ struct fingersData {
 
 static struct fingersData allFingers;
 
-static inline void setRamp(struct ramp* r, long samples, float stopValue)
+static inline void setRamp(struct ramp* r, float slope, float stopValue)
 {
-    r->startValue = r->stopValue;
+    //r->startValue = r->stopValue;
     r->stopValue = stopValue;
-    r->startSample = allFingers.sampleCount;
-    r->stopSample = r->startSample + samples;
-    r->slope = (r->stopValue - r->startValue) / (r->stopSample - r->startSample);
+    //r->startSample = allFingers.sampleCount;
+    //r->stopSample = r->startSample + samples;
+    //r->slope = (r->stopValue - r->startValue) / (r->stopSample - r->startSample);
+    r->slope = slope;
 }
 
 static inline void doRamp(struct ramp* r,long sample)
 {
-    ///*
+    /*
     r->value = (allFingers.sampleCount >= r->stopSample) ? 
         r->stopValue : 
         r->startValue + r->slope * (sample - r->startValue);
-    // */
+    */
     //I don't know why that doesn't work yet.
-    r->value = r->stopValue;
+    r->value = r->value * (1-r->slope) + r->slope * r->stopValue;
 }
 
 
@@ -305,9 +306,9 @@ void rawEngine(int midiChannel,int doNoteAttack,float pitch,float volVal,int mid
         //notePhase[channel] = 0;
     }
     
-    setRamp(&allFingers.finger[channel].volRamp, 256, volVal);
-    setRamp(&allFingers.finger[channel].pitchRamp, 128, pitch);
-    setRamp(&allFingers.finger[channel].exprRamp, 256, midiExpr/127.0);
+    setRamp(&allFingers.finger[channel].volRamp, 0.2 * pitch/127.0, volVal);
+    setRamp(&allFingers.finger[channel].pitchRamp, 0.5, pitch);
+    setRamp(&allFingers.finger[channel].exprRamp, 0.5, midiExpr/127.0);
 }
 
 static OSStatus fixGDLatency()
