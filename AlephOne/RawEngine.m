@@ -79,7 +79,7 @@ float totalNoteVolume=0;
 float waveMix[2][2][WAVEMAX];
 float waveFundamental[WAVEMAX];
 float harmonicsTotal[2][2];
-float harmonics[2][2][HARMONICSMAX] =
+float harmonics[2][2][128] =
 {
     {
         {8, 4, 1, 2, 0, 1, 0, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
