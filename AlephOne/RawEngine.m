@@ -306,9 +306,9 @@ void rawEngine(int midiChannel,int doNoteAttack,float pitch,float volVal,int mid
         //notePhase[channel] = 0;
     }
     
-    setRamp(&allFingers.finger[channel].volRamp, 0.2 * pitch/127.0, volVal);
-    setRamp(&allFingers.finger[channel].pitchRamp, 0.5, pitch);
-    setRamp(&allFingers.finger[channel].exprRamp, 0.5, midiExpr/127.0);
+    setRamp(&allFingers.finger[channel].volRamp, 0.05 * pitch/127.0, volVal);
+    setRamp(&allFingers.finger[channel].pitchRamp, 0.75, pitch);
+    setRamp(&allFingers.finger[channel].exprRamp, 0.2, midiExpr/127.0);
 }
 
 static OSStatus fixGDLatency()
