@@ -306,7 +306,7 @@ void rawEngine(int midiChannel,int doNoteAttack,float pitch,float volVal,int mid
         }
         if(doVol)
         {
-            setRamp(&allFingers.finger[channel].volRamp, 0.008 * pitch/127.0 * ((volVal==0)?0.5:1), volVal);            
+            setRamp(&allFingers.finger[channel].volRamp, 0.008 * pitch/127.0 * ((volVal==0)?1:0.25), volVal);            
         }
         setRamp(&allFingers.finger[channel].pitchRamp, 0.95, pitch);
         setRamp(&allFingers.finger[channel].exprRamp, 0.2, midiExpr/127.0);                                
