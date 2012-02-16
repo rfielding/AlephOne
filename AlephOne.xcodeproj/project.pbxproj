@@ -63,7 +63,6 @@
 		49C8C39114DA303E00388555 /* DeMIDI.c in Sources */ = {isa = PBXBuildFile; fileRef = 49C8C39014DA303E00388555 /* DeMIDI.c */; };
 		49CB084014888CA3003DEA9D /* PitchHandler.c in Sources */ = {isa = PBXBuildFile; fileRef = 49CB083E14888CA3003DEA9D /* PitchHandler.c */; };
 		49CB084414888E55003DEA9D /* TouchMapping.c in Sources */ = {isa = PBXBuildFile; fileRef = 49CB084214888E55003DEA9D /* TouchMapping.c */; };
-		49CB084714889D4C003DEA9D /* ControlRegistry.c in Sources */ = {isa = PBXBuildFile; fileRef = 49CB084514889D4B003DEA9D /* ControlRegistry.c */; };
 		49CB084A1488C11A003DEA9D /* GenericTouchHandling.c in Sources */ = {isa = PBXBuildFile; fileRef = 49CB08481488C119003DEA9D /* GenericTouchHandling.c */; };
 		49CB0855148A8F8B003DEA9D /* VertexObjectBuilder.c in Sources */ = {isa = PBXBuildFile; fileRef = 49CB0853148A8F8B003DEA9D /* VertexObjectBuilder.c */; };
 		49DB469E148B37E500C7AA76 /* CoreMIDI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 49DB469D148B37E500C7AA76 /* CoreMIDI.framework */; };
@@ -120,6 +119,7 @@
 		49691ADC14B57411009AB83D /* ScaleControl.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = ScaleControl.c; sourceTree = "<group>"; };
 		49691ADE14B5742D009AB83D /* ScaleControl.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ScaleControl.h; sourceTree = "<group>"; };
 		499ADD8714AC0A200007CAA3 /* alephonep2.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = alephonep2.png; sourceTree = "<group>"; };
+		499FE5B014ECB54E00DA92CB /* FretlessCommon.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = FretlessCommon.h; sourceTree = "<group>"; };
 		49B39074144914DC008C9F6E /* AlephOne.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = AlephOne.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		49B39078144914DC008C9F6E /* UIKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = UIKit.framework; path = System/Library/Frameworks/UIKit.framework; sourceTree = SDKROOT; };
 		49B3907A144914DC008C9F6E /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = System/Library/Frameworks/Foundation.framework; sourceTree = SDKROOT; };
@@ -163,8 +163,6 @@
 		49CB083F14888CA3003DEA9D /* PitchHandler.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PitchHandler.h; sourceTree = "<group>"; };
 		49CB084214888E55003DEA9D /* TouchMapping.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = TouchMapping.c; sourceTree = "<group>"; };
 		49CB084314888E55003DEA9D /* TouchMapping.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TouchMapping.h; sourceTree = "<group>"; };
-		49CB084514889D4B003DEA9D /* ControlRegistry.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = ControlRegistry.c; sourceTree = "<group>"; };
-		49CB084614889D4C003DEA9D /* ControlRegistry.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ControlRegistry.h; sourceTree = "<group>"; };
 		49CB08481488C119003DEA9D /* GenericTouchHandling.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = GenericTouchHandling.c; sourceTree = "<group>"; };
 		49CB08491488C11A003DEA9D /* GenericTouchHandling.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = GenericTouchHandling.h; sourceTree = "<group>"; };
 		49CB0853148A8F8B003DEA9D /* VertexObjectBuilder.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = VertexObjectBuilder.c; sourceTree = "<group>"; };
@@ -241,6 +239,7 @@
 				49400BD2149DBB2700F5B7C0 /* Fret.h */,
 				49C8C39014DA303E00388555 /* DeMIDI.c */,
 				49C8C39214DA305300388555 /* DeMIDI.h */,
+				499FE5B014ECB54E00DA92CB /* FretlessCommon.h */,
 			);
 			name = ProjectAgnostic;
 			sourceTree = "<group>";
@@ -357,8 +356,6 @@
 				49400BCF149DB3A800F5B7C0 /* ProjectAgnostic */,
 				49CB08481488C119003DEA9D /* GenericTouchHandling.c */,
 				49CB08491488C11A003DEA9D /* GenericTouchHandling.h */,
-				49CB084514889D4B003DEA9D /* ControlRegistry.c */,
-				49CB084614889D4C003DEA9D /* ControlRegistry.h */,
 				493A9D95148B32E00029F6C9 /* GenericRendering.c */,
 				493A9D96148B32E00029F6C9 /* GenericRendering.h */,
 				49CB083E14888CA3003DEA9D /* PitchHandler.c */,
@@ -521,7 +518,6 @@
 				496862861481FB7600460B4B /* CoreMIDIRenderer.m in Sources */,
 				49CB084014888CA3003DEA9D /* PitchHandler.c in Sources */,
 				49CB084414888E55003DEA9D /* TouchMapping.c in Sources */,
-				49CB084714889D4C003DEA9D /* ControlRegistry.c in Sources */,
 				49CB084A1488C11A003DEA9D /* GenericTouchHandling.c in Sources */,
 				49CB0855148A8F8B003DEA9D /* VertexObjectBuilder.c in Sources */,
 				493A9D97148B32E00029F6C9 /* GenericRendering.c in Sources */,

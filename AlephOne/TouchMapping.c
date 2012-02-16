@@ -7,10 +7,7 @@
 //
 
 #include "TouchMapping.h"
-
-#define FINGERMAX 16
-#define NOBODY -1
-//#define NULL 0
+#include "FretlessCommon.h"
 
 #include <stdio.h>
 

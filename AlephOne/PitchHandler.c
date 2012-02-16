@@ -11,9 +11,7 @@
 #include <stdio.h>
 
 #include "Fret.h"
-
-#define FINGERMAX 16
-#define NOBODY -1
+#include "FretlessCommon.h"
 
 struct PitchHandler_context
 {

@@ -61,11 +61,9 @@
 //#include <stdio.h>
 
 #include "Fretless.h"
+#include "FretlessCommon.h"
 
-#define TRUE 1
-#define FALSE 0
-#define NULL ((void*)0)
-#define NOBODY -1
+
 #define CTXSTATE_INIT 0
 #define CTXSTATE_BOOTED 1
 /**
@@ -119,7 +117,6 @@ struct Fretless_fingerState
     int visitingPolyGroup;
 };
 
-#define FINGERMAX 16
 #define CHANNELMAX 16
 #define POLYMAX 16
 #define NOTEMAX 128

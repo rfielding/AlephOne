@@ -13,8 +13,8 @@
 #include "WidgetTree.h"
 #include "WidgetConstants.h"
 #include <math.h>
+#include "FretlessCommon.h"
 
-#define NULL ((void*)0)
 static int triangles;
 static int trianglestrip;
 static int lines;
@@ -226,7 +226,7 @@ void drawFingerLocation()
     float dy = 0.3;
     
     VertexObjectBuilder_startColoredObject(voCtxDynamic, triangles);
-    for(int f=0; f<16; f++)
+    for(int f=0; f<FINGERMAX; f++)
     {
         struct FingerInfo* fInfo = PitchHandler_fingerState(phctx,f);
         if(fInfo->isActive)
@@ -257,7 +257,7 @@ void drawPitchLocation()
     float dy = 0.3;
     
     VertexObjectBuilder_startColoredObject(voCtxDynamic, triangles);
-    for(int f=0; f<16; f++)
+    for(int f=0; f<FINGERMAX; f++)
     {
         struct FingerInfo* fInfo = PitchHandler_fingerState(phctx,f);
         if(fInfo->isActive)
@@ -283,7 +283,7 @@ void drawPitchLocation()
     float cols = PitchHandler_getColCount(phctx);
     float rows = PitchHandler_getRowCount(phctx);
     VertexObjectBuilder_startColoredObject(voCtxDynamic, lines);
-    for(int f=0; f<16; f++)
+    for(int f=0; f<FINGERMAX; f++)
     {
         struct FingerInfo* fInfo = PitchHandler_fingerState(phctx,f);
         if(fInfo->isActive)

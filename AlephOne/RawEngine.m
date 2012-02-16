@@ -16,14 +16,14 @@
 
 
 #import "RawEngine.h"
+#include "FretlessCommon.h"
 
 AudioComponentInstance audioUnit;
 AudioStreamBasicDescription audioFormat;
 static const float kSampleRate = 44100.0;
 static const unsigned int kOutputBus = 0;
 
-#define WAVEMAX (1024)
-#define MAXCHANNELS 16
+#define WAVEMAX (1024*2)
 
 struct ramp {
     float stopValue;
@@ -39,7 +39,7 @@ struct fingerData {
 };
 
 struct fingersData {
-    struct fingerData finger[MAXCHANNELS];
+    struct fingerData finger[FINGERMAX];
     long  sampleCount;
     int   expectNoteTie;
     int   noteTieOffChannel;
@@ -50,7 +50,7 @@ struct fingersData {
 float totalNoteVolume=0;
 
 
-#define HARMONICSMAX 64
+#define HARMONICSMAX 32
 float waveMix[2][2][WAVEMAX];
 float waveFundamental[WAVEMAX];
 float harmonicsTotal[2][2];
@@ -224,7 +224,7 @@ static void renderNoise(long* dataL, long* dataR, unsigned long samples)
     //Compute overvolume
     totalNoteVolume = 0;
     int fingersDown=0;
-    for(int f=0; f<MAXCHANNELS; f++)
+    for(int f=0; f<FINGERMAX; f++)
     {
         float val = allFingers.finger[f].volRamp.stopValue;
         totalNoteVolume += val;
@@ -239,7 +239,7 @@ static void renderNoise(long* dataL, long* dataR, unsigned long samples)
         scaleFinger = 1/totalNoteVolume;
     }
     //Go in channel major order because we skip by volume
-    for(int f=0; f<MAXCHANNELS; f++)
+    for(int f=0; f<FINGERMAX; f++)
     {
         if(allFingers.finger[f].volRamp.value == 0)
         {

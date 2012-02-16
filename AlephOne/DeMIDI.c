@@ -12,8 +12,9 @@
 
 #include "DeMIDI.h"
 #include <stdio.h>
+#include "FretlessCommon.h"
 
-#define CHANNELMAX 16
+
 
 static void (*rawEngine)(int midiChannel,int doNoteAttack,float pitch,float volVal,int midiExprParm,int midiExpr);
 
@@ -51,13 +52,13 @@ int expectState=S_EXPECT_STATUS;
 int midiStatus = 0;
 int midiChannel = 0;
 int expectDataBytes = 0;
-int midiNote[CHANNELMAX];
-int midiVol[CHANNELMAX];
+int midiNote[FINGERMAX];
+int midiVol[FINGERMAX];
 int doNoteAttack = 0;
 int midiExprParm = 0;
 int midiExpr = 0;
 int midiPitchBendSemis = 2;
-int midiBend[CHANNELMAX];
+int midiBend[FINGERMAX];
 int nrpnKeyLo;
 int nrpnKeyHi;
 int rpnKeyLo;
@@ -85,7 +86,7 @@ void DeMIDI_putch(char c)
 {    
     if(expectState == S_EXPECT_STATUS)
     {
-        for(int i=0; i<CHANNELMAX; i++)
+        for(int i=0; i<FINGERMAX; i++)
         {
             midiBend[i] = 8192;
         }

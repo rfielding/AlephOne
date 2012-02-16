@@ -11,9 +11,7 @@
 #include "WidgetTree.h"
 
 #include "SurfaceTouchHandling.h"
-
-#define FINGERMAX 16
-#define NULL ((void*)0)
+#include "FretlessCommon.h"
 
 struct Fretless_context;
 struct PitchHandler_context;

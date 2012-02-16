@@ -7,8 +7,8 @@
 //
 
 #include "WidgetTree.h"
+#include "FretlessCommon.h"
 
-#define NULL ((void*)0)
 #define MAXWIDGETS 256
 struct WidgetTree_rect rectangles[MAXWIDGETS];
 int rectanglesCount = 0;

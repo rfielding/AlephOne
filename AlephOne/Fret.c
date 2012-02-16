@@ -8,6 +8,7 @@
 
 #include "Fret.h"
 #include <math.h>
+#include "FretlessCommon.h"
 
 
 struct Fret_context* Fret_init(void* (*allocFn)(unsigned long))
@@ -16,7 +17,7 @@ struct Fret_context* Fret_init(void* (*allocFn)(unsigned long))
         (struct Fret_context*)allocFn(sizeof(struct Fret_context));
     ctx->used = 0;
 
-    for(int i=0; i<16; i++)
+    for(int i=0; i<FRETMAX; i++)
     {
         ctx->usage[i] = 0;
     }

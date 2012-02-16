@@ -12,9 +12,7 @@
 #include "Fretless.h"
 #include "TouchMapping.h"
 #include "PitchHandler.h"
-
-#define FINGERMAX 16
-#define NULL ((void*)0)
+#include "FretlessCommon.h"
 
 
 static float chorusLevelDesired = 0.1;
