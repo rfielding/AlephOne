@@ -22,14 +22,10 @@ AudioStreamBasicDescription audioFormat;
 static const float kSampleRate = 44100.0;
 static const unsigned int kOutputBus = 0;
 
-#define WAVEMAX (2048)
+#define WAVEMAX (1024)
 #define MAXCHANNELS 16
-#define EXPRLEVELS 64
 
 struct ramp {
-    long startSample;
-    //long stopSample;
-    //float startValue;
     float stopValue;
     float slope;
     float value;
@@ -47,13 +43,50 @@ struct fingersData {
     long  sampleCount;
     int   expectNoteTie;
     int   noteTieOffChannel;
+    int   expectHandoff;
 };
+
+
+float totalNoteVolume=0;
+
+
+#define HARMONICSMAX 64
+float waveMix[2][2][WAVEMAX];
+float waveFundamental[WAVEMAX];
+float harmonicsTotal[2][2];
+float harmonics[2][2][128] =
+{
+    {
+        {8, 4, 1, 2, 0, 1, 0, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+        },  
+        {0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+        }
+    },
+    {
+        {8, 4, 1, 2, 0, 1, 0, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,            
+        },  
+        {0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+        }
+    },
+};
+
 
 static struct fingersData allFingers;
 
 static void copyRamp(struct ramp* dst, struct ramp* src)
 {
-    dst->startSample = src->startSample;
     dst->stopValue = src->stopValue;
     dst->slope = src->stopValue;
     dst->value = src->value;
@@ -75,61 +108,15 @@ static void moveRamps(int dstFinger, int srcFinger)
 
 static inline void setRamp(struct ramp* r, float slope, float stopValue)
 {
-    //r->startValue = r->stopValue;
     r->stopValue = stopValue;
-    //r->startSample = allFingers.sampleCount;
-    //r->stopSample = r->startSample + samples;
-    //r->slope = (r->stopValue - r->startValue) / (r->stopSample - r->startSample);
     r->slope = slope;
 }
 
 static inline void doRamp(struct ramp* r,long sample)
 {
-    /*
-    r->value = (allFingers.sampleCount >= r->stopSample) ? 
-        r->stopValue : 
-        r->startValue + r->slope * (sample - r->startValue);
-    */
-    //I don't know why that doesn't work yet.
     r->value = r->value * (1-r->slope) + r->slope * r->stopValue;
 }
 
-
-float totalNoteVolume=0;
-
-
-
-#define HARMONICSMAX 64
-float waveMix[2][2][WAVEMAX];
-float waveFundamental[WAVEMAX];
-float harmonicsTotal[2][2];
-float harmonics[2][2][128] =
-{
-    {
-        {8, 4, 1, 2, 0, 1, 0, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-         0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-         0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-         0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-        },  
-        {0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-         0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-         0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-         0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-        }
-    },
-    {
-        {8, 4, 1, 2, 0, 1, 0, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-         0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-         0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-         0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,            
-        },  
-        {0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-         0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-         0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-         0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-        }
-    },
-};
 
 
 /**
@@ -146,10 +133,8 @@ float harmonics[2][2][128] =
    And convoluted into waveMix, where the intent is to
    use weighted sums of the 4 possible waves.
  */
-static void setupWaves()
+static void setExprMix()
 {
-
-    
     //Compute the squared off versions of our waves (not yet normalized)
     for(int expr=0; expr<2; expr++)
     {
@@ -160,14 +145,6 @@ static void setupWaves()
         //Convolute non distorted harmonics with square wave harmonics
         for(int harmonic=0; harmonic<HARMONICSMAX; harmonic++)
         {            
-            for(int squareHarmonic=0; squareHarmonic<HARMONICSMAX; squareHarmonic++)
-            {
-                int s = squareHarmonic+1;
-                if(s<HARMONICSMAX)
-                {
- //                   harmonics[1][expr][s] += harmonics[0][expr][harmonic] / (4*s);                                                                    
-                }
-            }
             for(int squareHarmonic=0; squareHarmonic<HARMONICSMAX; squareHarmonic++)
             {
                 int s = squareHarmonic*2+1;
@@ -197,8 +174,6 @@ static void setupWaves()
         }
     }  
     
-
-    
     //Convolute into the wave buffers
     for(int dist=0; dist<2; dist++)
     {
@@ -222,14 +197,6 @@ static void setupWaves()
     }
 }
 
-static void setExprMix()
-{
-    setupWaves();
-}
-
-
-
-
 
 static void audioSessionInterruptionCallback(void *inUserData, UInt32 interruptionState) {
     if (interruptionState == kAudioSessionEndInterruption) {
@@ -244,7 +211,6 @@ static void audioSessionInterruptionCallback(void *inUserData, UInt32 interrupti
 
 static void initNoise()
 {
-    //Set the wave for the finger
     setExprMix();
 }
 
@@ -289,12 +255,9 @@ static void renderNoise(long* dataL, long* dataR, unsigned long samples)
         if(isActive)
         {
             float notep = allFingers.finger[f].pitchRamp.value;
-            //NSLog(@"pitch %f",notep);
             float p = allFingers.finger[f].phase;
             //note 33 is our center pitch, and it's 440hz
             float cyclesPerSample = powf(2,(notep-33)/12) * (440/(44100.0 * 32));
-            //NSLog(@"%d %f %f %f",f,allFingers.finger[f].exprRamp.value,allFingers.finger[f].volRamp.value,allFingers.finger[f].pitchRamp.value);
-            //computeNoteMixPerChannel(f);
             for(int i=0; i<samples; i++)
             {
                 doRamp(&allFingers.finger[f].volRamp,allFingers.sampleCount+i);
@@ -320,12 +283,9 @@ static void renderNoise(long* dataL, long* dataR, unsigned long samples)
 
 void rawEngine(int midiChannel,int doNoteAttack,float pitch,float volVal,int midiExprParm,int midiExpr)
 {
-    //We limit to one note per midi channel now
     int channel = midiChannel;
     if(doNoteAttack)
     {
-        //We are ignoring everything other than setting a flag to transfer the next note-off info into the next note-on
-        //There should be nothing interleaved between the two
         allFingers.expectNoteTie = 1;
         allFingers.noteTieOffChannel = channel;
     }
