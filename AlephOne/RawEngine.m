@@ -45,9 +45,33 @@ struct fingerData {
 struct fingersData {
     struct fingerData finger[MAXCHANNELS];
     long  sampleCount;
+    int   expectNoteTie;
+    int   noteTieOffChannel;
 };
 
 static struct fingersData allFingers;
+
+static void copyRamp(struct ramp* dst, struct ramp* src)
+{
+    dst->startSample = src->startSample;
+    dst->stopValue = src->stopValue;
+    dst->slope = src->stopValue;
+    dst->value = src->value;
+}
+
+static void moveRamps(int dstFinger, int srcFinger)
+{
+    if(srcFinger != dstFinger)
+    {
+        copyRamp(&allFingers.finger[dstFinger].volRamp, &allFingers.finger[srcFinger].volRamp);
+        copyRamp(&allFingers.finger[dstFinger].pitchRamp, &allFingers.finger[srcFinger].pitchRamp);
+        copyRamp(&allFingers.finger[dstFinger].exprRamp, &allFingers.finger[srcFinger].exprRamp);
+        allFingers.finger[dstFinger].phase = allFingers.finger[srcFinger].phase;
+        allFingers.finger[srcFinger].volRamp.value = 0;
+        allFingers.finger[srcFinger].volRamp.stopValue = 0;        
+    }
+}
+
 
 static inline void setRamp(struct ramp* r, float slope, float stopValue)
 {
@@ -300,15 +324,33 @@ void rawEngine(int midiChannel,int doNoteAttack,float pitch,float volVal,int mid
     int channel = midiChannel;
     if(doNoteAttack)
     {
-        //Set to beginning of sustain phase.
-        //In the future, the attack and decay phase will have its own envelope, and this
-        //will be how impulses, etc get handled.
-        //notePhase[channel] = 0;
+        //We are ignoring everything other than setting a flag to transfer the next note-off info into the next note-on
+        //There should be nothing interleaved between the two
+        allFingers.expectNoteTie = 1;
+        allFingers.noteTieOffChannel = channel;
     }
-    
-    setRamp(&allFingers.finger[channel].volRamp, 0.05 * pitch/127.0, volVal);
-    setRamp(&allFingers.finger[channel].pitchRamp, 0.75, pitch);
-    setRamp(&allFingers.finger[channel].exprRamp, 0.2, midiExpr/127.0);
+    else
+    {
+        int doVol=1;
+        if(allFingers.expectNoteTie)
+        {
+            if(volVal == 0)
+            {
+                doVol = 0;
+            }
+            else
+            {
+                moveRamps(channel,allFingers.noteTieOffChannel);
+                allFingers.expectNoteTie = 0;
+            }
+        }
+        if(doVol)
+        {
+            setRamp(&allFingers.finger[channel].volRamp, 0.008 * pitch/127.0 * ((volVal==0)?0.5:1), volVal);            
+        }
+        setRamp(&allFingers.finger[channel].pitchRamp, 0.95, pitch);
+        setRamp(&allFingers.finger[channel].exprRamp, 0.2, midiExpr/127.0);                                
+    }
 }
 
 static OSStatus fixGDLatency()

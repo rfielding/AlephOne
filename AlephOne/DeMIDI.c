@@ -202,10 +202,10 @@ void DeMIDI_putch(char c)
                     midiPitchBendSemis = rpnVal;
                 }
                 else
-                if(isRegistered==0 && rpnKeyLo == 9 && rpnKeyHi == 71)
+                if(isRegistered==0 && nrpnKeyLo == 9 && nrpnKeyHi == 71)
                 {
                     //Next on/off pair should be tied together.
-                    expectNoteTie = 1;
+                    rawEngine(midiChannel,1,computePitch(midiChannel),computeVol(midiChannel),midiExprParm,midiExpr);
                 }
                 return;
                 
