@@ -62,7 +62,7 @@ float harmonics[2][2][128] =
             0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
             0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
         },  
-        {0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+        {0, 0, 0, 0, 0, 0, 0,-1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
             0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
             0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
             0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
@@ -74,7 +74,7 @@ float harmonics[2][2][128] =
             0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
             0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,            
         },  
-        {0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+        {0, 0, 0, 0, 0, 0, 0,-1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
             0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
             0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
             0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
@@ -221,23 +221,6 @@ static void renderNoise(long* dataL, long* dataR, unsigned long samples)
         dataL[i] = 0;
         dataR[i] = 0;
     }
-    //Compute overvolume
-    totalNoteVolume = 0;
-    int fingersDown=0;
-    for(int f=0; f<FINGERMAX; f++)
-    {
-        float val = allFingers.finger[f].volRamp.stopValue;
-        totalNoteVolume += val;
-        if(val>0)
-        {
-            fingersDown++;
-        }
-    }
-    float scaleFinger=1;
-    if(totalNoteVolume > 1)
-    {
-        scaleFinger = 1/totalNoteVolume;
-    }
     //Go in channel major order because we skip by volume
     for(int f=0; f<FINGERMAX; f++)
     {
@@ -268,10 +251,10 @@ static void renderNoise(long* dataL, long* dataR, unsigned long samples)
                 float cycleLocation = (cycles - (int)cycles); // 0 .. 1
                 int j = (int)(cycleLocation*WAVEMAX);
                 float pitchLocation = notep/127.0;
-                float s2=scaleFinger;
-                float unSquished = (waveMix[0][0][j]*s2 + waveMix[1][0][j]*(1-s2))*e + (waveMix[0][1][j]*s2 + waveMix[1][1][j]*(1-s2))*(1-e);
-                float unAliased = unSquished*(1-pitchLocation*pitchLocation*pitchLocation) + waveFundamental[j]*(pitchLocation*pitchLocation*pitchLocation);
-                long s = INT_MAX * v * (unAliased) * scaleFinger * 0.06 * 0.5;
+                float s2 = (1-e);
+                float unSquished = (waveMix[1][0][j]*(1-s2) + waveMix[0][0][j]*(s2))*e + (waveMix[1][1][j]*(1-s2) + waveMix[0][1][j]*(s2))*(1-e);
+                float unAliased = unSquished*(1-pitchLocation*pitchLocation) + waveFundamental[j]*(pitchLocation*pitchLocation);
+                long s = INT_MAX * v * (unAliased)  * 0.06 * 0.25;
                 dataL[i] += s;
                 dataR[i] += s;
             }     
@@ -283,6 +266,7 @@ static void renderNoise(long* dataL, long* dataR, unsigned long samples)
 
 void rawEngine(int midiChannel,int doNoteAttack,float pitch,float volVal,int midiExprParm,int midiExpr)
 {
+    //printf("%d %d %f %f %d %d\n",midiChannel, doNoteAttack, pitch, volVal, midiExprParm, midiExpr);
     int channel = midiChannel;
     if(doNoteAttack)
     {
@@ -306,10 +290,13 @@ void rawEngine(int midiChannel,int doNoteAttack,float pitch,float volVal,int mid
         }
         if(doVol)
         {
-            setRamp(&allFingers.finger[channel].volRamp, 0.008 * pitch/127.0 * ((volVal==0)?1:0.25), volVal);            
+            setRamp(&allFingers.finger[channel].volRamp, 0.008 * pitch/127.0 * ((volVal==0)?0.25:1), volVal);            
         }
-        setRamp(&allFingers.finger[channel].pitchRamp, 0.95, pitch);
-        setRamp(&allFingers.finger[channel].exprRamp, 0.2, midiExpr/127.0);                                
+        if(volVal!=0)
+        {
+            setRamp(&allFingers.finger[channel].pitchRamp, 0.9, pitch);
+            setRamp(&allFingers.finger[channel].exprRamp, 0.1, midiExpr/127.0);                                            
+        }
     }
 }
 
