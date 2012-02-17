@@ -228,6 +228,7 @@ static void renderNoise(long* dataL, long* dataR, unsigned long samples)
         {
             allFingers.finger[f].phase = 0;
             allFingers.finger[f].pitchRamp.value = allFingers.finger[f].pitchRamp.stopValue;
+            allFingers.finger[f].exprRamp.value = allFingers.finger[f].exprRamp.stopValue;
         }
         doRamp(&allFingers.finger[f].pitchRamp,allFingers.sampleCount);
         
