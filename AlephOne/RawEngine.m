@@ -38,12 +38,15 @@ struct fingerData {
     float phase;
 };
 
+#define NTSTATE_NO 0
+#define NTSTATE_NEED_OFF 1
+#define NTSTATE_FINISH_ON 2
+
 struct fingersData {
     struct fingerData finger[FINGERMAX];
     long  sampleCount;
-    int   expectNoteTie;
-    int   noteTieOffChannel;
-    int   expectHandoff;
+    int   noteTieState;
+    int   otherChannel;
 };
 
 
@@ -269,31 +272,41 @@ void rawEngine(int midiChannel,int doNoteAttack,float pitch,float volVal,int mid
 {
     //printf("%d %d %f %f %d %d\n",midiChannel, doNoteAttack, pitch, volVal, midiExprParm, midiExpr);
     int channel = midiChannel;
+    //Handle the note-tie state machine.  We expect the note-off to come before note-on in the note-tie,
+    //which could be the opposite decision of other implementers.
+    int doVol = 1;
     if(doNoteAttack)
     {
-        allFingers.expectNoteTie = 1;
-        allFingers.noteTieOffChannel = channel;
+        //We got signalled to expect a note tie next time!
+        allFingers.noteTieState = NTSTATE_NEED_OFF;
     }
     else
     {
-        int doVol=1;
-        if(allFingers.expectNoteTie)
+        if(allFingers.noteTieState == NTSTATE_NEED_OFF)
         {
             if(volVal == 0)
             {
+                allFingers.noteTieState = NTSTATE_FINISH_ON;
+                allFingers.otherChannel = channel;
                 doVol = 0;
             }
-            else
+        }
+        else
+        {
+            if(allFingers.noteTieState == NTSTATE_FINISH_ON)
             {
-                moveRamps(channel,allFingers.noteTieOffChannel);
-                allFingers.expectNoteTie = 0;
+                if(volVal > 0)
+                {
+                    allFingers.noteTieState = NTSTATE_NO;
+                    moveRamps(channel,allFingers.otherChannel);
+                }
             }
         }
-        if(doVol)
+        if(doVol) //If we are in legato, then this might need to be stopped
         {
             setRamp(&allFingers.finger[channel].volRamp, 0.008 * pitch/127.0 * ((volVal==0)?0.25:1), volVal);            
         }
-        if(volVal!=0)
+        if(volVal!=0) //Don't bother with ramping these on release
         {
             setRamp(&allFingers.finger[channel].pitchRamp, 0.9, pitch);
             setRamp(&allFingers.finger[channel].exprRamp, 0.1, midiExpr/127.0);                                            
