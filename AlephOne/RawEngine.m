@@ -308,8 +308,8 @@ void rawEngine(int midiChannel,int doNoteAttack,float pitch,float volVal,int mid
         }
         if(volVal!=0) //Don't bother with ramping these on release
         {
-            setRamp(&allFingers.finger[channel].pitchRamp, 0.9, pitch);
-            setRamp(&allFingers.finger[channel].exprRamp, 0.1, midiExpr/127.0);                                            
+            setRamp(&allFingers.finger[channel].pitchRamp, pitch/127.0, pitch);
+            setRamp(&allFingers.finger[channel].exprRamp, 0.2 * pitch/127.0, midiExpr/127.0);                                            
         }
     }
 }
