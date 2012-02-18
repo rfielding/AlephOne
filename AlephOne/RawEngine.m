@@ -242,6 +242,7 @@ static void renderNoise(long* dataL, long* dataR, unsigned long samples)
         if(isActive)
         {
             float notep = allFingers.finger[f].pitchRamp.value;
+            float pitchLocation = notep/127.0;
             float p = allFingers.finger[f].phase;
             //note 33 is our center pitch, and it's 440hz
             float cyclesPerSample = powf(2,(notep-33)/12) * (440/(44100.0 * 32));
@@ -254,8 +255,7 @@ static void renderNoise(long* dataL, long* dataR, unsigned long samples)
                 float cycles = i*cyclesPerSample + p;
                 float cycleLocation = (cycles - (int)cycles); // 0 .. 1
                 int j = (int)(cycleLocation*WAVEMAX);
-                float pitchLocation = notep/127.0;
-                float s2 = (1-e);
+                float s2 = (1-e*e);
                 float unSquished = (waveMix[1][0][j]*(1-s2) + waveMix[0][0][j]*(s2))*e + (waveMix[1][1][j]*(1-s2) + waveMix[0][1][j]*(s2))*(1-e);
                 float unAliased = unSquished*(1-pitchLocation*pitchLocation) + waveFundamental[j]*(pitchLocation*pitchLocation);
                 long s = INT_MAX * v * (unAliased)  * 0.06 * 0.25;
@@ -308,8 +308,8 @@ void rawEngine(int midiChannel,int doNoteAttack,float pitch,float volVal,int mid
         }
         if(volVal!=0) //Don't bother with ramping these on release
         {
-            setRamp(&allFingers.finger[channel].pitchRamp, 0.05 + pitch/127.0, pitch);
-            setRamp(&allFingers.finger[channel].exprRamp, 0.1 + 0.1 * pitch/127.0, midiExpr/127.0);                                            
+            setRamp(&allFingers.finger[channel].pitchRamp, 0.9, pitch);
+            setRamp(&allFingers.finger[channel].exprRamp, 0.1, midiExpr/127.0);                                            
         }
     }
 }
