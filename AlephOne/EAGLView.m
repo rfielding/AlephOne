@@ -424,8 +424,6 @@ void stringRender(void* ctx,char* str,unsigned int* textureName,float* width,flo
             if(valFloat != nil)
             {
                 area = ([valFloat floatValue]-4)/7.0;
-                //area *= area*area;
-                area *= 2;
             }
              //*/
             //NSLog(@"p %f",PressureSensor_pressure);

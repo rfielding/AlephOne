@@ -201,7 +201,11 @@ void DeMIDI_putch(char c)
                 return;
                 
             case S_CH_PRESS:
-                midiVol[midiChannel] = (int)(c & 0x7F);
+                if(midiVol[midiChannel])
+                {
+                    midiVol[midiChannel] = (int)(c & 0x7F);
+                    rawEngine(midiChannel,0,computePitch(midiChannel),computeVol(midiChannel),midiExprParm,midiExpr);                    
+                }
                 return;
                 
             case S_RPN_LO_KEY:

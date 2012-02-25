@@ -119,8 +119,9 @@ void SurfaceTouchHandling_touchesDown(void* ctx,int finger,void* touch,int isMov
     
     float e = expr;
     float dx = (e*e*e*e)*chorusLevel*0.0000000125;
-    float v = baseVolume;
+    float v = area * baseVolume;
     fingerInfo->velocity = v;
+    //logger("v=%f",v);
     if(isMoving)
     {
         Fretless_move(fretlessp,finger1,note-dx,v,polyGroup1);
