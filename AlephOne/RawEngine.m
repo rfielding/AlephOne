@@ -23,6 +23,7 @@ AudioStreamBasicDescription audioFormat;
 static const float kSampleRate = 44100.0;
 static const unsigned int kOutputBus = 0;
 
+#define ECHOBUFFERMAX (1024*16)
 #define WAVEMAX (1024*2)
 #define UNISONMAX 2
 
@@ -47,16 +48,17 @@ struct fingersData {
     struct fingerData finger[FINGERMAX];
     float  totalL[UNISONMAX][WAVEMAX];
     float  totalR[UNISONMAX][WAVEMAX];
-    long  sampleCount;
+    unsigned long  sampleCount;
     int   noteTieState;
     int   otherChannel;
 };
 
 
-float totalNoteVolume=0;
 
 
 #define HARMONICSMAX 32
+float echoBufferL[ECHOBUFFERMAX];
+float echoBufferR[ECHOBUFFERMAX];
 float waveMix[2][2][WAVEMAX];
 float waveFundamental[WAVEMAX];
 float harmonicsTotal[2][2];
@@ -68,7 +70,7 @@ float harmonics[2][2][128] =
             0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
             0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
         },  
-        {0, 0, 0, 0, 0, 0, 0,-1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+        {0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
             0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
             0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
             0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
@@ -87,7 +89,16 @@ float harmonics[2][2][128] =
         }
     },
 };
-
+#define REVERBECHOES 9
+int reverbData[2][REVERBECHOES] =
+{
+    {
+      125,258,386,487,598,698,793,893,973    
+    },
+    {
+      138,298,363,462,528,639,749,853,902  
+    }
+};
 
 static struct fingersData allFingers;
 
@@ -221,17 +232,22 @@ static void audioSessionInterruptionCallback(void *inUserData, UInt32 interrupti
 static void initNoise()
 {
     setExprMix();
+    for(int i=0; i<ECHOBUFFERMAX; i++)
+    {
+        echoBufferL[i] = 0;
+        echoBufferR[i] = 0;
+    }
 }
 
 //This loop changes no state other than accumulating values - independent for each i
-static inline void renderNoiseInnerLoopSample(int f,int phaseIdx,int i,float cyclesPerSample,float pitchLocation,float p,unsigned long samples,float currentVolume,float targetVolume, float currentExpr, float targetExpr)
+static inline void renderNoiseInnerLoopSample(int f,int phaseIdx,int i,float cyclesPerSample,float pitchLocation,float p,unsigned long samples,float currentVolume,float diffVolume, float currentExpr, float diffExpr)
 {
     float e = 
         currentExpr + 
-        ((1.0*i)/samples) * (targetExpr - currentExpr);
+        ((1.0*i)/samples) * (diffExpr);
     float v = 
         currentVolume + 
-        ((1.0*i)/samples) * (targetVolume - currentVolume);
+        ((1.0*i)/samples) * (diffVolume);
     
     float cycles = i*cyclesPerSample + p;
     float cycleLocation = (cycles - (int)cycles); // 0 .. 1
@@ -244,7 +260,7 @@ static inline void renderNoiseInnerLoopSample(int f,int phaseIdx,int i,float cyc
 }
 
 static inline void renderNoiseInnerLoop(int f,int phaseIdx,float detune,unsigned long samples,
-                                            float currentVolume,float targetVolume, float currentExpr, float targetExpr)
+                                            float currentVolume,float diffVolume, float currentExpr, float diffExpr)
 {
     float notep = allFingers.finger[f].pitchRamp.value;
     float pitchLocation = notep/127.0;
@@ -253,7 +269,7 @@ static inline void renderNoiseInnerLoop(int f,int phaseIdx,float detune,unsigned
     float cyclesPerSample = powf(2,(notep-33+detune*(1-pitchLocation))/12) * (440/(44100.0 * 32));
     for(int i=0; i<samples; i++)
     {
-        renderNoiseInnerLoopSample(f,phaseIdx,i,cyclesPerSample,pitchLocation,p,samples,currentVolume,targetVolume,currentExpr,targetExpr);
+        renderNoiseInnerLoopSample(f,phaseIdx,i,cyclesPerSample,pitchLocation,p,samples,currentVolume,diffVolume,currentExpr,diffExpr);
     }         
     allFingers.finger[f].phases[phaseIdx] = (cyclesPerSample*samples) + p;
 }
@@ -278,8 +294,8 @@ static inline void renderNoiseCleanAll(long* dataL, long* dataR,unsigned long sa
     {
         for(int i=0; i<samples; i++)
         {
-            allFingers.totalL[phaseIdx][i] *= 0.1;
-            allFingers.totalR[phaseIdx][i] *= 0.1;            
+            allFingers.totalL[phaseIdx][i] *= 0.2;
+            allFingers.totalR[phaseIdx][i] *= 0.2;            
         }
     }    
     for(int i=0; i<samples; i++)
@@ -289,16 +305,42 @@ static inline void renderNoiseCleanAll(long* dataL, long* dataR,unsigned long sa
     }
 }
 
+static inline void reverbConvolute(long* dataL, long* dataR,unsigned long samples)
+{
+    long sc = allFingers.sampleCount;
+    for(int i=0; i<samples; i++)
+    {
+        int n = (i+sc)%ECHOBUFFERMAX;
+        for(int r=0; r<REVERBECHOES; r++)
+        {
+            int nL = (i+sc+reverbData[0][r])%ECHOBUFFERMAX;
+            int nR = (i+sc+reverbData[1][r])%ECHOBUFFERMAX;
+            echoBufferL[nL] += 0.5*dataL[i] + 0.125*dataR[i];
+            echoBufferR[nR] += 0.5*dataL[i] + 0.125*dataR[i];
+        }
+        echoBufferL[n] *= 0.25;
+        echoBufferR[n] *= 0.25;
+        dataL[i] += INT_MAX * 0.06 * 0.0125 * echoBufferL[n];
+        dataR[i] += INT_MAX * 0.06 * 0.0125 * echoBufferR[n];
+    }
+}
 static inline void renderNoiseToBuffer(long* dataL,long* dataR,unsigned long samples)
 {
+    //Add pre-chorus sound together compressed
     for(int phaseIdx=0; phaseIdx<UNISONMAX; phaseIdx++)
     {
         for(int i=0; i<samples; i++)
         {
-            dataL[i] += INT_MAX * 0.06 * 0.0125 * atanf(allFingers.totalL[phaseIdx][i] * M_PI);
-            dataR[i] += INT_MAX * 0.06 * 0.0125 * atanf(allFingers.totalR[phaseIdx][i] * M_PI);
+            float valL = atanf(allFingers.totalL[phaseIdx][i] * M_PI);
+            float valR = valL;
+            int n = (i+allFingers.sampleCount)%ECHOBUFFERMAX;
+            echoBufferL[n] += valL;
+            echoBufferR[n] += valR;
+            //dataL[i] += INT_MAX * 0.06 * 0.0125 * valL;
+            //dataR[i] += INT_MAX * 0.06 * 0.0125 * valR;
         }
-    }            
+    }    
+    reverbConvolute(dataL,dataR,samples);
 }
 
 static void renderNoise(long* dataL, long* dataR, unsigned long samples)
@@ -310,17 +352,19 @@ static void renderNoise(long* dataL, long* dataR, unsigned long samples)
     {
         float currentVolume = allFingers.finger[f].volRamp.value;
         float targetVolume = allFingers.finger[f].volRamp.stopValue;
+        float diffVolume = targetVolume - currentVolume;
         float currentExpr = allFingers.finger[f].exprRamp.value;
         float targetExpr = allFingers.finger[f].exprRamp.stopValue;
+        float diffExpr = targetExpr - currentExpr;
         int isActive = (currentVolume > 0) || (targetVolume > 0);
         
         if(isActive)
         {
             activeFingers++;
             renderNoisePrepare(f);
-            renderNoiseInnerLoop(f,0,0,samples, currentVolume,targetVolume,currentExpr,targetExpr);
-            renderNoiseInnerLoop(f,1, 0.1,samples, currentVolume,targetVolume,currentExpr,targetExpr);
-            //renderNoiseInnerLoop(f,2,-0.1,samples, currentVolume,targetVolume,currentExpr,targetExpr);
+            renderNoiseInnerLoop(f,0,0,samples, currentVolume,diffVolume,currentExpr,diffExpr);
+            renderNoiseInnerLoop(f,1, -0.1,samples, currentVolume,diffVolume,currentExpr,diffExpr);
+            //renderNoiseInnerLoop(f,2,0.1,samples, currentVolume,diffVolume,currentExpr,diffExpr);
             allFingers.finger[f].volRamp.value = targetVolume;
             allFingers.finger[f].exprRamp.value = targetExpr;
         }
