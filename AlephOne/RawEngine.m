@@ -23,7 +23,7 @@ AudioStreamBasicDescription audioFormat;
 static const float kSampleRate = 44100.0;
 static const unsigned int kOutputBus = 0;
 
-#define WAVEMAX (1024)
+#define WAVEMAX (1024*2)
 #define UNISONMAX 2
 
 struct ramp {
@@ -223,12 +223,16 @@ static void initNoise()
     setExprMix();
 }
 
-static inline void renderNoiseInnerLoopSample(int f,int phaseIdx,int i,float cyclesPerSample,float pitchLocation,float p)
+//This loop changes no state other than accumulating values - independent for each i
+static inline void renderNoiseInnerLoopSample(int f,int phaseIdx,int i,float cyclesPerSample,float pitchLocation,float p,unsigned long samples,float currentVolume,float targetVolume, float currentExpr, float targetExpr)
 {
-    doRamp(&allFingers.finger[f].volRamp,allFingers.sampleCount+i);
-    doRamp(&allFingers.finger[f].exprRamp,allFingers.sampleCount+i);        
-    float e = allFingers.finger[f].exprRamp.value;
-    float v = allFingers.finger[f].volRamp.value;
+    float e = 
+        currentExpr + 
+        ((1.0*i)/samples) * (targetExpr - currentExpr);
+    float v = 
+        currentVolume + 
+        ((1.0*i)/samples) * (targetVolume - currentVolume);
+    
     float cycles = i*cyclesPerSample + p;
     float cycleLocation = (cycles - (int)cycles); // 0 .. 1
     int j = (int)(cycleLocation*WAVEMAX);
@@ -239,7 +243,8 @@ static inline void renderNoiseInnerLoopSample(int f,int phaseIdx,int i,float cyc
     allFingers.totalR[phaseIdx][i] += v * unAliased;    
 }
 
-static inline void renderNoiseInnerLoop(int f,int phaseIdx,float detune,unsigned long samples)
+static inline void renderNoiseInnerLoop(int f,int phaseIdx,float detune,unsigned long samples,
+                                            float currentVolume,float targetVolume, float currentExpr, float targetExpr)
 {
     float notep = allFingers.finger[f].pitchRamp.value;
     float pitchLocation = notep/127.0;
@@ -248,10 +253,9 @@ static inline void renderNoiseInnerLoop(int f,int phaseIdx,float detune,unsigned
     float cyclesPerSample = powf(2,(notep-33+detune*(1-pitchLocation))/12) * (440/(44100.0 * 32));
     for(int i=0; i<samples; i++)
     {
-        renderNoiseInnerLoopSample(f,phaseIdx,i,cyclesPerSample,pitchLocation,p);
-    }     
+        renderNoiseInnerLoopSample(f,phaseIdx,i,cyclesPerSample,pitchLocation,p,samples,currentVolume,targetVolume,currentExpr,targetExpr);
+    }         
     allFingers.finger[f].phases[phaseIdx] = (cyclesPerSample*samples) + p;
-    
 }
 
 static inline void renderNoisePrepare(int f)
@@ -291,8 +295,8 @@ static inline void renderNoiseToBuffer(long* dataL,long* dataR,unsigned long sam
     {
         for(int i=0; i<samples; i++)
         {
-            dataL[i] += INT_MAX * 0.06 * 0.0125 * atanf(allFingers.totalL[phaseIdx][i] * 2 * M_PI);
-            dataR[i] += INT_MAX * 0.06 * 0.0125 * atanf(allFingers.totalR[phaseIdx][i] * 2 * M_PI);
+            dataL[i] += INT_MAX * 0.06 * 0.0125 * atanf(allFingers.totalL[phaseIdx][i] * M_PI);
+            dataR[i] += INT_MAX * 0.06 * 0.0125 * atanf(allFingers.totalR[phaseIdx][i] * M_PI);
         }
     }            
 }
@@ -307,15 +311,18 @@ static void renderNoise(long* dataL, long* dataR, unsigned long samples)
         float currentVolume = allFingers.finger[f].volRamp.value;
         float targetVolume = allFingers.finger[f].volRamp.stopValue;
         float currentExpr = allFingers.finger[f].exprRamp.value;
+        float targetExpr = allFingers.finger[f].exprRamp.stopValue;
         int isActive = (currentVolume > 0) || (targetVolume > 0);
         
         if(isActive)
         {
             activeFingers++;
             renderNoisePrepare(f);
-            renderNoiseInnerLoop(f,0,0,samples);
-            renderNoiseInnerLoop(f,1, 0.1,samples);
-            //renderNoiseInnerLoop(f,2,-0.1,samples);
+            renderNoiseInnerLoop(f,0,0,samples, currentVolume,targetVolume,currentExpr,targetExpr);
+            renderNoiseInnerLoop(f,1, 0.1,samples, currentVolume,targetVolume,currentExpr,targetExpr);
+            //renderNoiseInnerLoop(f,2,-0.1,samples, currentVolume,targetVolume,currentExpr,targetExpr);
+            allFingers.finger[f].volRamp.value = targetVolume;
+            allFingers.finger[f].exprRamp.value = targetExpr;
         }
     }
     renderNoiseToBuffer(dataL,dataR,samples);
