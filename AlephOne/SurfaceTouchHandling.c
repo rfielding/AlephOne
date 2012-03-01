@@ -54,22 +54,8 @@ void SurfaceTouchHandling_touchesUp(void* ctx,int finger,void* touch)
     {
         fail("touch did not map to a finger1");   
     }
-    int finger2;
-    if(chorusLevel > 0)
-    {
-        finger2 = TouchMapping_mapFinger2(touch);        
-        if(finger2 < 0)
-        {
-            fail("touch did not map to a finger2");   
-        }
-    }
     PitchHandler_unpickPitch(phctx,finger);
     Fretless_up(fretlessp, finger, legato);
-    if(chorusLevel > 0)
-    {
-        Fretless_up(fretlessp, finger2, legato);
-        TouchMapping_unmapFinger2(touch);            
-    }
 }
 
 
@@ -80,15 +66,6 @@ void SurfaceTouchHandling_touchesDown(void* ctx,int finger,void* touch,int isMov
     {
         fail("touch did not map to a finger1\n");   
     } 
-    int finger2;
-    if(chorusLevel > 0)
-    {
-        finger2  = TouchMapping_mapFinger2(touch);
-        if(finger2 < 0)
-        {
-            fail("touch did not map to a finger2\n");   
-        }            
-    }
     
     struct FingerInfo* fingerInfo = PitchHandler_pickPitch(phctx,finger1,isMoving,x,y);
     float note = fingerInfo->pitch;
@@ -97,24 +74,20 @@ void SurfaceTouchHandling_touchesDown(void* ctx,int finger,void* touch,int isMov
     
     //Polyphony type is manipulating the polyphony mode
     int polyGroup1;
-    int polyGroup2;
     //Solo-mode with chorusing
     if(poly == 0)
     {
         polyGroup1 = 0;
-        polyGroup2 = 8;
     }
     //Per-string polyphony
     if(poly == 1)
     {
         polyGroup1 = polygroup;
-        polyGroup2 = (polygroup+8)%FINGERMAX;        
     }
     //Full polyphony
     if(poly == 2)
     {
         polyGroup1 = finger;
-        polyGroup2 = finger2;
     }
     
     float e = expr;
@@ -126,11 +99,6 @@ void SurfaceTouchHandling_touchesDown(void* ctx,int finger,void* touch,int isMov
     {
         Fretless_move(fretlessp,finger1,note-dx,v,polyGroup1);
         Fretless_express(fretlessp, finger1, 11, expr);
-        if(chorusLevel > 0)
-        {
-            Fretless_move(fretlessp,finger2,note+dx,v,polyGroup2);
-            Fretless_express(fretlessp, finger2, 11, expr);                                
-        }
     }
     else
     {
@@ -139,12 +107,6 @@ void SurfaceTouchHandling_touchesDown(void* ctx,int finger,void* touch,int isMov
         Fretless_beginDown(fretlessp,finger1); 
         Fretless_express(fretlessp, finger1, 11, expr);
         Fretless_endDown(fretlessp,finger1, note-dx,polyGroup1,v,legato); 
-        if(chorusLevel > 0)
-        {
-            Fretless_beginDown(fretlessp,finger2); 
-            Fretless_express(fretlessp, finger2, 11, expr);                    
-            Fretless_endDown(fretlessp,finger2,note+dx,polyGroup2,v,legato); 
-        }
     }
 }
 
@@ -158,33 +120,14 @@ void SurfaceTouchHandling_tick(void* ctx)
         if(fingerInfo->isActive)
         {
             activeFingers++;
-            int finger2;
-            if(chorusLevel > 0)
-            {
-                finger2 = TouchMapping_finger2FromFinger1(finger);                
-            }
             float expr = fingerInfo->expr;
             float dx = (expr*expr*expr*expr)*chorusLevel;
             PitchHandler_pickPitch(phctx,finger,1,fingerInfo->fingerX,fingerInfo->fingerY);
             Fretless_move(fretlessp,finger,fingerInfo->pitch-dx,fingerInfo->velocity,fingerInfo->string);    
-            if(chorusLevel > 0)
-            {
-                Fretless_move(fretlessp,finger2,fingerInfo->pitch+dx,fingerInfo->velocity,fingerInfo->string);                            
-            }
         }            
     }
     Fretless_flush(fretlessp);
     PitchHandler_tick(phctx);
-    //It's only safe to change chorus state when all fingers are up
-    if(activeFingers == 0 || (chorusLevel > 0 && chorusLevelDesired > 0))
-    {
-        chorusLevel = chorusLevelDesired;
-        //We can't chorus with 1 channel, so just turn it off.
-        if(activeFingers == 0 && Fretless_getMidiHintChannelSpan(fretlessp) <= 1)
-        {
-            chorusLevel = 0;
-        }
-    }
 }
 
 float SurfaceTouchHandling_getChorusLevel()

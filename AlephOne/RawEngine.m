@@ -23,7 +23,8 @@ AudioStreamBasicDescription audioFormat;
 static const float kSampleRate = 44100.0;
 static const unsigned int kOutputBus = 0;
 
-#define WAVEMAX (1024*2)
+#define WAVEMAX (1024)
+#define UNISONMAX 2
 
 struct ramp {
     float stopValue;
@@ -35,7 +36,7 @@ struct fingerData {
     struct ramp pitchRamp;
     struct ramp volRamp;
     struct ramp exprRamp;
-    float phase;
+    float phases[UNISONMAX];
 };
 
 #define NTSTATE_NO 0
@@ -44,6 +45,8 @@ struct fingerData {
 
 struct fingersData {
     struct fingerData finger[FINGERMAX];
+    float  totalL[UNISONMAX][WAVEMAX];
+    float  totalR[UNISONMAX][WAVEMAX];
     long  sampleCount;
     int   noteTieState;
     int   otherChannel;
@@ -60,7 +63,7 @@ float harmonicsTotal[2][2];
 float harmonics[2][2][128] =
 {
     {
-        {8, 4, 1, 2, 0, 1, 0, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+        {16, 8, 4, 2, 0, 1, 0, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
             0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
             0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
             0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
@@ -102,7 +105,10 @@ static void moveRamps(int dstFinger, int srcFinger)
         copyRamp(&allFingers.finger[dstFinger].volRamp, &allFingers.finger[srcFinger].volRamp);
         copyRamp(&allFingers.finger[dstFinger].pitchRamp, &allFingers.finger[srcFinger].pitchRamp);
         copyRamp(&allFingers.finger[dstFinger].exprRamp, &allFingers.finger[srcFinger].exprRamp);
-        allFingers.finger[dstFinger].phase = allFingers.finger[srcFinger].phase;
+        for(int i=0; i<UNISONMAX; i++)
+        {
+            allFingers.finger[dstFinger].phases[i] = allFingers.finger[srcFinger].phases[i];
+        }
         allFingers.finger[srcFinger].volRamp.value = 0;
         allFingers.finger[srcFinger].volRamp.stopValue = 0;        
     }
@@ -217,54 +223,102 @@ static void initNoise()
     setExprMix();
 }
 
-static void renderNoise(long* dataL, long* dataR, unsigned long samples)
+static inline void renderNoiseInnerLoopSample(int f,int phaseIdx,int i,float cyclesPerSample,float pitchLocation,float p)
 {
+    doRamp(&allFingers.finger[f].volRamp,allFingers.sampleCount+i);
+    doRamp(&allFingers.finger[f].exprRamp,allFingers.sampleCount+i);        
+    float e = allFingers.finger[f].exprRamp.value;
+    float v = allFingers.finger[f].volRamp.value;
+    float cycles = i*cyclesPerSample + p;
+    float cycleLocation = (cycles - (int)cycles); // 0 .. 1
+    int j = (int)(cycleLocation*WAVEMAX);
+    float s2 = (1-e*e);
+    float unSquished = (waveMix[1][0][j]*(1-s2) + waveMix[0][0][j]*(s2))*e + (waveMix[1][1][j]*(1-s2) + waveMix[0][1][j]*(s2))*(1-e);
+    float unAliased = unSquished*(1-pitchLocation) + waveFundamental[j]*(pitchLocation);
+    allFingers.totalL[phaseIdx][i] += v * unAliased;
+    allFingers.totalR[phaseIdx][i] += v * unAliased;    
+}
+
+static inline void renderNoiseInnerLoop(int f,int phaseIdx,float detune,unsigned long samples)
+{
+    float notep = allFingers.finger[f].pitchRamp.value;
+    float pitchLocation = notep/127.0;
+    float p = allFingers.finger[f].phases[phaseIdx];
+    //note 33 is our center pitch, and it's 440hz
+    float cyclesPerSample = powf(2,(notep-33+detune*(1-pitchLocation))/12) * (440/(44100.0 * 32));
+    for(int i=0; i<samples; i++)
+    {
+        renderNoiseInnerLoopSample(f,phaseIdx,i,cyclesPerSample,pitchLocation,p);
+    }     
+    allFingers.finger[f].phases[phaseIdx] = (cyclesPerSample*samples) + p;
+    
+}
+
+static inline void renderNoisePrepare(int f)
+{
+    if(allFingers.finger[f].volRamp.value == 0)
+    {
+        for(int i=0; i<UNISONMAX; i++)
+        {
+            allFingers.finger[f].phases[i] = 0;
+        }
+        allFingers.finger[f].pitchRamp.value = allFingers.finger[f].pitchRamp.stopValue;
+        allFingers.finger[f].exprRamp.value = allFingers.finger[f].exprRamp.stopValue;
+    }
+    doRamp(&allFingers.finger[f].pitchRamp,allFingers.sampleCount);    
+}
+
+static inline void renderNoiseCleanAll(long* dataL, long* dataR,unsigned long samples)
+{
+    for(int phaseIdx=0; phaseIdx<UNISONMAX; phaseIdx++)
+    {
+        for(int i=0; i<samples; i++)
+        {
+            allFingers.totalL[phaseIdx][i] *= 0.1;
+            allFingers.totalR[phaseIdx][i] *= 0.1;            
+        }
+    }    
     for(int i=0; i<samples; i++)
     {
         dataL[i] = 0;
         dataR[i] = 0;
     }
+}
+
+static inline void renderNoiseToBuffer(long* dataL,long* dataR,unsigned long samples)
+{
+    for(int phaseIdx=0; phaseIdx<UNISONMAX; phaseIdx++)
+    {
+        for(int i=0; i<samples; i++)
+        {
+            dataL[i] += INT_MAX * 0.06 * 0.0125 * atanf(allFingers.totalL[phaseIdx][i] * 2 * M_PI);
+            dataR[i] += INT_MAX * 0.06 * 0.0125 * atanf(allFingers.totalR[phaseIdx][i] * 2 * M_PI);
+        }
+    }            
+}
+
+static void renderNoise(long* dataL, long* dataR, unsigned long samples)
+{
+    renderNoiseCleanAll(dataL,dataR,samples);
+    int activeFingers=0;
     //Go in channel major order because we skip by volume
     for(int f=0; f<FINGERMAX; f++)
     {
-        if(allFingers.finger[f].volRamp.value == 0)
-        {
-            allFingers.finger[f].phase = 0;
-            allFingers.finger[f].pitchRamp.value = allFingers.finger[f].pitchRamp.stopValue;
-            allFingers.finger[f].exprRamp.value = allFingers.finger[f].exprRamp.stopValue;
-        }
-        doRamp(&allFingers.finger[f].pitchRamp,allFingers.sampleCount);
-        
         float currentVolume = allFingers.finger[f].volRamp.value;
         float targetVolume = allFingers.finger[f].volRamp.stopValue;
+        float currentExpr = allFingers.finger[f].exprRamp.value;
         int isActive = (currentVolume > 0) || (targetVolume > 0);
         
         if(isActive)
         {
-            float notep = allFingers.finger[f].pitchRamp.value;
-            float pitchLocation = notep/127.0;
-            float p = allFingers.finger[f].phase;
-            //note 33 is our center pitch, and it's 440hz
-            float cyclesPerSample = powf(2,(notep-33)/12) * (440/(44100.0 * 32));
-            for(int i=0; i<samples; i++)
-            {
-                doRamp(&allFingers.finger[f].volRamp,allFingers.sampleCount+i);
-                doRamp(&allFingers.finger[f].exprRamp,allFingers.sampleCount+i);
-                float e = allFingers.finger[f].exprRamp.value;
-                float v = allFingers.finger[f].volRamp.value;
-                float cycles = i*cyclesPerSample + p;
-                float cycleLocation = (cycles - (int)cycles); // 0 .. 1
-                int j = (int)(cycleLocation*WAVEMAX);
-                float s2 = (1-e*e);
-                float unSquished = (waveMix[1][0][j]*(1-s2) + waveMix[0][0][j]*(s2))*e + (waveMix[1][1][j]*(1-s2) + waveMix[0][1][j]*(s2))*(1-e);
-                float unAliased = unSquished*(1-pitchLocation*pitchLocation) + waveFundamental[j]*(pitchLocation*pitchLocation);
-                long s = INT_MAX * v * (unAliased)  * 0.06 * 0.25;
-                dataL[i] += s;
-                dataR[i] += s;
-            }     
-            allFingers.finger[f].phase = (cyclesPerSample*samples) + p;
+            activeFingers++;
+            renderNoisePrepare(f);
+            renderNoiseInnerLoop(f,0,0,samples);
+            renderNoiseInnerLoop(f,1, 0.1,samples);
+            //renderNoiseInnerLoop(f,2,-0.1,samples);
         }
     }
+    renderNoiseToBuffer(dataL,dataR,samples);
     allFingers.sampleCount += samples;
 }
 
