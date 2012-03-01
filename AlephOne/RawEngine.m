@@ -308,22 +308,27 @@ static inline void renderNoiseCleanAll(long* dataL, long* dataR,unsigned long sa
 static inline void reverbConvolute(long* dataL, long* dataR,unsigned long samples)
 {
     long sc = allFingers.sampleCount;
-    for(int i=0; i<samples; i++)
+    for(int r=0; r<REVERBECHOES; r++)
     {
-        int n = (i+sc)%ECHOBUFFERMAX;
-        for(int r=0; r<REVERBECHOES; r++)
+        float invR = 1.0/(r+1);
+        for(int i=0; i<samples; i++)
         {
             int nL = (i+sc+reverbData[0][r])%ECHOBUFFERMAX;
             int nR = (i+sc+reverbData[1][r])%ECHOBUFFERMAX;
-            echoBufferL[nL] += 0.5*dataL[i] + 0.125*dataR[i];
-            echoBufferR[nR] += 0.5*dataL[i] + 0.125*dataR[i];
+            echoBufferL[nL] += (dataL[i] + 0.25*dataR[i])*invR;
+            echoBufferR[nR] += (dataL[i] + 0.25*dataR[i])*invR;
         }
+    }
+    for(int i=0; i<samples; i++)
+    {
+        int n = (i+sc)%ECHOBUFFERMAX;
+        dataL[i] += INT_MAX * 0.06 * 0.0125 * echoBufferL[n];
+        dataR[i] += INT_MAX * 0.06 * 0.0125 * echoBufferR[n];        
         echoBufferL[n] *= 0.25;
         echoBufferR[n] *= 0.25;
-        dataL[i] += INT_MAX * 0.06 * 0.0125 * echoBufferL[n];
-        dataR[i] += INT_MAX * 0.06 * 0.0125 * echoBufferR[n];
     }
 }
+
 static inline void renderNoiseToBuffer(long* dataL,long* dataR,unsigned long samples)
 {
     //Add pre-chorus sound together compressed
@@ -336,8 +341,6 @@ static inline void renderNoiseToBuffer(long* dataL,long* dataR,unsigned long sam
             int n = (i+allFingers.sampleCount)%ECHOBUFFERMAX;
             echoBufferL[n] += valL;
             echoBufferR[n] += valR;
-            //dataL[i] += INT_MAX * 0.06 * 0.0125 * valL;
-            //dataR[i] += INT_MAX * 0.06 * 0.0125 * valR;
         }
     }    
     reverbConvolute(dataL,dataR,samples);
