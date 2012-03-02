@@ -93,7 +93,7 @@ float harmonics[2][2][128] =
 int reverbData[2][REVERBECHOES] =
 {
     {
-      1131, 18, 339, 230, 1437, 485, 31, 1569, 771    
+      1131, 181, 339, 230, 1437, 485, 310, 1569, 771    
     },
     {
       419, 586, 1450, 901, 545, 1119, 383, 231, 759  
@@ -315,8 +315,8 @@ static inline void reverbConvolute(long* dataL, long* dataR,unsigned long sample
     for(int i=0; i<samples; i++)
     {
         int n = (i+sc)%ECHOBUFFERMAX;
-        dataL[i] = INT_MAX * 0.04 * 0.25 * echoBufferL[n];
-        dataR[i] = INT_MAX * 0.04 * 0.25 * echoBufferR[n];        
+        dataL[i] = INT_MAX * 0.02 * 0.25 * echoBufferL[n];
+        dataR[i] = INT_MAX * 0.02 * 0.25 * echoBufferR[n];        
         echoBufferL[n] *= 0.125;
         echoBufferR[n] *= 0.125;
     }
