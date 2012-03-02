@@ -359,8 +359,8 @@ static void renderNoise(long* dataL, long* dataR, unsigned long samples)
             activeFingers++;
             renderNoisePrepare(f);
             renderNoiseInnerLoop(f,0,0,samples, invSamples, currentVolume,diffVolume,currentExpr,diffExpr);
-            renderNoiseInnerLoop(f,1, -0.1,samples, invSamples, currentVolume,diffVolume,currentExpr,diffExpr);
-            //renderNoiseInnerLoop(f,2,0.1,samples, invSamples, currentVolume,diffVolume,currentExpr,diffExpr);
+            renderNoiseInnerLoop(f,1, -0.2,samples, invSamples, currentVolume,diffVolume,currentExpr,diffExpr);
+            //renderNoiseInnerLoop(f,2,0.2,samples, invSamples, currentVolume,diffVolume,currentExpr,diffExpr);
             allFingers.finger[f].volRamp.value = targetVolume;
             allFingers.finger[f].exprRamp.value = targetExpr;
         }
