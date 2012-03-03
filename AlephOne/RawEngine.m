@@ -23,9 +23,11 @@ AudioStreamBasicDescription audioFormat;
 static const float kSampleRate = 44100.0;
 static const unsigned int kOutputBus = 0;
 
-#define ECHOBUFFERMAX (1024*16)
+#define ECHOBUFFERMAX (1024*4)
 #define WAVEMAX (1024)
 #define UNISONMAX 2
+//#define FLOATRESOLUTION (1024*8)
+#define HARMONICSMAX 32
 
 struct ramp {
     float stopValue;
@@ -55,40 +57,28 @@ struct fingersData {
 
 
 
-#define HARMONICSMAX 32
 float echoBufferL[ECHOBUFFERMAX];
 float echoBufferR[ECHOBUFFERMAX];
+//float compressor[FLOATRESOLUTION];
 float waveMix[2][2][WAVEMAX];
 float waveFundamental[WAVEMAX];
 float harmonicsTotal[2][2];
-float harmonics[2][2][128] =
+float harmonics[2][2][HARMONICSMAX] =
 {
     {
-        {16, 8, 4, 2, 0, 1, 0, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+        {16, 8, 4, 2, 0, 1, 0, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
         },  
-        {0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+        {0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
         }
     },
     {
-        {8, 4, 1, 2, 0, 1, 0, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,            
+        {8, 4, 1, 2, 0, 1, 0, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0           
         },  
-        {0, 0, 0, 0, 0, 0, 0,-1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+        {0, 0, 0, 0, 0, 0, 0,-1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
         }
     },
 };
-#define REVERBECHOES 5
+#define REVERBECHOES 8
 
 int reverbDataL[REVERBECHOES] =
 {
@@ -220,8 +210,15 @@ static void setExprMix()
             }
         }
     }
+    
+    //Set up the compressor function  -1 .. 1
+    /*
+    for(int v=0; v<FLOATRESOLUTION; v++)
+    {
+        compressor[v] = atanf( (v*2.0/FLOATRESOLUTION - 1) * 5 )/(M_PI/2);
+    }
+     */
 }
-
 
 static void audioSessionInterruptionCallback(void *inUserData, UInt32 interruptionState) {
     if (interruptionState == kAudioSessionEndInterruption) {
@@ -260,6 +257,13 @@ static inline void renderNoiseCleanAll(long* dataL, long* dataR,unsigned long sa
 {
     for(int phaseIdx=0; phaseIdx<UNISONMAX; phaseIdx++)
     {
+        /*
+        for(int i=0; i<samples; i++)
+        {
+            allFingers.total[phaseIdx][i] = 0;
+        }
+         */
+        //Huh?  Is the inlining causing the latency?
         bzero(allFingers.total[phaseIdx],sizeof(float)*samples);
     }    
 }
@@ -274,10 +278,10 @@ static inline void reverbConvolute(long* dataL, long* dataR,unsigned long sample
         for(int i=0; i<samples; i++)
         {
             int n = (i+sc)%ECHOBUFFERMAX;
-            int nL = (i+sc+reverbDataL[r+5])%ECHOBUFFERMAX;
-            int nR = (i+sc+reverbDataR[r+7])%ECHOBUFFERMAX;
-            echoBufferL[nL] += (0.125*echoBufferL[n] + 0.0125*echoBufferR[n])*invR;
-            echoBufferR[nR] += (0.125*echoBufferR[n] + 0.0125*echoBufferL[n])*invR;
+            int nL = (i+sc+reverbDataL[r])%ECHOBUFFERMAX;
+            int nR = (i+sc+reverbDataR[r])%ECHOBUFFERMAX;
+            echoBufferL[nL] += (0.125*echoBufferL[n] + 0.12*echoBufferR[n])*invR;
+            echoBufferR[nR] += (0.125*echoBufferR[n] + 0.12*echoBufferL[n])*invR;
         }
     }
      
@@ -286,9 +290,18 @@ static inline void reverbConvolute(long* dataL, long* dataR,unsigned long sample
         int n = (i+sc)%ECHOBUFFERMAX;
         dataL[i] = INT_MAX * 0.01 * 0.25 * echoBufferL[n];
         dataR[i] = INT_MAX * 0.01 * 0.25 * echoBufferR[n];        
-        echoBufferL[n] *= 0.125;
-        echoBufferR[n] *= 0.125;
+        echoBufferL[n] *= 0.33;
+        echoBufferR[n] *= 0.33;
     }
+}
+
+static inline float compress(float f)
+{
+    //TODO: a fast atan approximation that doesn't call outside of here.
+    // latency seems to be the issue here (not throughput)
+    //return compressor[f>=1 ? (FLOATRESOLUTION-1) : ((f <= -1) ? 0 : (int)((f+1)*(FLOATRESOLUTION/2)))];
+    
+    return atanf(f * 2);
 }
 
 static inline void renderNoiseToBuffer(unsigned long samples,unsigned long sc)
@@ -298,7 +311,8 @@ static inline void renderNoiseToBuffer(unsigned long samples,unsigned long sc)
     {
         for(int i=0; i<samples; i++)
         {
-            float valL = atanf(allFingers.total[phaseIdx][i] * M_PI * 0.4);
+            //Is the atanf bad?
+            float valL = compress(allFingers.total[phaseIdx][i]);
             float valR = valL;
             int n = (i+sc)%ECHOBUFFERMAX;
             echoBufferL[n] += valL;
@@ -343,6 +357,7 @@ static void renderNoiseInnerLoop(int f,int phaseIdx,float detune,unsigned long s
     float pitchLocation = notep/127.0;
     float p = allFingers.finger[f].phases[phaseIdx];
     //note 33 is our center pitch, and it's 440hz
+    //powf exits out of here, but it's not per sample... 
     float cyclesPerSample = powf(2,(notep-33+(1-currentExpr)*detune*(1-pitchLocation))/12) * (440/(44100.0 * 32));
     float* w00 = waveMix[0][0];
     float* w01 = waveMix[0][1];
@@ -357,6 +372,7 @@ static void renderNoiseInnerLoop(int f,int phaseIdx,float detune,unsigned long s
     allFingers.finger[f].phases[phaseIdx] = (cyclesPerSample*samples) + p;
 }
 
+//TRY TO NOT CALL OUT TO OUTSIDE WORLD FROM HERE
 static void renderNoise(long* dataL, long* dataR, unsigned long samples)
 {
     renderNoiseCleanAll(dataL,dataR,samples);

@@ -63,6 +63,8 @@ static float textureWidth[TEXTURECOUNT];
 static float textureHeight[TEXTURECOUNT];
 static float lightPosition[3];
 
+struct Button_data* pageButton;
+
 //All the references to controls
 struct Slider_data* baseSlider;
 struct Slider_data* widthSlider;
@@ -591,7 +593,7 @@ void WidgetsAssemble()
     float panelBottom = 0.92;
     float panelTop = 1.0;
     //This button cycles through pages of controls
-    CreateButton(PIC_PAGE1TEXT,0.0,panelBottom, 0.11,panelTop, Page_set, Page_get, 7);
+    pageButton = CreateButton(PIC_PAGE1TEXT,0.0,panelBottom, 0.11,panelTop, Page_set, Page_get, 7);
     
     //Page 0
     widthSlider = CreateSlider(PIC_WIDTHTEXT,0.12,panelBottom, 0.5,panelTop, Cols_set, Cols_get);
@@ -628,7 +630,7 @@ void WidgetsAssemble()
     engineButton->val = 1; //This is in the enabled state from the beginning
     
     //Page last
-    Page_set(NULL, 0);
+    Page_set(NULL, 6);
     
     ScaleControl_setBaseNote(0);
     ScaleControl_setCurrentScale(0);
