@@ -23,11 +23,12 @@ AudioStreamBasicDescription audioFormat;
 static const float kSampleRate = 44100.0;
 static const unsigned int kOutputBus = 0;
 
-#define ECHOBUFFERMAX (1024*4)
+#define ECHOBUFFERMAX (1024*2)
 #define WAVEMAX (1024)
 #define UNISONMAX 2
 //#define FLOATRESOLUTION (1024*8)
 #define HARMONICSMAX 32
+#define REVERBECHOES 4
 
 struct ramp {
     float stopValue;
@@ -78,7 +79,6 @@ float harmonics[2][2][HARMONICSMAX] =
         }
     },
 };
-#define REVERBECHOES 8
 
 int reverbDataL[REVERBECHOES] =
 {
@@ -257,14 +257,14 @@ static inline void renderNoiseCleanAll(long* dataL, long* dataR,unsigned long sa
 {
     for(int phaseIdx=0; phaseIdx<UNISONMAX; phaseIdx++)
     {
-        /*
+        
         for(int i=0; i<samples; i++)
         {
             allFingers.total[phaseIdx][i] = 0;
         }
-         */
+         
         //Huh?  Is the inlining causing the latency?
-        bzero(allFingers.total[phaseIdx],sizeof(float)*samples);
+        //bzero(allFingers.total[phaseIdx],sizeof(float)*samples);
     }    
 }
 
