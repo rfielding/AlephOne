@@ -625,6 +625,7 @@ void WidgetsAssemble()
     initialSnapButton = CreateButton(PIC_INITIALSNAPTEXT, 0.12, panelBottom, 0.48, panelTop, Snap_set, Snap_get, 2);
     snapSpeedSlider = CreateSlider(PIC_SNAPSPEEDTEXT, 0.482, panelBottom, 0.78, panelTop, SnapSpeed_set, SnapSpeed_get);
     engineButton = CreateButton(PIC_ENGINETEXT, 0.78, panelBottom, 0.95, panelTop, Engine_set, NULL,2);
+    engineButton->val = 1; //This is in the enabled state from the beginning
     
     //Page last
     Page_set(NULL, 0);

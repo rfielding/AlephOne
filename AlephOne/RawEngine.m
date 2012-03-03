@@ -25,7 +25,7 @@ static const unsigned int kOutputBus = 0;
 
 #define ECHOBUFFERMAX (1024*8)
 #define WAVEMAX (1024)
-#define UNISONMAX 3
+#define UNISONMAX 2
 
 struct ramp {
     float stopValue;
@@ -88,7 +88,7 @@ float harmonics[2][2][128] =
         }
     },
 };
-#define REVERBECHOES 4
+#define REVERBECHOES 9
 int reverbDataL[REVERBECHOES] =
 {
     1131, 181, 339, 230, 1437, 485, 310, 1569, 771    
@@ -277,8 +277,8 @@ static inline void reverbConvolute(long* dataL, long* dataR,unsigned long sample
     for(int i=0; i<samples; i++)
     {
         int n = (i+sc)%ECHOBUFFERMAX;
-        dataL[i] = INT_MAX * 0.02 * 0.25 * echoBufferL[n];
-        dataR[i] = INT_MAX * 0.02 * 0.25 * echoBufferR[n];        
+        dataL[i] = INT_MAX * 0.01 * 0.25 * echoBufferL[n];
+        dataR[i] = INT_MAX * 0.01 * 0.25 * echoBufferR[n];        
         echoBufferL[n] *= 0.125;
         echoBufferR[n] *= 0.125;
     }
@@ -373,7 +373,7 @@ static void renderNoise(long* dataL, long* dataR, unsigned long samples)
             renderNoisePrepare(f);
             renderNoiseInnerLoop(f,0,0,    samples, invSamples, currentVolume,diffVolume,currentExpr,diffExpr);
             renderNoiseInnerLoop(f,1, -0.2,samples, invSamples, currentVolume,diffVolume,currentExpr,diffExpr);
-            renderNoiseInnerLoop(f,2,  0.2,samples, invSamples, currentVolume,diffVolume,currentExpr,diffExpr);
+            //renderNoiseInnerLoop(f,2,  0.2,samples, invSamples, currentVolume,diffVolume,currentExpr,diffExpr);
             allFingers.finger[f].volRamp.value = targetVolume;
             allFingers.finger[f].exprRamp.value = targetExpr;
         }
