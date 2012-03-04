@@ -116,31 +116,53 @@ class DSPLisp:
     line="vDSP_v{0}({1},1,{2},1,{3},1,{4});".format(type,instruction[1],instruction[2],instruction[3],idx)
     print(line)
 
-  def generateAdd(self,instruction):
+  def generateGeneric(self,type,instruction):
+    idx = "length";
+    if len(instruction)==3:
+      instruction.append("accumulator")
+    line="vDSP_vs{0}({1},1,&{2},{3},1,{4});".format(type,instruction[1],instruction[2],instruction[3],idx)
+    print(line)
+
+  def generateVAdd(self,instruction):
     self.generateVGeneric("add",instruction)
 
-  def generateSub(self,instruction):
+  def generateVSub(self,instruction):
     self.generateVGeneric("sub",instruction)
 
-  def generateMul(self,instruction):
+  def generateVMul(self,instruction):
     self.generateVGeneric("mul",instruction)
 
-  def generateSet(self,instruction):
+  def generateVSet(self,instruction):
     idx = "length";
     line="xDSP_vcp({1},{0},{2});".format(instruction[1],instruction[2],idx)
-    print(line);
+    print(line)
+
+  def generateAdd(self,instruction):
+    self.generateGeneric("add",instruction)
+
+  def generateSub(self,instruction):
+    self.generateGeneric("sub",instruction)
+
+  def generateMul(self,instruction):
+    self.generateGeneric("mul",instruction)
  
   def generate(self):
     print("/*" + "".join(self.reader.originalText) + "*/");
     for instruction in self.assembler:
       if   instruction[0]=="vadd":
-        self.generateAdd(instruction) 
+        self.generateVAdd(instruction) 
       elif instruction[0]=="vsub":
-        self.generateSub(instruction) 
+        self.generateVSub(instruction) 
       elif instruction[0]=="vmul":
-        self.generateMul(instruction) 
+        self.generateVMul(instruction) 
       elif instruction[0]=="vset":
-        self.generateSet(instruction)
+        self.generateVSet(instruction)
+      elif instruction[0]=="add":
+        self.generateAdd(instruction)
+      elif instruction[0]=="sub":
+        self.generateSub(instruction)
+      elif instruction[0]=="mul":
+        self.generateMul(instruction)
 
   def compile(self):
     self.tokenize()
