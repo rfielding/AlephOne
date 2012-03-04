@@ -15,18 +15,16 @@
 #import <AVFoundation/AVFoundation.h>
 #import <Accelerate/Accelerate.h>
 
+
 #import "RawEngine.h"
+#import "RawEngineGenerated.h"
 #include "FretlessCommon.h"
 
 #define ECHOBUFFERMAX (1024*2)
-#define WAVEMAX (1024*4)
 #define UNISONMAX 2
 #define HARMONICSMAX 32
 #define REVERBECHOES 4
-#define DIST 2
-#define EXPR 2
 #define AUDIOCHANNELS 2
-#define SAMPLESMAX 1024
 
 AudioComponentInstance audioUnit;
 AudioStreamBasicDescription audioFormat;
@@ -54,13 +52,12 @@ struct fingerData {
 
 struct fingersData {
     struct fingerData finger[FINGERMAX];
-    float  _total[WAVEMAX][UNISONMAX];
+    float  total[UNISONMAX][WAVEMAX];
     unsigned long  sampleCount;
     int   noteTieState;
     int   otherChannel;
 };
 
-float sampleIndexArray[SAMPLESMAX];
 
 float echoBuffer[ECHOBUFFERMAX][AUDIOCHANNELS];
 
@@ -106,8 +103,6 @@ float _harmonics[HARMONICSMAX][EXPR][DIST] =
     {{0,0},{0,0}}    
 };
 
-float _waveMix        [WAVEMAX][EXPR][DIST];
-float _waveFundamental[WAVEMAX];
 
 
 int reverbData[REVERBECHOES][AUDIOCHANNELS] =
@@ -220,7 +215,7 @@ static void setExprMix()
         {
             for(int sample=0; sample<WAVEMAX; sample++)
             {
-                _waveMix[sample][expr][dist] = 0;                
+                waveMix[expr][dist][sample] = 0;                
                 _waveFundamental[sample] = sinf( sample * 2.0 * M_PI / WAVEMAX );
             }
             for(int harmonic=0; harmonic<HARMONICSMAX; harmonic++)
@@ -229,7 +224,7 @@ static void setExprMix()
                 float v = _harmonics[harmonic][expr][dist];
                 for(int sample=0; sample<WAVEMAX; sample++)
                 {
-                    _waveMix[sample][expr][dist] += sinf(h * sample * 2.0 * M_PI / WAVEMAX) * v;
+                    waveMix[expr][dist][sample] += sinf(h * sample * 2.0 * M_PI / WAVEMAX) * v;
                 }
             }
         }
@@ -270,7 +265,7 @@ static inline void renderNoisePrepare(int f)
 
 static inline void renderNoiseCleanAll(long* dataL, long* dataR,unsigned long samples)
 {
-    vDSP_vclr((float*)allFingers._total,1,UNISONMAX*samples);
+    vDSP_vclr((float*)allFingers.total,1,UNISONMAX*samples);
 }
 
 static inline void reverbConvolute(long* dataL, long* dataR,unsigned long samples)
@@ -317,7 +312,7 @@ static inline void renderNoiseToBuffer(unsigned long samples,unsigned long sc)
         for(int i=0; i<samples; i++)
         {
             //Is the atanf bad?
-            float valL = compress(allFingers._total[i][phaseIdx]);
+            float valL = compress(allFingers.total[phaseIdx][i]);
             float valR = valL;
             int n = (i+sc)%ECHOBUFFERMAX;
             echoBuffer[n][0] += valL;
@@ -326,111 +321,6 @@ static inline void renderNoiseToBuffer(unsigned long samples,unsigned long sc)
     }    
 }
 
-
-
-
-
-
-#define SAMPLEINPARALLEL(samples,statement) for(int i=0; i<samples; i++) { statement; }
-
-static inline void xDSP_vcp(float* src,float* dst,int count)
-{
-    memcpy(dst,src,count*sizeof(float));
-}
-
-
-float cyclesArray[SAMPLESMAX];
-float cyclesIntArray[SAMPLESMAX];
-float cyclesLocation[SAMPLESMAX];
-int   jLocation[SAMPLESMAX];
-float vArray[SAMPLESMAX];
-float eArray[SAMPLESMAX];
-float eNotArray[SAMPLESMAX];
-float dArray[SAMPLESMAX];
-float dNotArray[SAMPLESMAX];
-float unSquishedPartArray[SAMPLESMAX];
-float unSquishedTotalArray[SAMPLESMAX];
-float fundamentalArray[SAMPLESMAX];
-
-
-/**
- Good God!  This is assembly language.
- */
-static inline float renderNoiseInnerLoopInParallel(int unison,float notep,float detune,float pitchLocation,float p,
-                                                  unsigned long samples,float invSamples,float currentVolume,float diffVolume,float currentExpr,float diffExpr)
-{
-    float cyclesPerSample = powf(2,(notep-33+(1-currentExpr)*detune*(1-pitchLocation))/12) * (440/(44100.0 * 32));
-    
-    xDSP_vcp(sampleIndexArray,cyclesArray,samples); 
-    vDSP_vsmul(cyclesArray,1,&cyclesPerSample,cyclesArray,1,samples);
-    vDSP_vsadd(cyclesArray,1,&p,cyclesArray,1,samples);
-    
-    SAMPLEINPARALLEL(samples, cyclesIntArray[i]  = (int)cyclesArray[i]);
-    xDSP_vcp(cyclesArray,cyclesLocation,samples);
-    
-    float negone=-1;
-
-    vDSP_vsmul(cyclesIntArray,1,&negone,cyclesIntArray,1,samples);
-    vDSP_vadd(cyclesLocation,1,cyclesIntArray,1,cyclesLocation,1,samples);
-    
-    float wavemax=WAVEMAX;
-    vDSP_vsmul(cyclesLocation,1,&wavemax,cyclesLocation,1,samples);
-    
-    SAMPLEINPARALLEL(samples, jLocation[i]       = (int)cyclesLocation[i]);
-             
-    xDSP_vcp(sampleIndexArray,vArray,samples);    
-    vDSP_vsmul(vArray,1,&invSamples,vArray,1,samples);
-    vDSP_vsmul(vArray,1,&diffVolume,vArray,1,samples);
-    vDSP_vsadd(vArray,1,&currentVolume,vArray,1,samples);    
-    xDSP_vcp(sampleIndexArray,eArray,samples);    
-    vDSP_vsmul(eArray,1,&invSamples,eArray,1,samples);
-    vDSP_vsmul(eArray,1,&diffExpr,eArray,1,samples);
-    vDSP_vsmul(eArray,1,&currentExpr,eArray,1,samples);
-
-    float one=1;
-    
-    vDSP_vfill(&one,eNotArray,1,samples);
-    vDSP_vsub(eNotArray,1,eArray,1,eNotArray,1,samples);    
-    xDSP_vcp(eNotArray,dArray,samples);
-    
-    vDSP_vsq(dArray,1,dArray,1,samples);    
-    vDSP_vfill(&one,dNotArray,1,samples);
-    vDSP_vsub(dNotArray,1, dArray,1, dNotArray,1, samples);
-    
-    xDSP_vcp(dArray,unSquishedPartArray,samples);
-        
-    SAMPLEINPARALLEL(samples, unSquishedPartArray[i]  *= _waveMix[jLocation[i]][0][1]);
-    xDSP_vcp(unSquishedPartArray,unSquishedTotalArray,samples);
-    
-    xDSP_vcp(dNotArray,unSquishedPartArray,samples);
-    
-    SAMPLEINPARALLEL(samples, unSquishedPartArray[i]  *= _waveMix[jLocation[i]][0][0]);
-    ////SAMPLEINPARALLEL(samples, unSquishedTotalArray[i] += unSquishedPartArray[i]);
-    vDSP_vadd(unSquishedTotalArray,1, unSquishedPartArray,1, unSquishedTotalArray,1, samples);
-    
-    vDSP_vmul(eNotArray,1, unSquishedTotalArray,1, eNotArray,1, samples);
-    xDSP_vcp(dArray,unSquishedPartArray,samples);
-    SAMPLEINPARALLEL(samples, unSquishedPartArray[i]  *= _waveMix[jLocation[i]][1][1]);
-    xDSP_vcp(unSquishedPartArray,unSquishedTotalArray, samples);
-    
-    xDSP_vcp(dNotArray, unSquishedPartArray, samples);
-    
-    SAMPLEINPARALLEL(samples, unSquishedPartArray[i]  *= _waveMix[jLocation[i]][1][0]);
-    vDSP_vadd(unSquishedTotalArray,1, unSquishedPartArray,1, unSquishedTotalArray,1, samples);    
-    vDSP_vmul(eArray,1, unSquishedTotalArray,1, eArray,1, samples);
-    vDSP_vadd(unSquishedTotalArray,1, eNotArray,1, unSquishedTotalArray,1, samples);
-    
-    float pitchLocationNot=(1-pitchLocation);
-    vDSP_vsmul(unSquishedTotalArray,1,&pitchLocationNot,unSquishedTotalArray,1,samples);
-    
-    SAMPLEINPARALLEL(samples, fundamentalArray[i]  = _waveFundamental[jLocation[i]]);
-    vDSP_vsmul(fundamentalArray,1,&pitchLocation,fundamentalArray,1,samples);
-    vDSP_vadd(fundamentalArray,1, unSquishedPartArray,1, unSquishedPartArray,1, samples);
-    vDSP_vmul(unSquishedTotalArray,1, vArray,1, unSquishedTotalArray,1, samples);
-    
-    vDSP_vadd(((float*)allFingers._total+unison),2, unSquishedTotalArray,1, ((float*)allFingers._total+unison),2, samples);
-    return (cyclesPerSample*samples) + p;
-}
 
 static void renderNoiseInnerLoop(int f,unsigned long samples,float invSamples,
                                         float currentVolume,float diffVolume, float currentExpr, float diffExpr)
@@ -443,7 +333,7 @@ static void renderNoiseInnerLoop(int f,unsigned long samples,float invSamples,
     {
         float p = allFingers.finger[f].phases[u];
         allFingers.finger[f].phases[u] = 
-            renderNoiseInnerLoopInParallel(u,notep,unisonDetune[u],pitchLocation,p,samples,invSamples,currentVolume,diffVolume,currentExpr,diffExpr);
+            renderNoiseInnerLoopInParallel(allFingers.total[u],notep,unisonDetune[u],pitchLocation,p,samples,invSamples,currentVolume,diffVolume*invSamples,currentExpr,diffExpr*invSamples);
     }
 }
 

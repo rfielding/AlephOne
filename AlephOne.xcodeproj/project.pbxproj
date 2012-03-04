@@ -71,6 +71,7 @@
 		49DE52BC14DB7AC100970F58 /* CoreAudio.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 49DE52B914DB7AC100970F58 /* CoreAudio.framework */; };
 		49DE52BE14DB7EF400970F58 /* AVFoundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 49DE52BD14DB7EF400970F58 /* AVFoundation.framework */; };
 		49EBD7481502F7A400E50DCA /* Accelerate.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 49EBD7471502F7A400E50DCA /* Accelerate.framework */; };
+		49EBD74A1503535000E50DCA /* RawEngineGenerated.m in Sources */ = {isa = PBXBuildFile; fileRef = 49EBD7491503535000E50DCA /* RawEngineGenerated.m */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -175,6 +176,8 @@
 		49DE52B914DB7AC100970F58 /* CoreAudio.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreAudio.framework; path = System/Library/Frameworks/CoreAudio.framework; sourceTree = SDKROOT; };
 		49DE52BD14DB7EF400970F58 /* AVFoundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AVFoundation.framework; path = System/Library/Frameworks/AVFoundation.framework; sourceTree = SDKROOT; };
 		49EBD7471502F7A400E50DCA /* Accelerate.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Accelerate.framework; path = System/Library/Frameworks/Accelerate.framework; sourceTree = SDKROOT; };
+		49EBD7491503535000E50DCA /* RawEngineGenerated.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = RawEngineGenerated.m; sourceTree = "<group>"; };
+		49EBD74B1503547D00E50DCA /* RawEngineGenerated.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RawEngineGenerated.h; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -256,6 +259,8 @@
 				496862851481FB7600460B4B /* CoreMIDIRenderer.m */,
 				49DE52B314DB771500970F58 /* RawEngine.h */,
 				49DE52B414DB771500970F58 /* RawEngine.m */,
+				49EBD7491503535000E50DCA /* RawEngineGenerated.m */,
+				49EBD74B1503547D00E50DCA /* RawEngineGenerated.h */,
 			);
 			name = ProjectAgnostic;
 			sourceTree = "<group>";
@@ -538,6 +543,7 @@
 				49691ADD14B57412009AB83D /* ScaleControl.c in Sources */,
 				49C8C39114DA303E00388555 /* DeMIDI.c in Sources */,
 				49DE52B514DB771500970F58 /* RawEngine.m in Sources */,
+				49EBD74A1503535000E50DCA /* RawEngineGenerated.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
