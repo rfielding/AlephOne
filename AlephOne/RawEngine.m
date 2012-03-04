@@ -61,6 +61,10 @@ struct fingersData {
 
 float echoBuffer[ECHOBUFFERMAX][AUDIOCHANNELS];
 
+float unisonDetune[UNISONMAX] = {
+    0, -0.2, 0.2    
+};
+
 ////This is how we define harmonic content... a single cycle wave for each point along the 2D axis
 float _harmonicsTotal         [EXPR][DIST];
 float _harmonics[HARMONICSMAX][EXPR][DIST] =
@@ -241,7 +245,7 @@ static void initNoise()
     bzero(echoBuffer,AUDIOCHANNELS*sizeof(float)*ECHOBUFFERMAX);
 }
 
-
+//An O(1) operation
 static inline void renderNoisePrepare(int f)
 {
     if(allFingers.finger[f].volRamp.value == 0)
@@ -258,7 +262,7 @@ static inline void renderNoisePrepare(int f)
 
 static inline void renderNoiseCleanAll(long* dataL, long* dataR,unsigned long samples)
 {
-    bzero(allFingers._total,UNISONMAX*sizeof(float)*samples);        
+    vDSP_vclr((float*)allFingers._total,1,UNISONMAX*samples);
 }
 
 static inline void reverbConvolute(long* dataL, long* dataR,unsigned long samples)
@@ -314,19 +318,9 @@ static inline void renderNoiseToBuffer(unsigned long samples,unsigned long sc)
     }    
 }
 
-//KEEP THIS DATA-PARALLEL
-static inline float renderNoiseInnerLoopSampleMix(float d,float dNot, float e,float eNot, 
-                                                  float pitchLocation,int j)
-{
-    float unSquished = 
-                        (_waveMix[j][0][1]*d + _waveMix[j][0][0]*dNot)*eNot + 
-                        (_waveMix[j][1][1]*d + _waveMix[j][1][0]*dNot)*e;
-    return unSquished*(1-pitchLocation) + _waveFundamental[j]*(pitchLocation);   
-}
-
-//KEEP THIS DATA-PARALLEL ... no branches, and no dependencies on any other values of i, or dependencies on changed values
-static inline void renderNoiseInnerLoopSample(
-                                              int f,int phaseIdx,int i,float cyclesPerSample,float pitchLocation,float p,float invSamples,
+//Data Parallelism starts here - I would like this to be like an OpenCL kernel over (i,phaseIdx)
+static inline float renderNoiseInnerLoopSample(
+                                              int i,float cyclesPerSample,float pitchLocation,float p,float invSamples,
                                               float currentVolume,float diffVolume, float currentExpr, float diffExpr)
 {
     float v = currentVolume + i * invSamples * (diffVolume);
@@ -337,29 +331,41 @@ static inline void renderNoiseInnerLoopSample(
     float cycles = i*cyclesPerSample + p;
     float cycleLocation = (cycles - (int)cycles); 
     int j = (int)(cycleLocation*WAVEMAX);
-    float unAliased = renderNoiseInnerLoopSampleMix(d,dNot, e,eNot, 
-                                                    pitchLocation,j);
-    allFingers._total[i][phaseIdx] += v * unAliased;
+    float unSquished = 
+        (_waveMix[j][0][1]*d + _waveMix[j][0][0]*dNot)*eNot + 
+        (_waveMix[j][1][1]*d + _waveMix[j][1][0]*dNot)*e;
+    float unAliased =  unSquished*(1-pitchLocation) + _waveFundamental[j]*(pitchLocation);
+    return v * unAliased;
 }
 
-static void renderNoiseInnerLoop(int f,int phaseIdx,float detune,unsigned long samples,float invSamples,
+static inline float renderNoiseInnerLoopInParallel(int unison,float notep,float detune,float pitchLocation,float p,
+                                                  unsigned long samples,float invSamples,float currentVolume,float diffVolume,float currentExpr,float diffExpr)
+{
+    float cyclesPerSample = powf(2,(notep-33+(1-currentExpr)*detune*(1-pitchLocation))/12) * (440/(44100.0 * 32));
+    for(int i=0; i<samples; i++)
+    {
+        allFingers._total[i][unison] += 
+            renderNoiseInnerLoopSample(i,cyclesPerSample,pitchLocation,p,invSamples,
+                                   currentVolume,diffVolume,currentExpr,diffExpr);
+    }
+    return (cyclesPerSample*samples) + p;
+}
+
+static void renderNoiseInnerLoop(int f,unsigned long samples,float invSamples,
                                         float currentVolume,float diffVolume, float currentExpr, float diffExpr)
 {
     float notep = allFingers.finger[f].pitchRamp.value;
     float pitchLocation = notep/127.0;
-    float p = allFingers.finger[f].phases[phaseIdx];
     //note 33 is our center pitch, and it's 440hz
     //powf exits out of here, but it's not per sample... 
-    float cyclesPerSample = powf(2,(notep-33+(1-currentExpr)*detune*(1-pitchLocation))/12) * (440/(44100.0 * 32));
-    for(int i=0; i<samples; i++)
+    for(int u=0; u<UNISONMAX; u++)
     {
-        renderNoiseInnerLoopSample(f,phaseIdx,i,cyclesPerSample,pitchLocation,p,invSamples,
-                                   currentVolume,diffVolume,currentExpr,diffExpr);
-    }         
-    allFingers.finger[f].phases[phaseIdx] = (cyclesPerSample*samples) + p;
+        float p = allFingers.finger[f].phases[u];
+        allFingers.finger[f].phases[u] = 
+            renderNoiseInnerLoopInParallel(u,notep,unisonDetune[u],pitchLocation,p,samples,invSamples,currentVolume,diffVolume,currentExpr,diffExpr);
+    }
 }
 
-//TRY TO NOT CALL OUT TO OUTSIDE WORLD FROM HERE
 static void renderNoise(long* dataL, long* dataR, unsigned long samples)
 {
     renderNoiseCleanAll(dataL,dataR,samples);
@@ -380,15 +386,7 @@ static void renderNoise(long* dataL, long* dataR, unsigned long samples)
         {
             activeFingers++;
             renderNoisePrepare(f);
-            renderNoiseInnerLoop(f,0,    0,samples, invSamples, currentVolume,diffVolume,currentExpr,diffExpr);
-            if(UNISONMAX>1)
-            {
-                renderNoiseInnerLoop(f,1, -0.2,samples, invSamples, currentVolume,diffVolume,currentExpr,diffExpr);
-                if(UNISONMAX>2)
-                {
-                    renderNoiseInnerLoop(f,2,  0.2,samples, invSamples, currentVolume,diffVolume,currentExpr,diffExpr);                
-                }                
-            }
+            renderNoiseInnerLoop(f,samples, invSamples, currentVolume,diffVolume,currentExpr,diffExpr);                
             allFingers.finger[f].volRamp.value = targetVolume;
             allFingers.finger[f].exprRamp.value = targetExpr;
         }
