@@ -13,7 +13,7 @@
 #import <AudioUnit/AudioOutputUnit.h>
 #import <AudioToolbox/AudioServices.h>
 #import <AVFoundation/AVFoundation.h>
-
+#import <Accelerate/Accelerate.h>
 
 #import "RawEngine.h"
 #include "FretlessCommon.h"
@@ -61,24 +61,49 @@ struct fingersData {
 float echoBufferL[ECHOBUFFERMAX];
 float echoBufferR[ECHOBUFFERMAX];
 //float compressor[FLOATRESOLUTION];
-float waveMix[2][2][WAVEMAX];
-float waveFundamental[WAVEMAX];
-float harmonicsTotal[2][2];
-float harmonics[2][2][HARMONICSMAX] =
+
+#define DIST 2
+#define EXPR 2
+float _harmonicsTotal[EXPR][DIST];
+float _harmonics[HARMONICSMAX][EXPR][DIST] =
 {
-    {
-        {16, 8, 4, 2, 0, 1, 0, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
-        },  
-        {0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
-        }
-    },
-    {
-        {8, 4, 1, 2, 0, 1, 0, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0           
-        },  
-        {0, 0, 0, 0, 0, 0, 0,-1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
-        }
-    },
+    {{16,0},{0,0}}, 
+    {{8,0},{0,0}}, 
+    {{4,0},{0,0}}, 
+    {{2,0},{0,0}}, 
+    {{0,0},{0,0}}, 
+    {{1,0},{0,0}}, 
+    {{0,0},{0,0}}, 
+    {{1,0},{1,0}}, 
+    {{0,0},{0,0}}, 
+    {{0,0},{0,0}}, 
+    {{0,0},{0,0}}, 
+    {{1,0},{0,0}}, 
+    {{0,0},{0,0}}, 
+    {{0,0},{0,0}}, 
+    {{0,0},{0,0}}, 
+    {{0,0},{0,0}}, 
+    {{0,0},{0,0}}, 
+    {{0,0},{0,0}}, 
+    {{0,0},{0,0}}, 
+    {{0,0},{0,0}}, 
+    {{0,0},{0,0}}, 
+    {{0,0},{0,0}}, 
+    {{0,0},{0,0}}, 
+    {{0,0},{0,0}}, 
+    {{0,0},{0,0}}, 
+    {{0,0},{0,0}}, 
+    {{0,0},{0,0}}, 
+    {{0,0},{0,0}}, 
+    {{0,0},{0,0}}, 
+    {{0,0},{0,0}}, 
+    {{0,0},{0,0}}, 
+    {{0,0},{0,0}}    
 };
+
+float waveMix[EXPR][DIST][WAVEMAX];
+float waveFundamental[WAVEMAX];
+
 
 int reverbDataL[REVERBECHOES] =
 {
@@ -97,26 +122,13 @@ float reverbStrength[REVERBECHOES] =
 
 static struct fingersData allFingers;
 
-static inline void copyRamp(struct ramp* dst, struct ramp* src)
-{
-    dst->stopValue = src->stopValue;
-    dst->slope = src->stopValue;
-    dst->value = src->value;
-}
-
 static void moveRamps(int dstFinger, int srcFinger)
 {
     if(srcFinger != dstFinger)
     {
-        copyRamp(&allFingers.finger[dstFinger].volRamp, &allFingers.finger[srcFinger].volRamp);
-        copyRamp(&allFingers.finger[dstFinger].pitchRamp, &allFingers.finger[srcFinger].pitchRamp);
-        copyRamp(&allFingers.finger[dstFinger].exprRamp, &allFingers.finger[srcFinger].exprRamp);
-        for(int i=0; i<UNISONMAX; i++)
-        {
-            allFingers.finger[dstFinger].phases[i] = allFingers.finger[srcFinger].phases[i];
-        }
+        bcopy(&allFingers.finger[srcFinger],&allFingers.finger[dstFinger],sizeof(struct fingerData));
         allFingers.finger[srcFinger].volRamp.value = 0;
-        allFingers.finger[srcFinger].volRamp.stopValue = 0;        
+        allFingers.finger[srcFinger].volRamp.stopValue = 0;     
     }
 }
 
@@ -151,21 +163,19 @@ static inline void doRamp(struct ramp* r,long sample)
 static void setExprMix()
 {
     //Compute the squared off versions of our waves (not yet normalized)
-    for(int expr=0; expr<2; expr++)
+    for(int expr=0; expr<EXPR; expr++)
     {
-        for(int harmonic=0; harmonic<HARMONICSMAX; harmonic++)
-        {
-            harmonics[1][expr][harmonic] = 0;                        
-        }
         //Convolute non distorted harmonics with square wave harmonics
+        //O(n^2) with respect to the number of harmonics, but it's only called on startup
         for(int harmonic=0; harmonic<HARMONICSMAX; harmonic++)
         {            
+            _harmonics[harmonic][expr][1] = 0;
             for(int squareHarmonic=0; squareHarmonic<HARMONICSMAX; squareHarmonic++)
             {
                 int s = squareHarmonic*2+1;
                 if(s<HARMONICSMAX)
                 {
-                    harmonics[1][expr][s] += harmonics[0][expr][harmonic] / s;                                                                    
+                    _harmonics[s][expr][1] += _harmonics[harmonic][expr][0] / s;                                                                    
                 }
             }
         }
@@ -173,26 +183,26 @@ static void setExprMix()
     
     
     //Normalize the harmonics
-    for(int dist=0; dist<2; dist++)
+    for(int dist=0; dist<DIST; dist++)
     {
-        for(int expr=0; expr<2; expr++)
+        for(int expr=0; expr<EXPR; expr++)
         {
-            harmonicsTotal[dist][expr] = 0;
+            _harmonicsTotal[expr][dist] = 0;
             for(int harmonic=0; harmonic<HARMONICSMAX; harmonic++)
             {
-                harmonicsTotal[dist][expr] += harmonics[dist][expr][harmonic];                
+                _harmonicsTotal[expr][dist] += _harmonics[harmonic][expr][dist];                
             }
             for(int harmonic=0; harmonic<HARMONICSMAX; harmonic++)
             {
-                harmonics[dist][expr][harmonic] /= harmonicsTotal[dist][expr];                
+                _harmonics[harmonic][expr][dist] /= _harmonicsTotal[expr][dist];                
             }
         }
     }  
     
     //Convolute into the wave buffers
-    for(int dist=0; dist<2; dist++)
+    for(int dist=0; dist<DIST; dist++)
     {
-        for(int expr=0; expr<2; expr++)
+        for(int expr=0; expr<EXPR; expr++)
         {
             for(int sample=0; sample<WAVEMAX; sample++)
             {
@@ -202,7 +212,7 @@ static void setExprMix()
             for(int harmonic=0; harmonic<HARMONICSMAX; harmonic++)
             {
                 float h = harmonic+1;
-                float v = harmonics[dist][expr][harmonic];
+                float v = _harmonics[harmonic][expr][dist];
                 for(int sample=0; sample<WAVEMAX; sample++)
                 {
                     waveMix[dist][expr][sample] += sinf(h * sample * 2.0 * M_PI / WAVEMAX) * v;
@@ -210,14 +220,6 @@ static void setExprMix()
             }
         }
     }
-    
-    //Set up the compressor function  -1 .. 1
-    /*
-    for(int v=0; v<FLOATRESOLUTION; v++)
-    {
-        compressor[v] = atanf( (v*2.0/FLOATRESOLUTION - 1) * 5 )/(M_PI/2);
-    }
-     */
 }
 
 static void audioSessionInterruptionCallback(void *inUserData, UInt32 interruptionState) {
@@ -257,14 +259,14 @@ static inline void renderNoiseCleanAll(long* dataL, long* dataR,unsigned long sa
 {
     for(int phaseIdx=0; phaseIdx<UNISONMAX; phaseIdx++)
     {
-        
+        /*
         for(int i=0; i<samples; i++)
         {
             allFingers.total[phaseIdx][i] = 0;
-        }
+        }*/
          
-        //Huh?  Is the inlining causing the latency?
-        //bzero(allFingers.total[phaseIdx],sizeof(float)*samples);
+        //Huh?  Is the inlining causing the latency?  Isn't this a vector operation internally?
+        bzero(allFingers.total[phaseIdx],sizeof(float)*samples);        
     }    
 }
 
