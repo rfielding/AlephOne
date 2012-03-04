@@ -14,8 +14,6 @@
 #import <AudioToolbox/AudioServices.h>
 #import <AVFoundation/AVFoundation.h>
 #import <Accelerate/Accelerate.h>
-
-
 #import "RawEngine.h"
 #import "RawEngineGenerated.h"
 #include "FretlessCommon.h"
@@ -30,6 +28,20 @@ AudioComponentInstance audioUnit;
 AudioStreamBasicDescription audioFormat;
 static const float kSampleRate = 44100.0;
 static const unsigned int kOutputBus = 0;
+
+static void audioSessionInterruptionCallback(void *inUserData, UInt32 interruptionState) {
+    if (interruptionState == kAudioSessionEndInterruption) {
+        AudioSessionSetActive(YES);
+        AudioOutputUnitStart(audioUnit);
+    }
+    
+    if (interruptionState == kAudioSessionBeginInterruption) {
+        AudioOutputUnitStop(audioUnit);
+    }
+}
+
+
+
 
 
 
@@ -164,8 +176,10 @@ static inline void doRamp(struct ramp* r,long sample)
    And convoluted into waveMix, where the intent is to
    use weighted sums of the 4 possible waves.
  */
-static void setExprMix()
+static void initNoise()
 {
+    bzero(echoBuffer,AUDIOCHANNELS*sizeof(float)*ECHOBUFFERMAX);
+    
     for(int i=0; i<SAMPLESMAX; i++)
     {
         sampleIndexArray[i] = i;
@@ -231,23 +245,6 @@ static void setExprMix()
     }
 }
 
-static void audioSessionInterruptionCallback(void *inUserData, UInt32 interruptionState) {
-    if (interruptionState == kAudioSessionEndInterruption) {
-        AudioSessionSetActive(YES);
-        AudioOutputUnitStart(audioUnit);
-    }
-    
-    if (interruptionState == kAudioSessionBeginInterruption) {
-        AudioOutputUnitStop(audioUnit);
-    }
-}
-
-static void initNoise()
-{
-    setExprMix();
-    bzero(echoBuffer,AUDIOCHANNELS*sizeof(float)*ECHOBUFFERMAX);
-}
-
 //An O(1) operation
 static inline void renderNoisePrepare(int f)
 {
@@ -263,9 +260,12 @@ static inline void renderNoisePrepare(int f)
     doRamp(&allFingers.finger[f].pitchRamp,allFingers.sampleCount);    
 }
 
-static inline void renderNoiseCleanAll(long* dataL, long* dataR,unsigned long samples)
+static inline void renderNoiseCleanAll(unsigned long samples)
 {
-    vDSP_vclr((float*)allFingers.total,1,UNISONMAX*samples);
+    for(int u=0; u<UNISONMAX; u++)
+    {
+        vDSP_vclr(allFingers.total[u],1,samples);        
+    }
 }
 
 static inline void reverbConvolute(long* dataL, long* dataR,unsigned long samples)
@@ -297,10 +297,6 @@ static inline void reverbConvolute(long* dataL, long* dataR,unsigned long sample
 
 static inline float compress(float f)
 {
-    //TODO: a fast atan approximation that doesn't call outside of here.
-    // latency seems to be the issue here (not throughput)
-    //return compressor[f>=1 ? (FLOATRESOLUTION-1) : ((f <= -1) ? 0 : (int)((f+1)*(FLOATRESOLUTION/2)))];
-    
     return atanf(f * 2);
 }
 
@@ -312,11 +308,10 @@ static inline void renderNoiseToBuffer(unsigned long samples,unsigned long sc)
         for(int i=0; i<samples; i++)
         {
             //Is the atanf bad?
-            float valL = compress(allFingers.total[phaseIdx][i]);
-            float valR = valL;
+            float val = compress(allFingers.total[phaseIdx][i]);
             int n = (i+sc)%ECHOBUFFERMAX;
-            echoBuffer[n][0] += valL;
-            echoBuffer[n][1] += valR;
+            echoBuffer[n][0] += val;
+            echoBuffer[n][1] += val;
         }
     }    
 }
@@ -331,15 +326,20 @@ static void renderNoiseInnerLoop(int f,unsigned long samples,float invSamples,
     //powf exits out of here, but it's not per sample... 
     for(int u=0; u<UNISONMAX; u++)
     {
-        float p = allFingers.finger[f].phases[u];
+        float phase = allFingers.finger[f].phases[u];
         allFingers.finger[f].phases[u] = 
-            renderNoiseInnerLoopInParallel(allFingers.total[u],notep,unisonDetune[u],pitchLocation,p,samples,invSamples,currentVolume,diffVolume*invSamples,currentExpr,diffExpr*invSamples);
+            renderNoiseInnerLoopInParallel(
+                                           allFingers.total[u],notep,unisonDetune[u],
+                                           pitchLocation,phase,
+                                           samples,invSamples,
+                                           currentVolume,diffVolume*invSamples,
+                                           currentExpr,diffExpr*invSamples);
     }
 }
 
 static void renderNoise(long* dataL, long* dataR, unsigned long samples)
 {
-    renderNoiseCleanAll(dataL,dataR,samples);
+    renderNoiseCleanAll(samples);
     int activeFingers=0;
     float invSamples = 1.0/samples;
     //Go in channel major order because we skip by volume

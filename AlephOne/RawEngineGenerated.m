@@ -97,12 +97,17 @@ static inline void renderNoiseComputeE(float currentExpr, float deltaExpr, unsig
 /**
  Good God!  This is assembly language.
  */
-float renderNoiseInnerLoopInParallel(float* output,float notep,float detune,float pitchLocation,float p,
-                                                   unsigned long samples,float invSamples,float currentVolume,float deltaVolume,float currentExpr,float deltaExpr)
+float renderNoiseInnerLoopInParallel(
+                                     float* output,
+                                     float notep,float detune,
+                                     float pitchLocation,float phase,
+                                     unsigned long samples,float invSamples,
+                                     float currentVolume,float deltaVolume,
+                                     float currentExpr,float deltaExpr)
 {
     float cyclesPerSample = powf(2,(notep-33+(1-currentExpr)*detune*(1-pitchLocation))/12) * (440/(44100.0 * 32));
     
-    renderNoiseComputeWaveIndexJ(p,cyclesPerSample, samples);
+    renderNoiseComputeWaveIndexJ(phase,cyclesPerSample, samples);
     renderNoiseComputeV(currentVolume, deltaVolume, samples);    
     renderNoiseComputeE(currentExpr, deltaExpr, samples);
     
@@ -137,5 +142,5 @@ float renderNoiseInnerLoopInParallel(float* output,float notep,float detune,floa
     vDSP_vmul(unSquishedTotalArray,1, vArray,1, unSquishedTotalArray,1, samples);
     
     vDSP_vadd(output,1, unSquishedTotalArray,1, output,1, samples);
-    return (cyclesPerSample*samples) + p;
+    return (cyclesPerSample*samples) + phase;
 }
