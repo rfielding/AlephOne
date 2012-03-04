@@ -26,6 +26,7 @@
 #define DIST 2
 #define EXPR 2
 #define AUDIOCHANNELS 2
+#define SAMPLESMAX 1024
 
 AudioComponentInstance audioUnit;
 AudioStreamBasicDescription audioFormat;
@@ -318,36 +319,87 @@ static inline void renderNoiseToBuffer(unsigned long samples,unsigned long sc)
     }    
 }
 
-//Data Parallelism starts here - I would like this to be like an OpenCL kernel over (i,phaseIdx)
-static inline float renderNoiseInnerLoopSample(
-                                              int i,float cyclesPerSample,float pitchLocation,float p,float invSamples,
-                                              float currentVolume,float diffVolume, float currentExpr, float diffExpr)
-{
-    float v = currentVolume + i * invSamples * (diffVolume);
-    float e = currentExpr + i * invSamples * (diffExpr);
-    float eNot = (1-e);
-    float d = eNot*eNot;
-    float dNot = (1-d);
-    float cycles = i*cyclesPerSample + p;
-    float cycleLocation = (cycles - (int)cycles); 
-    int j = (int)(cycleLocation*WAVEMAX);
-    float unSquished = 
-        (_waveMix[j][0][1]*d + _waveMix[j][0][0]*dNot)*eNot + 
-        (_waveMix[j][1][1]*d + _waveMix[j][1][0]*dNot)*e;
-    float unAliased =  unSquished*(1-pitchLocation) + _waveFundamental[j]*(pitchLocation);
-    return v * unAliased;
-}
+
+float cyclesArray[SAMPLESMAX];
+float cyclesIntArray[SAMPLESMAX];
+float cyclesLocation[SAMPLESMAX];
+int   jLocation[SAMPLESMAX];
+float vArray[SAMPLESMAX];
+float eArray[SAMPLESMAX];
+float eNotArray[SAMPLESMAX];
+float dArray[SAMPLESMAX];
+float dNotArray[SAMPLESMAX];
+float unSquishedPartArray[SAMPLESMAX];
+float unSquishedTotalArray[SAMPLESMAX];
+float fundamentalArray[SAMPLESMAX];
+
+
+
+#define SAMPLEINPARALLEL(samples,statement) for(int i=0; i<samples; i++) { statement; }
 
 static inline float renderNoiseInnerLoopInParallel(int unison,float notep,float detune,float pitchLocation,float p,
                                                   unsigned long samples,float invSamples,float currentVolume,float diffVolume,float currentExpr,float diffExpr)
 {
     float cyclesPerSample = powf(2,(notep-33+(1-currentExpr)*detune*(1-pitchLocation))/12) * (440/(44100.0 * 32));
-    for(int i=0; i<samples; i++)
-    {
-        allFingers._total[i][unison] += 
-            renderNoiseInnerLoopSample(i,cyclesPerSample,pitchLocation,p,invSamples,
-                                   currentVolume,diffVolume,currentExpr,diffExpr);
-    }
+    
+    SAMPLEINPARALLEL(samples, cyclesArray[i]  = i);
+    SAMPLEINPARALLEL(samples, cyclesArray[i] *= cyclesPerSample);
+    SAMPLEINPARALLEL(samples, cyclesArray[i] += p);
+    
+    SAMPLEINPARALLEL(samples, cyclesIntArray[i]  = (int)cyclesArray[i]);
+    SAMPLEINPARALLEL(samples, cyclesLocation[i]  = cyclesArray[i]);
+    SAMPLEINPARALLEL(samples, cyclesLocation[i] -= cyclesIntArray[i]);
+    SAMPLEINPARALLEL(samples, cyclesLocation[i] *= WAVEMAX);
+    SAMPLEINPARALLEL(samples, jLocation[i]       = (int)cyclesLocation[i]);
+    
+    SAMPLEINPARALLEL(samples, vArray[i]  = i);
+    SAMPLEINPARALLEL(samples, vArray[i] *= invSamples);
+    SAMPLEINPARALLEL(samples, vArray[i] *= diffVolume);
+    SAMPLEINPARALLEL(samples, vArray[i] += currentVolume);
+    
+    SAMPLEINPARALLEL(samples, eArray[i]  = i);
+    SAMPLEINPARALLEL(samples, eArray[i] *= invSamples);
+    SAMPLEINPARALLEL(samples, eArray[i] *= diffExpr);
+    SAMPLEINPARALLEL(samples, eArray[i] += currentExpr);
+    
+    SAMPLEINPARALLEL(samples, eNotArray[i]  = 1);
+    SAMPLEINPARALLEL(samples, eNotArray[i] -= eArray[i]);
+    
+    SAMPLEINPARALLEL(samples, dArray[i]  = eNotArray[i]);
+    SAMPLEINPARALLEL(samples, dArray[i] *= dArray[i]);
+    
+    SAMPLEINPARALLEL(samples, dNotArray[i]  = 1);
+    SAMPLEINPARALLEL(samples, dNotArray[i] -= dArray[i]);
+    
+    SAMPLEINPARALLEL(samples, unSquishedPartArray[i]   = dArray[i]);
+    SAMPLEINPARALLEL(samples, unSquishedPartArray[i]  *= _waveMix[jLocation[i]][0][1]);
+    SAMPLEINPARALLEL(samples, unSquishedTotalArray[i]  = unSquishedPartArray[i]);
+    
+    SAMPLEINPARALLEL(samples, unSquishedPartArray[i]   = dNotArray[i]);
+    SAMPLEINPARALLEL(samples, unSquishedPartArray[i]  *= _waveMix[jLocation[i]][0][0]);
+    SAMPLEINPARALLEL(samples, unSquishedTotalArray[i] += unSquishedPartArray[i]);
+    
+    SAMPLEINPARALLEL(samples, eNotArray[i] *= unSquishedTotalArray[i]); //because it's not used again
+    
+    SAMPLEINPARALLEL(samples, unSquishedPartArray[i]   = dArray[i]);
+    SAMPLEINPARALLEL(samples, unSquishedPartArray[i]  *= _waveMix[jLocation[i]][1][1]);
+    SAMPLEINPARALLEL(samples, unSquishedTotalArray[i]  = unSquishedPartArray[i]);
+    
+    SAMPLEINPARALLEL(samples, unSquishedPartArray[i]   = dNotArray[i]);
+    SAMPLEINPARALLEL(samples, unSquishedPartArray[i]  *= _waveMix[jLocation[i]][1][0]);
+    SAMPLEINPARALLEL(samples, unSquishedTotalArray[i] += unSquishedPartArray[i]);
+    
+    SAMPLEINPARALLEL(samples, eArray[i] *= unSquishedTotalArray[i]); //because it's not used again
+    
+    SAMPLEINPARALLEL(samples, unSquishedTotalArray[i] += eNotArray[i]);
+    
+    SAMPLEINPARALLEL(samples, unSquishedTotalArray[i] *= (1-pitchLocation));
+    SAMPLEINPARALLEL(samples, fundamentalArray[i]  = _waveFundamental[jLocation[i]]);
+    SAMPLEINPARALLEL(samples, fundamentalArray[i] *= pitchLocation);
+    SAMPLEINPARALLEL(samples, unSquishedTotalArray[i] += fundamentalArray[i]);
+    SAMPLEINPARALLEL(samples, unSquishedTotalArray[i] *= vArray[i]);
+    
+    SAMPLEINPARALLEL(samples, allFingers._total[i][unison] += unSquishedTotalArray[i]);
     return (cyclesPerSample*samples) + p;
 }
 
