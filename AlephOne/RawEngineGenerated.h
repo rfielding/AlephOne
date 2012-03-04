@@ -19,7 +19,7 @@ float sampleIndexArray[SAMPLESMAX];
 float renderNoiseInnerLoopInParallel(
                                      float* output,
                                      float notep,float detune,
-                                     float pitchLocation,float p,
+                                     float pitchLocation,float phase,
                                      unsigned long samples,float invSamples,
                                      float currentVolume,float deltaVolume,
                                      float currentExpr,float deltaExpr);

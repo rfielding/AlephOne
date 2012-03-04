@@ -116,7 +116,6 @@ float _harmonics[HARMONICSMAX][EXPR][DIST] =
 };
 
 
-
 int reverbData[REVERBECHOES][AUDIOCHANNELS] =
 {
     {1131,419}, 

@@ -1,0 +1,152 @@
+#!/usr/bin/python
+import fileinput
+import sys
+
+#
+#A recursive descent parser for LISP to generate vDSP code
+#
+
+##
+## Parsing utilities to read char by char with lookahead of 1
+##
+
+#Consume a file and allow bytes to be pushed back
+class Reader:
+
+  def __init__(self,fname):
+    self.pushedChars = []
+    self.file = open(fname,'r')
+    self.tokens = []
+    self.subtokens = None
+    self.originalText = []
+
+  def __iter__(self):
+    return self
+
+  def next(self):
+    if len(self.pushedChars)>0:
+      c = self.pushedChars.pop()
+    else:
+      c = self.file.read(1)
+      if not c:
+        self.file.close()
+        raise StopIteration
+      else:
+        self.originalText.append(c) 
+    return c
+
+  def prev(self,c):
+    self.pushedChars.append(c)
+
+
+##
+## This is a specific compiler for our LISP variant
+##
+class DSPLisp:
+
+  def __init__(self,reader):
+    self.reader = reader
+    self.tokens = []
+    self.STARTSTATEMENT=1
+    self.STOPSTATEMENT=2
+    self.assembler = []
+
+  def isTokenChar(self,c):
+    return (c=='_') or ('a' <= c <= 'z') or ('A' <= c <= 'Z') or ('0' <= c <= '9')
+
+  def openToken(self,chars):
+    c = self.reader.next()
+    if self.isTokenChar(c):
+      chars.append(c)
+      self.openToken(chars)
+    else:
+      token = "".join(chars)
+      self.tokens.append(token)
+      self.reader.prev(c)
+      self.findStatement()
+
+  # Look for the beginning of a statement
+  def findStatement(self):
+    try:
+      c = self.reader.next()
+    except StopIteration:
+      return self.tokens
+    if c=='(':
+      self.tokens.append(self.STARTSTATEMENT)
+      self.findStatement()
+    elif c==')':
+      self.tokens.append(self.STOPSTATEMENT)
+      self.findStatement()
+    elif self.isTokenChar(c):
+      self.openToken([c])
+    else:
+      self.findStatement()
+
+  def tokenize(self):
+    self.findStatement()
+
+  def parseContinue(self):
+    n=0
+    while(True):
+      if n >= len(self.tokens):
+        return False
+      elif self.tokens[n]==self.STARTSTATEMENT:
+        lastStart=n
+      elif self.tokens[n]==self.STOPSTATEMENT:
+        lastStop=n
+        matched = self.tokens[lastStart+1:lastStop]
+        matched.append("accumulator")
+        front = self.tokens[0:lastStart]
+        back = self.tokens[lastStop+1:]
+        self.tokens = front+back
+        self.assembler.append(matched)
+        return True
+      n=n+1
+    return True,lastStart
+
+  def parse(self):
+    more=True
+    while more:
+      more = self.parseContinue()
+
+  def generateVGeneric(self,type,instruction):
+    idx = "length";
+    if len(instruction)==3:
+      instruction.append("accumulator")
+    line="vDSP_v{0}({1},1,{2},1,{3},1,{4});".format(type,instruction[1],instruction[2],instruction[3],idx)
+    print(line)
+
+  def generateAdd(self,instruction):
+    self.generateVGeneric("add",instruction)
+
+  def generateSub(self,instruction):
+    self.generateVGeneric("sub",instruction)
+
+  def generateMul(self,instruction):
+    self.generateVGeneric("mul",instruction)
+
+  def generateSet(self,instruction):
+    idx = "length";
+    line="xDSP_vcp({1},{0},{2});".format(instruction[1],instruction[2],idx)
+    print(line);
+ 
+  def generate(self):
+    print("/*" + "".join(self.reader.originalText) + "*/");
+    for instruction in self.assembler:
+      if   instruction[0]=="vadd":
+        self.generateAdd(instruction) 
+      elif instruction[0]=="vsub":
+        self.generateSub(instruction) 
+      elif instruction[0]=="vmul":
+        self.generateMul(instruction) 
+      elif instruction[0]=="vset":
+        self.generateSet(instruction)
+
+  def compile(self):
+    self.tokenize()
+    self.parse()
+    self.generate()
+
+#Open up the file to be eaten character by character
+compiler=DSPLisp(Reader(sys.argv[1]))
+compiler.compile()

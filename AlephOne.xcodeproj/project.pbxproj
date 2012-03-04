@@ -72,6 +72,7 @@
 		49DE52BE14DB7EF400970F58 /* AVFoundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 49DE52BD14DB7EF400970F58 /* AVFoundation.framework */; };
 		49EBD7481502F7A400E50DCA /* Accelerate.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 49EBD7471502F7A400E50DCA /* Accelerate.framework */; };
 		49EBD74A1503535000E50DCA /* RawEngineGenerated.m in Sources */ = {isa = PBXBuildFile; fileRef = 49EBD7491503535000E50DCA /* RawEngineGenerated.m */; };
+		49EBD74D15035C9700E50DCA /* RawEngine.dsp in Resources */ = {isa = PBXBuildFile; fileRef = 49EBD74C15035C9700E50DCA /* RawEngine.dsp */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -178,6 +179,7 @@
 		49EBD7471502F7A400E50DCA /* Accelerate.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Accelerate.framework; path = System/Library/Frameworks/Accelerate.framework; sourceTree = SDKROOT; };
 		49EBD7491503535000E50DCA /* RawEngineGenerated.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = RawEngineGenerated.m; sourceTree = "<group>"; };
 		49EBD74B1503547D00E50DCA /* RawEngineGenerated.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RawEngineGenerated.h; sourceTree = "<group>"; };
+		49EBD74C15035C9700E50DCA /* RawEngine.dsp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = RawEngine.dsp; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -261,6 +263,7 @@
 				49DE52B414DB771500970F58 /* RawEngine.m */,
 				49EBD7491503535000E50DCA /* RawEngineGenerated.m */,
 				49EBD74B1503547D00E50DCA /* RawEngineGenerated.h */,
+				49EBD74C15035C9700E50DCA /* RawEngine.dsp */,
 			);
 			name = ProjectAgnostic;
 			sourceTree = "<group>";
@@ -484,6 +487,7 @@
 				49691AD214B0DD6E009AB83D /* note-6.png in Resources */,
 				49691AD314B0DD6E009AB83D /* note-8.png in Resources */,
 				49691AD414B0DD6E009AB83D /* note-10.png in Resources */,
+				49EBD74D15035C9700E50DCA /* RawEngine.dsp in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
