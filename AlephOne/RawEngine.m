@@ -60,6 +60,8 @@ struct fingersData {
     int   otherChannel;
 };
 
+float sampleIndexArray[SAMPLESMAX];
+
 float echoBuffer[ECHOBUFFERMAX][AUDIOCHANNELS];
 
 float unisonDetune[UNISONMAX] = {
@@ -169,6 +171,11 @@ static inline void doRamp(struct ramp* r,long sample)
  */
 static void setExprMix()
 {
+    for(int i=0; i<SAMPLESMAX; i++)
+    {
+        sampleIndexArray[i] = i;
+    }
+    
     //Compute the squared off versions of our waves (not yet normalized)
     for(int expr=0; expr<EXPR; expr++)
     {
@@ -320,6 +327,18 @@ static inline void renderNoiseToBuffer(unsigned long samples,unsigned long sc)
 }
 
 
+
+
+
+
+#define SAMPLEINPARALLEL(samples,statement) for(int i=0; i<samples; i++) { statement; }
+
+static inline void xDSP_vcp(float* src,float* dst,int count)
+{
+    memcpy(dst,src,count*sizeof(float));
+}
+
+
 float cyclesArray[SAMPLESMAX];
 float cyclesIntArray[SAMPLESMAX];
 float cyclesLocation[SAMPLESMAX];
@@ -334,72 +353,82 @@ float unSquishedTotalArray[SAMPLESMAX];
 float fundamentalArray[SAMPLESMAX];
 
 
-
-#define SAMPLEINPARALLEL(samples,statement) for(int i=0; i<samples; i++) { statement; }
-
+/**
+ Good God!  This is assembly language.
+ */
 static inline float renderNoiseInnerLoopInParallel(int unison,float notep,float detune,float pitchLocation,float p,
                                                   unsigned long samples,float invSamples,float currentVolume,float diffVolume,float currentExpr,float diffExpr)
 {
     float cyclesPerSample = powf(2,(notep-33+(1-currentExpr)*detune*(1-pitchLocation))/12) * (440/(44100.0 * 32));
     
-    SAMPLEINPARALLEL(samples, cyclesArray[i]  = i);
-    SAMPLEINPARALLEL(samples, cyclesArray[i] *= cyclesPerSample);
-    SAMPLEINPARALLEL(samples, cyclesArray[i] += p);
+    xDSP_vcp(sampleIndexArray,cyclesArray,samples); 
+    vDSP_vsmul(cyclesArray,1,&cyclesPerSample,cyclesArray,1,samples);
+    vDSP_vsadd(cyclesArray,1,&p,cyclesArray,1,samples);
     
     SAMPLEINPARALLEL(samples, cyclesIntArray[i]  = (int)cyclesArray[i]);
-    SAMPLEINPARALLEL(samples, cyclesLocation[i]  = cyclesArray[i]);
-    SAMPLEINPARALLEL(samples, cyclesLocation[i] -= cyclesIntArray[i]);
-    SAMPLEINPARALLEL(samples, cyclesLocation[i] *= WAVEMAX);
+    xDSP_vcp(cyclesArray,cyclesLocation,samples);
+    
+    float negone=-1;
+
+    vDSP_vsmul(cyclesIntArray,1,&negone,cyclesIntArray,1,samples);
+    vDSP_vadd(cyclesLocation,1,cyclesIntArray,1,cyclesLocation,1,samples);
+    
+    float wavemax=WAVEMAX;
+    vDSP_vsmul(cyclesLocation,1,&wavemax,cyclesLocation,1,samples);
+    
     SAMPLEINPARALLEL(samples, jLocation[i]       = (int)cyclesLocation[i]);
+             
+    xDSP_vcp(sampleIndexArray,vArray,samples);    
+    vDSP_vsmul(vArray,1,&invSamples,vArray,1,samples);
+    vDSP_vsmul(vArray,1,&diffVolume,vArray,1,samples);
+    vDSP_vsadd(vArray,1,&currentVolume,vArray,1,samples);    
+    xDSP_vcp(sampleIndexArray,eArray,samples);    
+    vDSP_vsmul(eArray,1,&invSamples,eArray,1,samples);
+    vDSP_vsmul(eArray,1,&diffExpr,eArray,1,samples);
+    vDSP_vsmul(eArray,1,&currentExpr,eArray,1,samples);
+
+    float one=1;
     
-    SAMPLEINPARALLEL(samples, vArray[i]  = i);
-    SAMPLEINPARALLEL(samples, vArray[i] *= invSamples);
-    SAMPLEINPARALLEL(samples, vArray[i] *= diffVolume);
-    SAMPLEINPARALLEL(samples, vArray[i] += currentVolume);
+    vDSP_vfill(&one,eNotArray,1,samples);
+    vDSP_vsub(eNotArray,1,eArray,1,eNotArray,1,samples);    
+    xDSP_vcp(eNotArray,dArray,samples);
     
-    SAMPLEINPARALLEL(samples, eArray[i]  = i);
-    SAMPLEINPARALLEL(samples, eArray[i] *= invSamples);
-    SAMPLEINPARALLEL(samples, eArray[i] *= diffExpr);
-    SAMPLEINPARALLEL(samples, eArray[i] += currentExpr);
+    vDSP_vsq(dArray,1,dArray,1,samples);    
+    vDSP_vfill(&one,dNotArray,1,samples);
+    vDSP_vsub(dNotArray,1, dArray,1, dNotArray,1, samples);
     
-    SAMPLEINPARALLEL(samples, eNotArray[i]  = 1);
-    SAMPLEINPARALLEL(samples, eNotArray[i] -= eArray[i]);
-    
-    SAMPLEINPARALLEL(samples, dArray[i]  = eNotArray[i]);
-    SAMPLEINPARALLEL(samples, dArray[i] *= dArray[i]);
-    
-    SAMPLEINPARALLEL(samples, dNotArray[i]  = 1);
-    SAMPLEINPARALLEL(samples, dNotArray[i] -= dArray[i]);
-    
-    SAMPLEINPARALLEL(samples, unSquishedPartArray[i]   = dArray[i]);
+    xDSP_vcp(dArray,unSquishedPartArray,samples);
+        
     SAMPLEINPARALLEL(samples, unSquishedPartArray[i]  *= _waveMix[jLocation[i]][0][1]);
-    SAMPLEINPARALLEL(samples, unSquishedTotalArray[i]  = unSquishedPartArray[i]);
+    xDSP_vcp(unSquishedPartArray,unSquishedTotalArray,samples);
     
-    SAMPLEINPARALLEL(samples, unSquishedPartArray[i]   = dNotArray[i]);
+    xDSP_vcp(dNotArray,unSquishedPartArray,samples);
+    
     SAMPLEINPARALLEL(samples, unSquishedPartArray[i]  *= _waveMix[jLocation[i]][0][0]);
-    SAMPLEINPARALLEL(samples, unSquishedTotalArray[i] += unSquishedPartArray[i]);
+    ////SAMPLEINPARALLEL(samples, unSquishedTotalArray[i] += unSquishedPartArray[i]);
+    vDSP_vadd(unSquishedTotalArray,1, unSquishedPartArray,1, unSquishedTotalArray,1, samples);
     
-    SAMPLEINPARALLEL(samples, eNotArray[i] *= unSquishedTotalArray[i]); //because it's not used again
-    
-    SAMPLEINPARALLEL(samples, unSquishedPartArray[i]   = dArray[i]);
+    vDSP_vmul(eNotArray,1, unSquishedTotalArray,1, eNotArray,1, samples);
+    xDSP_vcp(dArray,unSquishedPartArray,samples);
     SAMPLEINPARALLEL(samples, unSquishedPartArray[i]  *= _waveMix[jLocation[i]][1][1]);
-    SAMPLEINPARALLEL(samples, unSquishedTotalArray[i]  = unSquishedPartArray[i]);
+    xDSP_vcp(unSquishedPartArray,unSquishedTotalArray, samples);
     
-    SAMPLEINPARALLEL(samples, unSquishedPartArray[i]   = dNotArray[i]);
+    xDSP_vcp(dNotArray, unSquishedPartArray, samples);
+    
     SAMPLEINPARALLEL(samples, unSquishedPartArray[i]  *= _waveMix[jLocation[i]][1][0]);
-    SAMPLEINPARALLEL(samples, unSquishedTotalArray[i] += unSquishedPartArray[i]);
+    vDSP_vadd(unSquishedTotalArray,1, unSquishedPartArray,1, unSquishedTotalArray,1, samples);    
+    vDSP_vmul(eArray,1, unSquishedTotalArray,1, eArray,1, samples);
+    vDSP_vadd(unSquishedTotalArray,1, eNotArray,1, unSquishedTotalArray,1, samples);
     
-    SAMPLEINPARALLEL(samples, eArray[i] *= unSquishedTotalArray[i]); //because it's not used again
+    float pitchLocationNot=(1-pitchLocation);
+    vDSP_vsmul(unSquishedTotalArray,1,&pitchLocationNot,unSquishedTotalArray,1,samples);
     
-    SAMPLEINPARALLEL(samples, unSquishedTotalArray[i] += eNotArray[i]);
-    
-    SAMPLEINPARALLEL(samples, unSquishedTotalArray[i] *= (1-pitchLocation));
     SAMPLEINPARALLEL(samples, fundamentalArray[i]  = _waveFundamental[jLocation[i]]);
-    SAMPLEINPARALLEL(samples, fundamentalArray[i] *= pitchLocation);
-    SAMPLEINPARALLEL(samples, unSquishedTotalArray[i] += fundamentalArray[i]);
-    SAMPLEINPARALLEL(samples, unSquishedTotalArray[i] *= vArray[i]);
+    vDSP_vsmul(fundamentalArray,1,&pitchLocation,fundamentalArray,1,samples);
+    vDSP_vadd(fundamentalArray,1, unSquishedPartArray,1, unSquishedPartArray,1, samples);
+    vDSP_vmul(unSquishedTotalArray,1, vArray,1, unSquishedTotalArray,1, samples);
     
-    SAMPLEINPARALLEL(samples, allFingers._total[i][unison] += unSquishedTotalArray[i]);
+    vDSP_vadd(((float*)allFingers._total+unison),2, unSquishedTotalArray,1, ((float*)allFingers._total+unison),2, samples);
     return (cyclesPerSample*samples) + p;
 }
 
