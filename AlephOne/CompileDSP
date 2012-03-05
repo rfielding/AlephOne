@@ -95,8 +95,10 @@ class DSPLisp:
       elif self.tokens[n]==self.STOPSTATEMENT:
         lastStop=n
         matched = self.tokens[lastStart+1:lastStop]
-        matched.append("accumulator")
+        accumulatorName = "accumulator{0}".format(lastStart)
+        matched.append(accumulatorName)
         front = self.tokens[0:lastStart]
+        front.append(accumulatorName)
         back = self.tokens[lastStop+1:]
         self.tokens = front+back
         self.assembler.append(matched)
@@ -111,15 +113,11 @@ class DSPLisp:
 
   def generateVGeneric(self,type,instruction):
     idx = "length";
-    if len(instruction)==3:
-      instruction.append("accumulator")
     line="vDSP_v{0}({1},1,{2},1,{3},1,{4});".format(type,instruction[1],instruction[2],instruction[3],idx)
     print(line)
 
   def generateGeneric(self,type,instruction):
     idx = "length";
-    if len(instruction)==3:
-      instruction.append("accumulator")
     line="vDSP_vs{0}({1},1,&{2},{3},1,{4});".format(type,instruction[1],instruction[2],instruction[3],idx)
     print(line)
 
