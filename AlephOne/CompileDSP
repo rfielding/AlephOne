@@ -273,6 +273,9 @@ class DSPLisp:
   def generateMul(self,instruction):
     self.generateGeneric("vsmul",instruction)
 
+  def generateFrac(self,instruction):
+    self.generateGeneric("vfrac",instruction)
+
   def generate(self):
     print("/*" + "".join(self.reader.originalText) + "*/");
     for instruction in self.assembler:
@@ -290,6 +293,8 @@ class DSPLisp:
         self.generateSub(instruction)
       elif instruction[0]=="vsmul":
         self.generateMul(instruction)
+      elif instruction[0]=="frac":
+        self.generateFrac(instruction)
       elif instruction[0]=="in":
         pass
       elif instruction[0]=="out":
