@@ -12,9 +12,11 @@ import sys
 # The language we parse is a LISP variant that looks like this:
 #
 #( do
-#  (vset output  (vadd (vmul w0 w1) (mul w2 w3)))
+#  (in w0 w1 w3 w3 a x y0 y1 c y2 sy3)
+#  (vset output  (vadd (vmul w0 w1) (vsmul w2 w3)))
 #  (vset output1 (vadd a (vmul x (vadd y0 y1))))
-#  (vset output2 (vadd c (vmul output1 (add y2 sy3))))
+#  (vset output2 (vadd c (vmul output1 (vsadd y2 sy3))))
+#  (out output2)
 #)
 #
 #The whole point of doing this is so that we can keep modifying this
@@ -67,6 +69,7 @@ class DSPLisp:
     self.STARTSTATEMENT=1
     self.STOPSTATEMENT=2
     self.assembler = []
+    self.nextAccumulator = 0
 
   def isTokenChar(self,c):
     return (c=='_') or ('a' <= c <= 'z') or ('A' <= c <= 'Z') or ('0' <= c <= '9')
@@ -112,7 +115,8 @@ class DSPLisp:
       elif self.tokens[n]==self.STOPSTATEMENT:
         lastStop=n
         matched = self.tokens[lastStart+1:lastStop]
-        accumulatorName = "accumulator{0}".format(lastStart)
+        accumulatorName = "accumulator{0}".format(self.nextAccumulator)
+        self.nextAccumulator = self.nextAccumulator + 1 
         matched.append(accumulatorName)
         front = self.tokens[0:lastStart]
         front.append(accumulatorName)
@@ -162,23 +166,23 @@ class DSPLisp:
   def generateVGeneric(self,type,instruction):
     idx = "length";
     if len(instruction) != 4: raise Exception(str(instruction))
-    line="vDSP_v{0}({1},1,{2},1,{3},1,{4});".format(type,instruction[1],instruction[2],instruction[3],idx)
+    line="vDSP_{0}({1},1,{2},1,{3},1,{4});".format(type,instruction[1],instruction[2],instruction[3],idx)
     print(line)
 
   def generateGeneric(self,type,instruction):
     idx = "length";
     if len(instruction) != 4: raise Exception(str(instruction))
-    line="vDSP_vs{0}({1},1,&{2},{3},1,{4});".format(type,instruction[1],instruction[2],instruction[3],idx)
+    line="vDSP_{0}({1},1,&{2},{3},1,{4});".format(type,instruction[1],instruction[2],instruction[3],idx)
     print(line)
 
   def generateVAdd(self,instruction):
-    self.generateVGeneric("add",instruction)
+    self.generateVGeneric("vadd",instruction)
 
   def generateVSub(self,instruction):
-    self.generateVGeneric("sub",instruction)
+    self.generateVGeneric("vsub",instruction)
 
   def generateVMul(self,instruction):
-    self.generateVGeneric("mul",instruction)
+    self.generateVGeneric("vmul",instruction)
 
   def generateVSet(self,instruction):
     idx = "length";
@@ -187,13 +191,13 @@ class DSPLisp:
     print(line)
 
   def generateAdd(self,instruction):
-    self.generateGeneric("add",instruction)
+    self.generateGeneric("vsadd",instruction)
 
   def generateSub(self,instruction):
-    self.generateGeneric("sub",instruction)
+    self.generateGeneric("vssub",instruction)
 
   def generateMul(self,instruction):
-    self.generateGeneric("mul",instruction)
+    self.generateGeneric("vsmul",instruction)
  
   def generate(self):
     print("/*" + "".join(self.reader.originalText) + "*/");
@@ -206,12 +210,16 @@ class DSPLisp:
         self.generateVMul(instruction) 
       elif instruction[0]=="vset":
         self.generateVSet(instruction)
-      elif instruction[0]=="add":
+      elif instruction[0]=="vsadd":
         self.generateAdd(instruction)
-      elif instruction[0]=="sub":
+      elif instruction[0]=="vssub":
         self.generateSub(instruction)
-      elif instruction[0]=="mul":
+      elif instruction[0]=="vsmul":
         self.generateMul(instruction)
+      elif instruction[0]=="in":
+        pass
+      elif instruction[0]=="out":
+        pass
       elif instruction[0]=="do":
         pass
       else:
