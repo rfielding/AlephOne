@@ -5,6 +5,23 @@ import sys
 #
 #A recursive descent parser for LISP to generate vDSP code
 #
+# TODO: this code is written as if tail call optimization happens.
+#  I may put in a trampoline if it becomes a problem
+#
+
+# The language we parse is a LISP variant that looks like this:
+#
+#( do
+#  (vset output  (vadd (vmul w0 w1) (mul w2 w3)))
+#  (vset output1 (vadd a (vmul x (vadd y0 y1))))
+#  (vset output2 (vadd c (vmul output1 (add y2 sy3))))
+#)
+#
+#The whole point of doing this is so that we can keep modifying this
+#compiler to take advantage of high level vDSP operations as we find that
+#they are necessary
+#
+
 
 ##
 ## Parsing utilities to read char by char with lookahead of 1
@@ -111,13 +128,46 @@ class DSPLisp:
     while more:
       more = self.parseContinue()
 
+  def removeRedundantCopy(self,startAt):
+    #walk from last instruction back to the last time the
+    #copied register was written.
+    n = len(self.assembler)-1
+    lookForRegister = None
+    renameToRegister = None
+    while n >= 0:
+      instruction = self.assembler[n]
+      if instruction[0] == "vset" and not lookForRegister:
+        lastCopy = n
+        lookForRegister = instruction[2]
+        renameToRegister = instruction[1]
+      elif lookForRegister:
+        if instruction[1] == lookForRegister or instruction[2] == lookForRegister:
+          #it was read before it was written, so it can't be optimized out
+          return lastCopy-1
+        if instruction[3] == lookForRegister:
+          instruction[3] = renameToRegister
+          self.assembler.remove(self.assembler[lastCopy])
+          return lastCopy-1
+      n = n - 1     
+    return -1
+ 
+  def removeRedundantCopies(self):
+    startAt = len(self.assembler)-1
+    while startAt >= 0:
+      startAt = self.removeRedundantCopy(startAt)
+
+  def optimize(self):
+    self.removeRedundantCopies()
+
   def generateVGeneric(self,type,instruction):
     idx = "length";
+    if len(instruction) != 4: raise Exception(str(instruction))
     line="vDSP_v{0}({1},1,{2},1,{3},1,{4});".format(type,instruction[1],instruction[2],instruction[3],idx)
     print(line)
 
   def generateGeneric(self,type,instruction):
     idx = "length";
+    if len(instruction) != 4: raise Exception(str(instruction))
     line="vDSP_vs{0}({1},1,&{2},{3},1,{4});".format(type,instruction[1],instruction[2],instruction[3],idx)
     print(line)
 
@@ -132,6 +182,7 @@ class DSPLisp:
 
   def generateVSet(self,instruction):
     idx = "length";
+    if len(instruction) != 4: raise Exception(str(instruction))
     line="xDSP_vcp({1},{0},{2});".format(instruction[1],instruction[2],idx)
     print(line)
 
@@ -161,10 +212,15 @@ class DSPLisp:
         self.generateSub(instruction)
       elif instruction[0]=="mul":
         self.generateMul(instruction)
+      elif instruction[0]=="do":
+        pass
+      else:
+        raise Exception(str(instruction))
 
   def compile(self):
     self.tokenize()
     self.parse()
+    self.optimize()
     self.generate()
 
 #Open up the file to be eaten character by character
