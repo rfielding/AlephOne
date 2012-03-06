@@ -1,9 +1,9 @@
 ( do
     (in w00 w01 w10 w11 loD loE loPitch hiPitch cyclesPerSample i phase)
-    (vset hiE (vsub loE one)) 
-    (vset hiD (vsub loD one)) 
+    (vset hiE (vssub loE one)) 
+    (vset hiD (vssub loD one)) 
     (vset cycles (vadd (vmul i cyclesPerSample) phase))
-    (vset cycleLocation (frac cycles cycles))
+    (vset cycleLocation (vfrac cycles cycles))
     (vset loExpress (vadd (vmul w00 loD) (vmul w01 hiD))
     (vset hiExpress (vadd (vmul w10 loD) (vmul w11 hiD))
     (vset expressed (vadd (vmul loExpress loE) (vmul hiExpress hiE))

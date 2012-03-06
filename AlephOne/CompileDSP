@@ -69,6 +69,9 @@ class DSPLisp:
     self.assembler = []
     self.nextAccumulator = 0
     self.idx = "index"
+    self.v3 = ["vadd","vsub","vmul","vfrac"]
+    self.s3 = ["vsadd","vssub","vsmul"]
+    self.scalars = []
 
   def isTokenChar(self,c):
     return (c=='_') or ('a' <= c <= 'z') or ('A' <= c <= 'Z') or ('0' <= c <= '9')
@@ -125,6 +128,13 @@ class DSPLisp:
         return True
       n=n+1
     return True,lastStart
+
+
+  def findScalars(self):
+    for instruction in self.assembler:
+      if instruction[0] in self.s3:
+        if not instruction[2] in self.scalars:
+          self.scalars.append(instruction[2])
 
   def parse(self):
     more=True
@@ -219,16 +229,19 @@ class DSPLisp:
         lastRead[instruction[2]] = n
       n = n + 1
     #invert the lists
+    special = self.scalars + self.inputs + self.outputs
     for register in lastRead:
-      idx = lastRead[register]
-      if not idx in lastReadInv:
-        lastReadInv[idx]=[]
-      lastReadInv[idx].append(register)
+      if register not in special:
+        idx = lastRead[register]
+        if not idx in lastReadInv:
+          lastReadInv[idx]=[]
+        lastReadInv[idx].append(register)
     for register in firstWrite:
-      idx = firstWrite[register]
-      if not idx in firstWriteInv:
-        firstWriteInv[idx]=[]
-      firstWriteInv[idx].append(register)
+      if register not in special:
+        idx = firstWrite[register]
+        if not idx in firstWriteInv:
+          firstWriteInv[idx]=[]
+        firstWriteInv[idx].append(register)
     #Rename as much as possible
     startAt = 0
     more = True
@@ -236,6 +249,7 @@ class DSPLisp:
       more,startAt = self.performRename(startAt,lastReadInv,firstWriteInv)
 
   def optimize(self):
+    self.findScalars()
     self.removeRedundantCopies()
     self.reuseRegisters()
 
@@ -248,15 +262,6 @@ class DSPLisp:
     if len(instruction) != 4: raise Exception(str(instruction))
     line="vDSP_{0}({1},1,&{2},{3},1,{4});".format(type,instruction[1],instruction[2],instruction[3],self.idx)
     print(line)
-
-  def generateVAdd(self,instruction):
-    self.generateVGeneric("vadd",instruction)
-
-  def generateVSub(self,instruction):
-    self.generateVGeneric("vsub",instruction)
-
-  def generateVMul(self,instruction):
-    self.generateVGeneric("vmul",instruction)
 
   def generateVSet(self,instruction):
     idx = "length";
@@ -279,20 +284,10 @@ class DSPLisp:
   def generate(self):
     print("/*" + "".join(self.reader.originalText) + "*/");
     for instruction in self.assembler:
-      if   instruction[0]=="vadd":
-        self.generateVAdd(instruction) 
-      elif instruction[0]=="vsub":
-        self.generateVSub(instruction) 
-      elif instruction[0]=="vmul":
-        self.generateVMul(instruction) 
-      elif instruction[0]=="vset":
-        self.generateVSet(instruction)
-      elif instruction[0]=="vsadd":
-        self.generateAdd(instruction)
-      elif instruction[0]=="vssub":
-        self.generateSub(instruction)
-      elif instruction[0]=="vsmul":
-        self.generateMul(instruction)
+      if   instruction[0] in self.v3:
+        self.generateVGeneric(instruction[0],instruction)
+      elif instruction[0] in self.s3:
+        self.generateGeneric(instruction[0],instruction)
       elif instruction[0]=="frac":
         self.generateFrac(instruction)
       elif instruction[0]=="in":
