@@ -97,7 +97,7 @@ static inline void renderNoiseComputeE(float currentExpr, float deltaExpr, unsig
 /**
  Good God!  This is assembly language.
  */
-float renderNoiseInnerLoopInParallel(
+float renderNoiseInnerLoopInParallelX(
                                      float* output,
                                      float notep,float detune,
                                      float pitchLocation,float phase,
@@ -144,3 +144,64 @@ float renderNoiseInnerLoopInParallel(
     vDSP_vadd(output,1, unSquishedTotalArray,1, output,1, samples);
     return (cyclesPerSample*samples) + phase;
 }
+
+float renderNoiseInnerLoopInParallel(
+                                      float* output,
+                                      float notep,float detune,
+                                      float pitchLocation,float phase,
+                                      unsigned long samples,float invSamples,
+                                      float currentVolume,float deltaVolume,
+                                      float currentExpr,float deltaExpr)
+{
+    float cyclesPerSample = powf(2,(notep-33+(1-currentExpr)*detune*(1-pitchLocation))/12) * (440/(44100.0 * 32));
+ 
+    
+    
+    int index;
+    float 
+      *w00,*w01,*w10,*w11,
+      *loD,*loE,
+      *loPitch,*hiPitch,
+      *unAliased,*hiD,*hiE,
+      *i,*cycles,
+      *one,
+      *accumulator5,
+      *accumulator11,
+      *accumulator13,*loExpress,*hiExpress,*accumulator14,*accumulator10,*accumulator12,*fundamental;
+    
+    /*( do
+     (in w00 w01 w10 w11 loD loE loPitch hiPitch cyclesPerSample i phase)
+     (vset hiE (vssub loE one)) 
+     (vset hiD (vssub loD one)) 
+     (vset cycles (vsadd (vsmul i cyclesPerSample) phase))
+     (vset cycleLocation (vfrac cycles cycles))
+     (vset loExpress (vadd (vmul w00 loD) (vmul w01 hiD))
+     (vset hiExpress (vadd (vmul w10 loD) (vmul w11 hiD))
+     (vset expressed (vadd (vmul loExpress loE) (vmul hiExpress hiE))
+     (vset unAliased (vadd (vmul fundamental hiPitch) (vmul expressed loPitch)))
+     (out unAliased)
+     )*/
+    vDSP_vssub(loE,1,&one,hiE,1,index);
+    vDSP_vssub(loD,1,&one,hiD,1,index);
+    vDSP_vsmul(i,1,&cyclesPerSample,accumulator5,1,index);
+    vDSP_vsadd(accumulator5,1,&phase,cycles,1,index);
+    vDSP_vfrac(cycles,1,cycles,1,index);
+    vDSP_vmul(w00,1,loD,1,cycles,1,index);
+    vDSP_vmul(w01,1,hiD,1,accumulator11,1,index);
+    vDSP_vadd(cycles,1,accumulator11,1,accumulator12,1,index);
+    vDSP_vmul(w10,1,loD,1,accumulator10,1,index);
+    vDSP_vmul(w11,1,hiD,1,accumulator11,1,index);
+    vDSP_vadd(accumulator10,1,accumulator11,1,hiD,1,index);
+    vDSP_vmul(loExpress,1,loE,1,accumulator13,1,index);
+    vDSP_vmul(hiExpress,1,hiE,1,accumulator14,1,index);
+    vDSP_vadd(accumulator13,1,accumulator14,1,loExpress,1,index);
+    vDSP_vmul(fundamental,1,hiPitch,1,hiE,1,index);
+    vDSP_vmul(loExpress,1,loPitch,1,hiExpress,1,index);
+    vDSP_vadd(hiE,1,hiExpress,1,unAliased,1,index);
+    
+    
+    
+    
+    return (cyclesPerSample*samples) + phase;
+}
+
