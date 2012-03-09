@@ -95,10 +95,13 @@ class Register:
   def __init__(self,name):
     self.name = name
     self.isScalar = False
-    self.isInput = False
-    self.isOutput = False
     self.reads = {}
     self.writes = {}
+    self.isTemporary = False
+    self.firstRead = None
+    self.firstWrite = None
+    self.lastRead = None
+    self.lastWrite = None
  
   def __str__(self):
     return self.name
@@ -110,6 +113,8 @@ class Register:
 class Compiler:
 
   def findOrCreateRegister(self,name):
+    if not isinstance(name,str):
+      raise Exception("{0} needs to be a string rather than a {1}".format(name,type(name)))
     if name in self.allRegisters:
       register = self.allRegisters[name]
     else:
@@ -178,15 +183,23 @@ class Compiler:
     self.comment = "/*" + "".join(self.reader.originalText) + "*/"
 
   #This builds a bidirectional graph of register dependencies, with
-  #counts do that we can determine uniqueness of reads, etc
-  def linkRegisters(self,r,w):
+  #reference to the instruction that causes it
+  def linkRegisters(self,r,w,instr,n):
+    if r:
+      r.lastRead = n
+      if not r.firstRead:
+        r.firstRead = n
+    if w: 
+      w.lastWrite = n
+      if not w.firstWrite:
+        w.firstWrite = n
     if r and w:
       if not w in r.writes:
-        r.writes[w] = 0
+        r.writes[w] = []
       if not r in w.reads:
-        w.reads[r] = 0
-      r.writes[w] = r.writes[w] + 1
-      w.reads[r] = w.reads[r] + 1
+        w.reads[r] = []
+      r.writes[w].append(instr)
+      w.reads[r].append(instr)
   
   #Given the parameters, turn the string of items into 
   #a real instruction with all the metadata it needs for later 
@@ -200,7 +213,7 @@ class Compiler:
       r0 = R(matched[1])
       r1 = R(matched[2])
       w0 = R(matched[3])
-      instr = InstV3(name,r0,r0,w0)
+      instr = InstV3(name,r0,r1,w0)
     elif name == "vset":
       r0 = R(matched[2])
       w0 = R(matched[1])
@@ -218,9 +231,17 @@ class Compiler:
     else:
       raise Exception(str(matched))
     #generate a register dependency graph
-    self.linkRegisters(r0, w0)
-    self.linkRegisters(r1, w0)
+    self.linkRegisters(r0, w0, instr, n)
+    self.linkRegisters(r1, w0, instr, n)
     return instr
+
+  def generateTemporary(self):
+    R = self.findOrCreateRegister
+    accumulatorName = "reg{0}".format(self.nextAccumulator)
+    self.nextAccumulator = self.nextAccumulator + 1
+    accumulator = R(accumulatorName)
+    accumulator.isTemporary = True
+    return accumulatorName
 
   #When we have a string of statements for a subexpression
   #Then deal with it here
@@ -230,21 +251,19 @@ class Compiler:
     matched = self.tokens[lastStart+1:lastStop]
     front = self.tokens[0:lastStart]
     back = self.tokens[lastStop+1:]
-    accumulatorName = "reg{0}".format(self.nextAccumulator)
-    self.nextAccumulator = self.nextAccumulator + 1
-    accumulator = Register(accumulatorName) 
+
+    accumulatorName = self.generateTemporary()
+    #these names are just for the lookup.  they go into 
+    #register names which can change during optimization 
     matched.append(accumulatorName)
     front.append(accumulatorName)
+
     self.tokens = front+back
     self.assembler.append(matched)
     if   matched[0] == "in":
-      self.inputs = map(Register,matched[1:-1])
-      for registerName in self.inputs:
-        R(registerName).isInput = True
+      self.inputs = matched[1:-1]
     elif matched[0] == "out":
-      self.outputs = map(Register,matched[1:-1])
-      for registerName in self.outputs:
-        R(registerName).isOutput = True
+      self.outputs = matched[1:-1]
     else:
       instr = self.createInstruction(matched,n)
       if instr:
@@ -279,17 +298,23 @@ class Compiler:
       more = self.parseContinue()
     self.findScalars()
 
+ 
+  def mergeRegisters(self, a, b, resolvedRegisters):
+    b.name = a.name
+
   def optimize(self):
-    pass
-    #todo: given that we have a dependency graph with count,
-    #we should be able to minimize register usage easily
-      
-      
+    resolvedRegisters = []
+    for ak in self.allRegisters:
+      a = self.findOrCreateRegister(ak)
+      a.isNotIO = False
+      resolvedRegisters.append(a)
+      if not a.name in self.inputs and not a.name in self.outputs:
+        a.isNotIO = True
 
   def compile(self):
     self.tokenize()
     self.parse()
-    self.optimize()
+    #self.optimize()
 
 #Open up the file to be parsed and compile it
 compiler=Compiler(Reader(sys.argv[1]))

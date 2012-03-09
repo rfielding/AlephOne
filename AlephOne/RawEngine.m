@@ -244,7 +244,6 @@ static void initNoise()
     }
 }
 
-//An O(1) operation
 static inline void renderNoisePrepare(int f)
 {
     if(allFingers.finger[f].volRamp.value == 0)
