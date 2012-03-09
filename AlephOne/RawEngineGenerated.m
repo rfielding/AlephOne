@@ -108,7 +108,7 @@ static inline void renderNoiseSampleMix(float* output,float pitchLocation,unsign
     vDSP_vmul(eArray,1, registerLeft,1, eArray,1, samples);
     
     vDSP_vadd(eArray,1, eNotArray,1, registerLeft,1, samples);
-
+        
     //
     //  output += v *
     //    (plNot * unSquishedTotal + waveFundamental * pl)
