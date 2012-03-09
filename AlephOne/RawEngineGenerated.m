@@ -88,9 +88,12 @@ static inline void renderNoiseComputeE(float currentExpr, float deltaExpr, unsig
 
 static inline void renderNoiseSampleMix(float* output,float pitchLocation,unsigned long samples)
 {
+    //pitchLocation = ((pitchLocation+1)*(pitchLocation+1))/2;
+    float pitchLocationNot=(1-pitchLocation);
+    
     // unSquishedTotal[i] = 
-    //  (d[i] * waveMix[0][1][j[i]] + dNot[i] * waveMix[0][0][j[i]]) * eNot[i] +
-    //  (d[i] * waveMix[1][1][j[i]] + dNot[i] * waveMix[1][0][j[i]]) * e[i]
+    //  (d[i] * waveMix[0][1][j[i]] + dNot[i] * waveMix[0][0][j[i]]) * eNot[i] * pl +
+    //  (d[i] * waveMix[1][1][j[i]] + dNot[i] * waveMix[1][0][j[i]]) * e[i] * plNot
     //   
     //
     xDSP_vcp(dArray,registerLeft,samples);    
@@ -99,6 +102,7 @@ static inline void renderNoiseSampleMix(float* output,float pitchLocation,unsign
     SAMPLEINPARALLEL(samples, registerRight[i]  *= waveMix[0][0][jLocation[i]]);
     vDSP_vadd(registerLeft,1, registerRight,1, registerLeft,1, samples);
     vDSP_vmul(eNotArray,1, registerLeft,1, eNotArray,1, samples);
+    vDSP_vsmul(eNotArray,1, &pitchLocation, eNotArray,1, samples);
     
     xDSP_vcp(dArray,registerLeft,samples);
     SAMPLEINPARALLEL(samples, registerLeft[i]  *= waveMix[1][1][jLocation[i]]);    
@@ -106,14 +110,15 @@ static inline void renderNoiseSampleMix(float* output,float pitchLocation,unsign
     SAMPLEINPARALLEL(samples, registerRight[i]  *= waveMix[1][0][jLocation[i]]);    
     vDSP_vadd(registerLeft,1, registerRight,1, registerLeft,1, samples);    
     vDSP_vmul(eArray,1, registerLeft,1, eArray,1, samples);
+    vDSP_vsmul(eArray,1, &pitchLocationNot, eArray,1, samples);
     
     vDSP_vadd(eArray,1, eNotArray,1, registerLeft,1, samples);
         
+    
     //
     //  output += v *
     //    (plNot * unSquishedTotal + waveFundamental * pl)
     
-    float pitchLocationNot=(1-pitchLocation);
     vDSP_vsmul(registerLeft,1,&pitchLocationNot,registerLeft,1,samples);
     
     SAMPLEINPARALLEL(samples, registerRight[i]  = _waveFundamental[jLocation[i]]);
