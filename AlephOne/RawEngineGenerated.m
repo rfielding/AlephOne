@@ -26,9 +26,6 @@ float dNotArray[SAMPLESMAX];
 float registerLeft[SAMPLESMAX];
 float registerRight[SAMPLESMAX];
 
-float unSquishedPartArray[SAMPLESMAX];
-float unSquishedTotalArray[SAMPLESMAX];
-float fundamentalArray[SAMPLESMAX];
 float waveMixArray[SAMPLESMAX];
 
 static inline void renderNoiseComputeWaveIndexJ(float phase,float cyclesPerSample,unsigned long samples)

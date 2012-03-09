@@ -42,7 +42,7 @@ static void audioSessionInterruptionCallback(void *inUserData, UInt32 interrupti
 
 
 
-
+int echoIndices[SAMPLESMAX];
 
 
 struct ramp {
@@ -266,6 +266,12 @@ static inline void renderNoiseCleanAll(unsigned long samples)
     }
 }
 
+
+static inline void xDSP_vcp(float* src,float* dst,int count)
+{
+    memcpy(dst,src,count*sizeof(float));
+}
+
 static inline void reverbConvolute(long* dataL, long* dataR,unsigned long samples)
 {
     long sc = allFingers.sampleCount;
@@ -283,6 +289,7 @@ static inline void reverbConvolute(long* dataL, long* dataR,unsigned long sample
         }
     }
      
+    //TODO: need a vector int modulus
     for(int i=0; i<samples; i++)
     {
         int n = (i+sc)%ECHOBUFFERMAX;
@@ -295,7 +302,7 @@ static inline void reverbConvolute(long* dataL, long* dataR,unsigned long sample
 
 static inline float compress(float f)
 {
-    return atanf(f * 2);
+    return atanf(f * 1.7);
 }
 
 static inline void renderNoiseToBuffer(unsigned long samples,unsigned long sc)
