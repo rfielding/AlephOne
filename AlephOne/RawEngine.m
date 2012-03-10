@@ -302,7 +302,7 @@ static inline void reverbConvolute(long* dataL, long* dataR,unsigned long sample
 
 static inline float compress(float f)
 {
-    return atanf(f * 1.7);
+    return atanf(f * 3);
 }
 
 static inline void renderNoiseToBuffer(unsigned long samples,unsigned long sc)
