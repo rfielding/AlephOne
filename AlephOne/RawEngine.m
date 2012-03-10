@@ -18,7 +18,7 @@
 #import "RawEngineGenerated.h"
 #include "FretlessCommon.h"
 
-#define ECHOBUFFERMAX (1024*2)
+#define ECHOBUFFERMAX (1024*4)
 #define UNISONMAX 2
 #define HARMONICSMAX 32
 #define REVERBECHOES 4
@@ -40,9 +40,6 @@ static void audioSessionInterruptionCallback(void *inUserData, UInt32 interrupti
     }
 }
 
-
-
-int echoIndices[SAMPLESMAX];
 
 
 struct ramp {
@@ -71,7 +68,8 @@ struct fingersData {
 };
 
 
-float echoBuffer[ECHOBUFFERMAX][AUDIOCHANNELS];
+float echoBufferL[ECHOBUFFERMAX];
+float echoBufferR[ECHOBUFFERMAX];
 
 float unisonDetune[UNISONMAX] = {
     0, -0.2, 0.2    
@@ -177,7 +175,8 @@ static inline void doRamp(struct ramp* r,long sample)
  */
 static void initNoise()
 {
-    bzero(echoBuffer,AUDIOCHANNELS*sizeof(float)*ECHOBUFFERMAX);
+    bzero(echoBufferL,sizeof(float)*ECHOBUFFERMAX);
+    bzero(echoBufferR,sizeof(float)*ECHOBUFFERMAX);
     
     for(int i=0; i<SAMPLESMAX; i++)
     {
@@ -284,8 +283,8 @@ static inline void reverbConvolute(long* dataL, long* dataR,unsigned long sample
             int n = (i+sc)%ECHOBUFFERMAX;
             int nL = (i+sc+reverbData[r][0])%ECHOBUFFERMAX;
             int nR = (i+sc+reverbData[r][1])%ECHOBUFFERMAX;
-            echoBuffer[nL][0] += (0.125*echoBuffer[n][0] + 0.12*echoBuffer[n][1])*invR;
-            echoBuffer[nR][1] += (0.125*echoBuffer[n][1] + 0.12*echoBuffer[n][0])*invR;
+            echoBufferL[nL] += (0.125*echoBufferL[n] + 0.12*echoBufferR[n])*invR;
+            echoBufferR[nR] += (0.125*echoBufferR[n] + 0.12*echoBufferL[n])*invR;
         }
     }
      
@@ -293,16 +292,16 @@ static inline void reverbConvolute(long* dataL, long* dataR,unsigned long sample
     for(int i=0; i<samples; i++)
     {
         int n = (i+sc)%ECHOBUFFERMAX;
-        dataL[i] = INT_MAX * 0.01 * 0.25 * echoBuffer[n][0];
-        dataR[i] = INT_MAX * 0.01 * 0.25 * echoBuffer[n][1];        
-        echoBuffer[n][0] *= 0.33;
-        echoBuffer[n][1] *= 0.33;
+        dataL[i] = INT_MAX * 0.01 * 0.25 * echoBufferL[n];
+        dataR[i] = INT_MAX * 0.01 * 0.25 * echoBufferR[n];        
+        echoBufferL[n] *= 0.33;
+        echoBufferR[n] *= 0.33;
     }
 }
 
 static inline float compress(float f)
 {
-    return atanf(f * 3);
+    return atanf(f * 4) * 0.75;
 }
 
 static inline void renderNoiseToBuffer(unsigned long samples,unsigned long sc)
@@ -315,8 +314,8 @@ static inline void renderNoiseToBuffer(unsigned long samples,unsigned long sc)
             //Is the atanf bad?
             float val = compress(allFingers.total[phaseIdx][i]);
             int n = (i+sc)%ECHOBUFFERMAX;
-            echoBuffer[n][0] += val;
-            echoBuffer[n][1] += val;
+            echoBufferL[n] += val;
+            echoBufferR[n] += val;
         }
     }    
 }

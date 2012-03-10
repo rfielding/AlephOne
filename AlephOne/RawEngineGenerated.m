@@ -87,8 +87,7 @@ static inline void renderNoiseComputeE(float currentExpr, float deltaExpr, unsig
 
 static inline void renderNoiseSampleMix(float* output,float pitchLocation,unsigned long samples)
 {
-    pitchLocation = pitchLocation*pitchLocation;
-    //pitchLocation = ((pitchLocation+1)*(pitchLocation+1))/2;
+    //pitchLocation = pitchLocation*pitchLocation;
     float pitchLocationNot=(1-pitchLocation);
     
     // unSquishedTotal[i] = 
@@ -121,12 +120,12 @@ static inline void renderNoiseSampleMix(float* output,float pitchLocation,unsign
         
     //
     //  output += v *
-    //    (plNot * unSquishedTotal + waveFundamental * pl)
+    //    (plNot * unSquishedTotal + waveFundamental * pl * pl)
     
     vDSP_vsmul(registerLeft,1,&pitchLocationNot,registerLeft,1,samples);    
     vDSP_vindex(_waveFundamental,waveIndexArray,1,waveMixArray,1,samples);
-    float halfPitchLocation=pitchLocation*0.5;
-    vDSP_vsmul(registerRight,1,&halfPitchLocation,registerRight,1,samples);    
+    vDSP_vsmul(registerRight,1,&pitchLocation,registerRight,1,samples);    
+    vDSP_vsmul(registerRight,1,&pitchLocation,registerRight,1,samples);    
     vDSP_vadd(registerLeft,1, registerRight,1, registerLeft,1, samples);
     
     vDSP_vmul(registerLeft,1, vArray,1, registerLeft,1, samples);    
