@@ -21,7 +21,7 @@
 #define ECHOBUFFERMAX (1024*4)
 #define UNISONMAX 2
 #define HARMONICSMAX 32
-#define REVERBECHOES 4
+#define REVERBECHOES 5
 #define AUDIOCHANNELS 2
 
 AudioComponentInstance audioUnit;
@@ -326,6 +326,7 @@ static void renderNoiseInnerLoop(int f,unsigned long samples,float invSamples,
 {
     float notep = allFingers.finger[f].pitchRamp.value;
     float pitchLocation = notep/127.0;
+
     //note 33 is our center pitch, and it's 440hz
     //powf exits out of here, but it's not per sample... 
     for(int u=0; u<UNISONMAX; u++)

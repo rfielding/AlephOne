@@ -8,8 +8,6 @@
 #import <Accelerate/Accelerate.h>
 #import "RawEngineGenerated.h"
 
-#define SAMPLEINPARALLEL(samples,statement) for(int i=0; i<samples; i++) { statement; }
-
 static inline void xDSP_vcp(float* src,float* dst,int count)
 {
     memcpy(dst,src,count*sizeof(float));
@@ -87,7 +85,6 @@ static inline void renderNoiseComputeE(float currentExpr, float deltaExpr, unsig
 
 static inline void renderNoiseSampleMix(float* output,float pitchLocation,unsigned long samples)
 {
-    //pitchLocation = pitchLocation*pitchLocation;
     float pitchLocationNot=(1-pitchLocation);
     
     // unSquishedTotal[i] = 
@@ -145,6 +142,11 @@ float renderNoiseInnerLoopInParallel(
                                      float currentExpr,float deltaExpr)
 {
     float cyclesPerSample = powf(2,(notep-33+(1-currentExpr)*detune*(1-pitchLocation))/12) * (440/(44100.0 * 32));
+    // [0 .. 0.25] == 0
+    // [0.25 .. 0.75] ramp from 0 to 1
+    // [0.75 .. 1]    1
+    pitchLocation = pitchLocation<=0.25 ? 0 : (pitchLocation>=0.75 ? 1 : 2*(pitchLocation-0.25));
+    
     
     renderNoiseComputeWaveIndexJ(phase,cyclesPerSample, samples);
     renderNoiseComputeV(currentVolume, deltaVolume, samples);    
