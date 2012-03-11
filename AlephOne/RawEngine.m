@@ -294,8 +294,8 @@ static inline void reverbConvolute(long* dataL, long* dataR,unsigned long sample
         int n = (i+sc)%ECHOBUFFERMAX;
         dataL[i] = INT_MAX * 0.01 * 0.25 * echoBufferL[n];
         dataR[i] = INT_MAX * 0.01 * 0.25 * echoBufferR[n];        
-        echoBufferL[n] *= 0.33;
-        echoBufferR[n] *= 0.33;
+        echoBufferL[n] *= 0.1 ;  //*= 0.33;
+        echoBufferR[n] *= 0.1 ;  //*= 0.33;
     }
 }
 
@@ -326,7 +326,6 @@ static void renderNoiseInnerLoop(int f,unsigned long samples,float invSamples,
 {
     float notep = allFingers.finger[f].pitchRamp.value;
     float pitchLocation = notep/127.0;
-
     //note 33 is our center pitch, and it's 440hz
     //powf exits out of here, but it's not per sample... 
     for(int u=0; u<UNISONMAX; u++)

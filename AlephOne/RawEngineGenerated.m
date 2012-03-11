@@ -147,7 +147,6 @@ float renderNoiseInnerLoopInParallel(
     // [0.75 .. 1]    1
     pitchLocation = pitchLocation<=0.25 ? 0 : (pitchLocation>=0.75 ? 1 : 2*(pitchLocation-0.25));
     
-    
     renderNoiseComputeWaveIndexJ(phase,cyclesPerSample, samples);
     renderNoiseComputeV(currentVolume, deltaVolume, samples);    
     renderNoiseComputeE(currentExpr, deltaExpr, samples);    
