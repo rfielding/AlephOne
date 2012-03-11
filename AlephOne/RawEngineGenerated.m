@@ -60,10 +60,10 @@ static inline void renderNoiseComputeV(float currentVolume, float deltaVolume, u
 static inline void renderNoiseComputeE(float currentExpr, float deltaExpr, unsigned long samples)
 {
     float one=1;
-    
     //
     // deltaExpr = invSamples * diffExpr
     // e[i] = (i * (invSamples * diffExpr)) + currentExpr
+    // //e[i] = bound{0,1}(2*(e[0] - 0.25))
     // eNot[i] = (1-e[i])
     //
     
@@ -145,7 +145,10 @@ float renderNoiseInnerLoopInParallel(
     // [0 .. 0.25] == 0
     // [0.25 .. 0.75] ramp from 0 to 1
     // [0.75 .. 1]    1
-    pitchLocation = pitchLocation<=0.25 ? 0 : (pitchLocation>=0.75 ? 1 : 2*(pitchLocation-0.25));
+    pitchLocation = pitchLocation - 0.25;
+    pitchLocation = pitchLocation*2;
+    pitchLocation = (pitchLocation<0) ? 0 : pitchLocation;
+    pitchLocation = (pitchLocation>1) ? 1 : pitchLocation;
     
     renderNoiseComputeWaveIndexJ(phase,cyclesPerSample, samples);
     renderNoiseComputeV(currentVolume, deltaVolume, samples);    
