@@ -230,7 +230,7 @@ static void initNoise()
                 waveMix[expr][dist][sample] = 0;                
                 _waveFundamental[sample] = sinf( sample * 2.0 * M_PI / WAVEMAX );
             }
-            for(int harmonic=0; harmonic<HARMONICSMAX; harmonic++)
+            for(int harmonic=0; harmonic<HARMONICSMAX/(1+expr); harmonic++)
             {
                 float h = harmonic+1;
                 float v = _harmonics[harmonic][expr][dist];
@@ -301,7 +301,7 @@ static inline void reverbConvolute(long* dataL, long* dataR,unsigned long sample
 
 static inline float compress(float f)
 {
-    return atanf(f * 4) * 0.75;
+    return atanf(f * 2) * 0.75;
 }
 
 static inline void renderNoiseToBuffer(unsigned long samples,unsigned long sc)
