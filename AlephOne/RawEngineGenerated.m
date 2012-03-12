@@ -14,17 +14,17 @@ static inline void xDSP_vcp(float* src,float* dst,int count)
 }
 
 
-unsigned int jLocation[SAMPLESMAX];
-float vArray[SAMPLESMAX];
-float eArray[SAMPLESMAX];
-float eNotArray[SAMPLESMAX];
-float dArray[SAMPLESMAX];
-float dNotArray[SAMPLESMAX];
-float registerLeft[SAMPLESMAX];
-float registerRight[SAMPLESMAX];
+unsigned int jLocation[SAMPLESMAX] __attribute__ ((aligned));
+float vArray[SAMPLESMAX] __attribute__ ((aligned));
+float eArray[SAMPLESMAX] __attribute__ ((aligned));
+float eNotArray[SAMPLESMAX] __attribute__ ((aligned));
+float dArray[SAMPLESMAX] __attribute__ ((aligned));
+float dNotArray[SAMPLESMAX] __attribute__ ((aligned));
+float registerLeft[SAMPLESMAX] __attribute__ ((aligned));
+float registerRight[SAMPLESMAX] __attribute__ ((aligned));
 
-float waveIndexArray[SAMPLESMAX];
-float waveMixArray[SAMPLESMAX];
+float waveIndexArray[SAMPLESMAX] __attribute__ ((aligned));
+float waveMixArray[SAMPLESMAX] __attribute__ ((aligned));
 float wavemax=WAVEMAX;
 
 static inline void renderNoiseComputeWaveIndexJ(float phase,float cyclesPerSample,unsigned long samples)
@@ -104,7 +104,7 @@ static inline void renderNoiseSampleMix(float* output,float pitchLocation,unsign
     vDSP_vmul(eNotArray,1, registerLeft,1, eNotArray,1, samples);
     
     xDSP_vcp(dArray,registerLeft,samples);
-    vDSP_vindex(waveMix[1][1],waveIndexArray,1,waveMixArray,1,samples);
+    vDSP_vindex(waveMix[1][0],waveIndexArray,1,waveMixArray,1,samples);
     vDSP_vmul(waveMixArray,1,registerLeft,1,registerLeft,1,samples);
     
     xDSP_vcp(dNotArray, registerRight, samples);    
@@ -141,7 +141,7 @@ float renderNoiseInnerLoopInParallel(
                                      float currentVolume,float deltaVolume,
                                      float currentExpr,float deltaExpr)
 {
-    float cyclesPerSample = powf(2,(notep-33+(1-currentExpr)*detune*(1-pitchLocation))/12) * (440/(44100.0 * 32));
+    float cyclesPerSample = powf(2,(notep-33+(1-currentExpr)*detune*(1-pitchLocation))/12) * (440/(44100.0 * 64));
     // [0 .. 0.25] == 0
     // [0.25 .. 0.75] ramp from 0 to 1
     // [0.75 .. 1]    1

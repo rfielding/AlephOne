@@ -21,7 +21,7 @@
 #define ECHOBUFFERMAX (1024*4)
 #define UNISONMAX 3
 #define HARMONICSMAX 32
-#define REVERBECHOES 5
+#define REVERBECHOES 0
 #define AUDIOCHANNELS 2
 
 AudioComponentInstance audioUnit;
@@ -60,41 +60,44 @@ struct fingerData {
 #define NTSTATE_FINISH_ON 2
 
 struct fingersData {
-    struct fingerData finger[FINGERMAX];
-    float  total[UNISONMAX][WAVEMAX];
+    float  total[UNISONMAX][WAVEMAX] __attribute__ ((aligned));
     unsigned long  sampleCount;
     int   noteTieState;
     int   otherChannel;
+    struct fingerData finger[FINGERMAX];
 };
 
 
-float echoBufferL[ECHOBUFFERMAX];
-float echoBufferR[ECHOBUFFERMAX];
+float echoBufferL[ECHOBUFFERMAX] __attribute__ ((aligned));
+float echoBufferR[ECHOBUFFERMAX] __attribute__ ((aligned));
 
 float unisonDetune[UNISONMAX] = {
     0, -0.2, 0.2    
+};
+float unisonVol[UNISONMAX] = {
+  1, 0.75, 0.75  
 };
 
 ////This is how we define harmonic content... a single cycle wave for each point along the 2D axis
 float _harmonicsTotal         [EXPR][DIST];
 float _harmonics[HARMONICSMAX][EXPR][DIST] =
 {
-    {{16,0},{0,0}}, 
-    {{15,0},{0,0}}, 
-    {{14,0},{0,0}}, 
-    {{13,0},{2,0}}, 
-    {{12,0},{0,0}}, 
-    {{11,0},{0,0}}, 
-    {{10,0},{0,0}}, 
-    {{9,0},{1,0}}, 
-    {{8,0},{0,0}}, 
-    {{7,0},{0,0}}, 
-    {{6,0},{0,0}}, 
-    {{5,0},{0,0}}, 
-    {{4,0},{0,0}}, 
-    {{3,0},{0,0}}, 
-    {{2,0},{0,0}}, 
-    {{1,0},{0,0}}, 
+    {{0,0},{0,0}}, 
+    {{0,0},{0,0}}, 
+    {{0,0},{0,0}}, 
+    {{0,0},{0,0}}, 
+    {{0,0},{0,0}}, 
+    {{0,0},{0,0}}, 
+    {{0,0},{0,0}}, 
+    {{0,0},{0,0}}, 
+    {{0,0},{0,0}}, 
+    {{0,0},{0,0}}, 
+    {{0,0},{0,0}}, 
+    {{0,0},{0,0}}, 
+    {{0,0},{0,0}}, 
+    {{0,0},{0,0}}, 
+    {{0,0},{0,0}}, 
+    {{0,0},{0,0}}, 
     {{0,0},{0,0}}, 
     {{0,0},{0,0}}, 
     {{0,0},{0,0}}, 
@@ -113,24 +116,18 @@ float _harmonics[HARMONICSMAX][EXPR][DIST] =
     {{0,0},{0,0}}    
 };
 
-
-int reverbData[REVERBECHOES][AUDIOCHANNELS] =
+int reverbDataL[REVERBECHOES] __attribute__ ((aligned)) =
 {
-    {1131,419}, 
-    {181,586}, 
-    {339,1450}, 
-    {230,901}, 
-    {1437,545}, 
-    {485,1119}, 
-    {310,383}, 
-    {1569,231}, 
-    {771,759}    
+  1131,181,339,230,1437,485,310,1569,771  
+};
+int reverbDataR[REVERBECHOES] __attribute__ ((aligned)) =
+{
+  419,586,1450,901,545,1119,383,231,759  
 };
 
-
-float reverbStrength[REVERBECHOES] =
+float reverbStrength[REVERBECHOES] __attribute__ ((aligned)) =
 {
-    1.0/2, 1.0/3, 1.0/4, 1.0/4, 1.0/5, 1.0/6, 1.0/7, 1.0/8, 1.0/9, 1.0/10
+    1.0/2, 1.0/2, 1.0/3, 1.0/3, 1.0/4, 1.0/4, 1.0/5, 1.0/5, 1.0/5, 1.0/5
 };
 
 static struct fingersData allFingers;
@@ -182,6 +179,19 @@ static void initNoise()
     {
         sampleIndexArray[i] = i;
     }
+    
+    for(int i=0; i<16; i++)
+    {
+        _harmonics[i][0][0] = 16-i;
+    }
+    for(int i=0; i<8; i++)
+    {
+        //_harmonics[i*2+7][1][0] = (16-i)/(2*i+1);
+    }
+    _harmonics[0][1][0] = 1;
+    _harmonics[1][1][0] = 2;
+    _harmonics[3][1][0] = 4;
+    _harmonics[7][1][0] = 8;
     
     //Compute the squared off versions of our waves (not yet normalized)
     for(int expr=0; expr<EXPR; expr++)
@@ -281,21 +291,22 @@ static inline void reverbConvolute(long* dataL, long* dataR,unsigned long sample
         for(int i=0; i<samples; i++)
         {
             int n = (i+sc)%ECHOBUFFERMAX;
-            int nL = (i+sc+reverbData[r][0])%ECHOBUFFERMAX;
-            int nR = (i+sc+reverbData[r][1])%ECHOBUFFERMAX;
-            echoBufferL[nL] += (0.125*echoBufferL[n] + 0.12*echoBufferR[n])*invR;
-            echoBufferR[nR] += (0.125*echoBufferR[n] + 0.12*echoBufferL[n])*invR;
+            int nL = (i+sc+reverbDataL[r])%ECHOBUFFERMAX;
+            int nR = (i+sc+reverbDataR[r])%ECHOBUFFERMAX;
+            echoBufferL[nL] += (0.125*echoBufferL[n] + 0.1*echoBufferR[n])*invR;
+            echoBufferR[nR] += (0.125*echoBufferR[n] + 0.1*echoBufferL[n])*invR;
         }
     }
      
+    float scaleFactor = INT_MAX * 0.1 * 0.025;
     //TODO: need a vector int modulus
     for(int i=0; i<samples; i++)
     {
         int n = (i+sc)%ECHOBUFFERMAX;
-        dataL[i] = INT_MAX * 0.01 * 0.25 * echoBufferL[n];
-        dataR[i] = INT_MAX * 0.01 * 0.25 * echoBufferR[n];        
-        echoBufferL[n] *= 0.1 ;  //*= 0.33;
-        echoBufferR[n] *= 0.1 ;  //*= 0.33;
+        dataL[i] = scaleFactor * echoBufferL[n];
+        dataR[i] = scaleFactor * echoBufferR[n];        
+        echoBufferL[n] *=  0.133;
+        echoBufferR[n] *=  0.133;
     }
 }
 
@@ -336,7 +347,7 @@ static void renderNoiseInnerLoop(int f,unsigned long samples,float invSamples,
                                            allFingers.total[u],notep,unisonDetune[u],
                                            pitchLocation,phase,
                                            samples,invSamples,
-                                           currentVolume,diffVolume*invSamples,
+                                           currentVolume*unisonVol[u],diffVolume*invSamples*unisonVol[u],
                                            currentExpr,diffExpr*invSamples);
     }
 }
