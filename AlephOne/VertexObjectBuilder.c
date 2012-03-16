@@ -52,7 +52,7 @@ int VertexObjectBuilder_startObject(struct VertexObjectBuilder* ctxp,int type,in
     int verts = ctxp->gridVerticesCount;
     if(obj >= VOOBJMAX)
     {
-        ctxp->fail("trying to add too many objects!\n");
+        ctxp->fail("trying to add too many objects: %d!\n",obj);
         return 0;
     }
     

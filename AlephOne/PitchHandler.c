@@ -273,6 +273,12 @@ struct FingerInfo* PitchHandler_pickPitch(struct PitchHandler_context* ctx, int 
             ctx->noteDiff -= 12;
             ctx->noteDiffOurs -= 12;
         }
+        while(ctx->noteDiff < 0)
+        {
+            thisPitch += 12;
+            ctx->noteDiff += 12;
+            ctx->noteDiffOurs += 12;
+        }        
         ctx->lastNoteDown = thisPitch;
     }
     ctx->noteDiffByFinger[finger] = ctx->noteDiffOurs;        
