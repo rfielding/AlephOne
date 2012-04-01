@@ -141,12 +141,13 @@ float renderNoiseInnerLoopInParallel(
                                      float currentVolume,float deltaVolume,
                                      float currentExpr,float deltaExpr)
 {
-    float cyclesPerSample = powf(2,(notep-33+(1-currentExpr)*detune*(1-pitchLocation))/12) * (440/(44100.0 * 64));
+    float cyclesPerSample = powf(2,(notep-33+(1-currentExpr)*detune*(1-pitchLocation))/12) * (440/(44100.0 * 32));
     // [0 .. 0.25] == 0
     // [0.25 .. 0.75] ramp from 0 to 1
     // [0.75 .. 1]    1
     pitchLocation = pitchLocation - 0.25;
     pitchLocation = pitchLocation*2;
+    pitchLocation = pitchLocation * pitchLocation;
     pitchLocation = (pitchLocation<0) ? 0 : pitchLocation;
     pitchLocation = (pitchLocation>1) ? 1 : pitchLocation;
     

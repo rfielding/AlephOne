@@ -18,8 +18,8 @@
 #import "RawEngineGenerated.h"
 #include "FretlessCommon.h"
 
-#define ECHOBUFFERMAX (1024*4)
-#define UNISONMAX 3
+#define ECHOBUFFERMAX (1024*8)
+#define UNISONMAX 2
 #define HARMONICSMAX 32
 #define REVERBECHOES 0
 #define AUDIOCHANNELS 2
@@ -70,6 +70,8 @@ struct fingersData {
 
 float echoBufferL[ECHOBUFFERMAX] __attribute__ ((aligned));
 float echoBufferR[ECHOBUFFERMAX] __attribute__ ((aligned));
+float convBufferL[ECHOBUFFERMAX] __attribute__ ((aligned));
+float convBufferR[ECHOBUFFERMAX] __attribute__ ((aligned));
 
 float unisonDetune[UNISONMAX] = {
     0, -0.2, 0.2    
@@ -312,7 +314,7 @@ static inline void reverbConvolute(long* dataL, long* dataR,unsigned long sample
 
 static inline float compress(float f)
 {
-    return atanf(f * 2) * 0.75;
+    return atanf(f * 3) * 0.75;
 }
 
 static inline void renderNoiseToBuffer(unsigned long samples,unsigned long sc)
