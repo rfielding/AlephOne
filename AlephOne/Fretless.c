@@ -721,6 +721,12 @@ void Fretless_endDown(struct Fretless_context* ctxp, int finger,float fnote,int 
         ctxp->midiPutch(0);
         ctxp->noteChannelDownRawBalance[turningOffPtr->note][turningOffPtr->channel]--;
     }
+    
+    //Untested, but this looks like it must be here for consistency for synths that dont
+    //necessarily take aftertouch to be a new volume value
+    ctxp->midiPutch(0xD0 + fsPtr->channel);
+    ctxp->midiPutch(fsPtr->velocity);
+
     ctxp->midiPutch(MIDI_ON + fsPtr->channel);
     ctxp->midiPutch(fsPtr->note);
     ctxp->midiPutch(fsPtr->velocity);
