@@ -237,7 +237,7 @@ void Page_set(void* ctx, int val)
         case 1:
             intonationSlider->rect->isActive = TRUE;
             rootNoteSlider->rect->isActive = TRUE;
-            chorusSlider->rect->isActive = TRUE;
+            //chorusSlider->rect->isActive = TRUE;
             break;
         case 2:
             midiChannelSlider->rect->isActive = TRUE;

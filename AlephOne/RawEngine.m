@@ -18,10 +18,10 @@
 #import "RawEngineGenerated.h"
 #include "FretlessCommon.h"
 
-#define ECHOBUFFERMAX (1024*8)
-#define UNISONMAX 2
+#define ECHOBUFFERMAX (1024*16)
+#define UNISONMAX 3
 #define HARMONICSMAX 32
-#define REVERBECHOES 0
+#define REVERBECHOES 4
 #define AUDIOCHANNELS 2
 
 AudioComponentInstance audioUnit;
@@ -120,16 +120,16 @@ float _harmonics[HARMONICSMAX][EXPR][DIST] =
 
 int reverbDataL[REVERBECHOES] __attribute__ ((aligned)) =
 {
-  1131,181,339,230,1437,485,310,1569,771  
+  436,213,339*3,230*2,1437*4,893*8,310,1569,771  
 };
 int reverbDataR[REVERBECHOES] __attribute__ ((aligned)) =
 {
-  419,586,1450,901,545,1119,383,231,759  
+  100,503,1450*3,901*2,545*4,533*8,383,231,759  
 };
 
 float reverbStrength[REVERBECHOES] __attribute__ ((aligned)) =
 {
-    1.0/2, 1.0/2, 1.0/3, 1.0/3, 1.0/4, 1.0/4, 1.0/5, 1.0/5, 1.0/5, 1.0/5
+    0.5, 0.5, 0.4, 0.3, 0.5, 0.3, 0.4, 0.4, 0.7, 0.7
 };
 
 static struct fingersData allFingers;
@@ -287,6 +287,7 @@ static inline void reverbConvolute(long* dataL, long* dataR,unsigned long sample
 {
     long sc = allFingers.sampleCount;
     
+    
     for(int r=0; r<REVERBECHOES; r++)
     {
         float invR = reverbStrength[r];
@@ -300,6 +301,7 @@ static inline void reverbConvolute(long* dataL, long* dataR,unsigned long sample
         }
     }
      
+     
     float scaleFactor = INT_MAX * 0.1 * 0.025;
     //TODO: need a vector int modulus
     for(int i=0; i<samples; i++)
@@ -307,14 +309,14 @@ static inline void reverbConvolute(long* dataL, long* dataR,unsigned long sample
         int n = (i+sc)%ECHOBUFFERMAX;
         dataL[i] = scaleFactor * echoBufferL[n];
         dataR[i] = scaleFactor * echoBufferR[n];        
-        echoBufferL[n] *=  0.133;
-        echoBufferR[n] *=  0.133;
+        echoBufferL[n] *=  0; //0.05;
+        echoBufferR[n] *=  0; //0.05;
     }
 }
 
 static inline float compress(float f)
 {
-    return atanf(f * 3) * 0.75;
+    return atanf(f * 3) * 0.7;
 }
 
 static inline void renderNoiseToBuffer(unsigned long samples,unsigned long sc)
@@ -385,7 +387,7 @@ static void renderNoise(long* dataL, long* dataR, unsigned long samples)
 }
 
 void rawEngine(int midiChannel,int doNoteAttack,float pitch,float volVal,int midiExprParm,int midiExpr)
-{
+{    
     //printf("%d %d %f %f %d %d\n",midiChannel, doNoteAttack, pitch, volVal, midiExprParm, midiExpr);
     int channel = midiChannel;
     //Handle the note-tie state machine.  We expect the note-off to come before note-on in the note-tie,
@@ -424,7 +426,8 @@ void rawEngine(int midiChannel,int doNoteAttack,float pitch,float volVal,int mid
         }
         if(volVal!=0) //Don't bother with ramping these on release
         {
-            setRamp(&allFingers.finger[channel].pitchRamp, 0.9, pitch);
+            //setRamp(&allFingers.finger[channel].pitchRamp, 0.9, pitch);
+            setRamp(&allFingers.finger[channel].pitchRamp, 0.95, pitch);
             setRamp(&allFingers.finger[channel].exprRamp, 0.1, midiExpr/127.0);                                            
         }
     }
