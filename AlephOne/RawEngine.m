@@ -17,11 +17,12 @@
 #import "RawEngine.h"
 #import "RawEngineGenerated.h"
 #include "FretlessCommon.h"
+#include "Parameters.h"
 
 #define ECHOBUFFERMAX (1024*16)
 #define UNISONMAX 3
 #define HARMONICSMAX 32
-#define REVERBECHOES 4
+#define REVERBECHOES 10
 #define AUDIOCHANNELS 2
 
 AudioComponentInstance audioUnit;
@@ -124,12 +125,12 @@ int reverbDataL[REVERBECHOES] __attribute__ ((aligned)) =
 };
 int reverbDataR[REVERBECHOES] __attribute__ ((aligned)) =
 {
-  100,503,1450*3,901*2,545*4,533*8,383,231,759  
+  100,503,1450*3,901*2,545*4,533*8,383*4,231*5,759*6,234*7  
 };
 
 float reverbStrength[REVERBECHOES] __attribute__ ((aligned)) =
 {
-    0.5, 0.5, 0.4, 0.3, 0.5, 0.3, 0.4, 0.4, 0.7, 0.7
+    0.5, 0.5, 0.4, 0.6, 0.5, 0.3, 0.4, 0.4, 0.7, 0.7
 };
 
 static struct fingersData allFingers;
@@ -283,55 +284,45 @@ static inline void xDSP_vcp(float* src,float* dst,int count)
     memcpy(dst,src,count*sizeof(float));
 }
 
-static inline void reverbConvolute(long* dataL, long* dataR,unsigned long samples)
+static inline float compress(float f)
 {
+    return atanf(f);
+}
+
+static inline void renderNoiseToBuffer(long* dataL, long* dataR, unsigned long samples)
+{
+    //Distortion goes to 11
+    float innerScale = 1+10*getDistortion();
+    
+    //Scale to fit range when converting to integer
+    float scaleFactor = 0x800000 * 2.0/M_PI;
+    
     long sc = allFingers.sampleCount;
+    float reverbAmount = getReverb();
     
-    
-    for(int r=0; r<REVERBECHOES; r++)
-    {
-        float invR = reverbStrength[r];
-        for(int i=0; i<samples; i++)
-        {
-            int n = (i+sc)%ECHOBUFFERMAX;
-            int nL = (i+sc+reverbDataL[r])%ECHOBUFFERMAX;
-            int nR = (i+sc+reverbDataR[r])%ECHOBUFFERMAX;
-            echoBufferL[nL] += (0.125*echoBufferL[n] + 0.1*echoBufferR[n])*invR;
-            echoBufferR[nR] += (0.125*echoBufferR[n] + 0.1*echoBufferL[n])*invR;
-        }
-    }
-     
-     
-    float scaleFactor = INT_MAX * 0.1 * 0.025;
-    //TODO: need a vector int modulus
+    //Add pre-chorus sound together compressed
     for(int i=0; i<samples; i++)
     {
         int n = (i+sc)%ECHOBUFFERMAX;
-        dataL[i] = scaleFactor * echoBufferL[n];
-        dataR[i] = scaleFactor * echoBufferR[n];        
-        echoBufferL[n] *=  0; //0.05;
-        echoBufferR[n] *=  0; //0.05;
-    }
-}
-
-static inline float compress(float f)
-{
-    return atanf(f * 3) * 0.7;
-}
-
-static inline void renderNoiseToBuffer(unsigned long samples,unsigned long sc)
-{
-    //Add pre-chorus sound together compressed
-    for(int phaseIdx=0; phaseIdx<UNISONMAX; phaseIdx++)
-    {
-        for(int i=0; i<samples; i++)
+        for(int phaseIdx=0; phaseIdx<UNISONMAX; phaseIdx++)
         {
             //Is the atanf bad?
-            float val = compress(allFingers.total[phaseIdx][i]);
-            int n = (i+sc)%ECHOBUFFERMAX;
+            float val = compress(allFingers.total[phaseIdx][i] * innerScale);
             echoBufferL[n] += val;
             echoBufferR[n] += val;
         }
+        for(int r=0; r<REVERBECHOES; r++)
+        {
+            float invR = reverbStrength[r] * reverbAmount;
+            int nL = (i+sc+reverbDataL[r])%ECHOBUFFERMAX;
+            int nR = (i+sc+reverbDataR[r])%ECHOBUFFERMAX;
+            echoBufferL[nL] += (0.125*echoBufferL[n] + 0.05*echoBufferR[n])*invR;
+            echoBufferR[nR] += (0.125*echoBufferR[n] + 0.05*echoBufferL[n])*invR;
+        }
+        dataL[i] = scaleFactor * atanf(echoBufferL[n]);
+        dataR[i] = scaleFactor * atanf(echoBufferR[n]);        
+        echoBufferL[n] *=  0.1 * reverbAmount; 
+        echoBufferR[n] *=  0.1 * reverbAmount;
     }    
 }
 
@@ -381,8 +372,7 @@ static void renderNoise(long* dataL, long* dataR, unsigned long samples)
             allFingers.finger[f].exprRamp.value = targetExpr;
         }
     }
-    renderNoiseToBuffer(samples,allFingers.sampleCount);
-    reverbConvolute(dataL,dataR,samples);
+    renderNoiseToBuffer(dataL,dataR,samples);
     allFingers.sampleCount += samples;
 }
 

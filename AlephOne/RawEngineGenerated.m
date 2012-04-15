@@ -7,6 +7,7 @@
 //
 #import <Accelerate/Accelerate.h>
 #import "RawEngineGenerated.h"
+#include "Parameters.h"
 
 static inline void xDSP_vcp(float* src,float* dst,int count)
 {
@@ -142,6 +143,7 @@ float renderNoiseInnerLoopInParallel(
     // [0.75 .. 1]    1
     pitchLocation = pitchLocation - 0.25;
     pitchLocation = pitchLocation*2;
+    pitchLocation += (1-getTimbre());
     
     pitchLocation = (pitchLocation<0) ? 0 : pitchLocation;
     pitchLocation = (pitchLocation>1) ? 1 : pitchLocation;

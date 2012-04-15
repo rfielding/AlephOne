@@ -34,6 +34,7 @@
 		49691AD414B0DD6E009AB83D /* note-10.png in Resources */ = {isa = PBXBuildFile; fileRef = 49691ACF14B0DD6E009AB83D /* note-10.png */; };
 		49691ADD14B57412009AB83D /* ScaleControl.c in Sources */ = {isa = PBXBuildFile; fileRef = 49691ADC14B57411009AB83D /* ScaleControl.c */; };
 		499ADD8814AC0A200007CAA3 /* alephonep2.png in Resources */ = {isa = PBXBuildFile; fileRef = 499ADD8714AC0A200007CAA3 /* alephonep2.png */; };
+		499B032F153A833300BE7455 /* Parameters.c in Sources */ = {isa = PBXBuildFile; fileRef = 499B032E153A833200BE7455 /* Parameters.c */; };
 		49B39079144914DC008C9F6E /* UIKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 49B39078144914DC008C9F6E /* UIKit.framework */; };
 		49B3907B144914DC008C9F6E /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 49B3907A144914DC008C9F6E /* Foundation.framework */; };
 		49B3907D144914DC008C9F6E /* CoreGraphics.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 49B3907C144914DC008C9F6E /* CoreGraphics.framework */; };
@@ -122,6 +123,8 @@
 		49691ADC14B57411009AB83D /* ScaleControl.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = ScaleControl.c; sourceTree = "<group>"; };
 		49691ADE14B5742D009AB83D /* ScaleControl.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ScaleControl.h; sourceTree = "<group>"; };
 		499ADD8714AC0A200007CAA3 /* alephonep2.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = alephonep2.png; sourceTree = "<group>"; };
+		499B032E153A833200BE7455 /* Parameters.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = Parameters.c; sourceTree = "<group>"; };
+		499B0331153A834600BE7455 /* Parameters.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = Parameters.h; sourceTree = "<group>"; };
 		499FE5B014ECB54E00DA92CB /* FretlessCommon.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = FretlessCommon.h; sourceTree = "<group>"; };
 		49B39074144914DC008C9F6E /* AlephOne.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = AlephOne.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		49B39078144914DC008C9F6E /* UIKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = UIKit.framework; path = System/Library/Frameworks/UIKit.framework; sourceTree = SDKROOT; };
@@ -248,6 +251,8 @@
 				49C8C39014DA303E00388555 /* DeMIDI.c */,
 				49C8C39214DA305300388555 /* DeMIDI.h */,
 				499FE5B014ECB54E00DA92CB /* FretlessCommon.h */,
+				499B032E153A833200BE7455 /* Parameters.c */,
+				499B0331153A834600BE7455 /* Parameters.h */,
 			);
 			name = ProjectAgnostic;
 			sourceTree = "<group>";
@@ -548,6 +553,7 @@
 				49C8C39114DA303E00388555 /* DeMIDI.c in Sources */,
 				49DE52B514DB771500970F58 /* RawEngine.m in Sources */,
 				49EBD74A1503535000E50DCA /* RawEngineGenerated.m in Sources */,
+				499B032F153A833300BE7455 /* Parameters.c in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
