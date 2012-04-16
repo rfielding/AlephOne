@@ -37,6 +37,7 @@
 #define PIC_ENGINETEXT 26
 #define PIC_REVERBTEXT 27
 #define PIC_TIMBRETEXT 28
+#define PIC_DETUNETEXT 29
 
 #define PIC_NOTE0 32
 #define PIC_NOTE1 33

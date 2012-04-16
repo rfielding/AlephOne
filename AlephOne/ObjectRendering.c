@@ -97,6 +97,7 @@ struct Slider_data* snapSpeedSlider;
 struct Button_data* engineButton;
 
 struct Slider_data* distortionSlider;
+struct Slider_data* detuneSlider;
 struct Slider_data* timbreSlider;
 struct Slider_data* reverbSlider;
 
@@ -230,6 +231,7 @@ void Page_set(void* ctx, int val)
     snapSpeedSlider->rect->isActive = FALSE;
     engineButton->rect->isActive = FALSE;
     distortionSlider->rect->isActive = FALSE;
+    detuneSlider->rect->isActive = FALSE;
     timbreSlider->rect->isActive = FALSE;
     reverbSlider->rect->isActive = FALSE;
     switch(val)
@@ -264,6 +266,7 @@ void Page_set(void* ctx, int val)
             break;
         case 6:
             distortionSlider->rect->isActive = TRUE;
+            detuneSlider->rect->isActive = TRUE;
             timbreSlider->rect->isActive = TRUE;
             reverbSlider->rect->isActive = TRUE;
             break;
@@ -359,6 +362,16 @@ void Reverb_set(void* ctx, float val)
 float Reverb_get(void* ctx)
 {
     return getReverb();
+}
+
+void Detune_set(void* ctx, float val)
+{
+    setDetune(val);
+}
+
+float Detune_get(void* ctx)
+{
+    return getDetune();
 }
 
 void MidiBase_set(void* ctx, float val)
@@ -571,6 +584,7 @@ void ObjectRendering_loadImages()
     MidiBend_set(NULL,MidiBend_get(NULL));
     
     renderLabel("Distortion", PIC_DISTORTIONTEXT);
+    renderLabel("Detune", PIC_DETUNETEXT);
     renderLabel("Timbre", PIC_TIMBRETEXT);
     renderLabel("Reverb", PIC_REVERBTEXT);
     
@@ -662,7 +676,8 @@ void WidgetsAssemble()
     engineButton->val = 1; //This is in the enabled state from the beginning
     
     //Page 6
-    reverbSlider = CreateSlider(PIC_REVERBTEXT,0.12,panelBottom, 0.48,panelTop, Reverb_set, Reverb_get);
+    reverbSlider = CreateSlider(PIC_REVERBTEXT,0.12,panelBottom, 0.30,panelTop, Reverb_set, Reverb_get);
+    detuneSlider = CreateSlider(PIC_DETUNETEXT,0.302,panelBottom, 0.48,panelTop, Detune_set, Detune_get);
     timbreSlider = CreateSlider(PIC_TIMBRETEXT,0.482,panelBottom, 0.66,panelTop, Timbre_set, Timbre_get);
     distortionSlider = CreateSlider(PIC_DISTORTIONTEXT,0.662,panelBottom, 0.95,panelTop, Distortion_set, Distortion_get);
     

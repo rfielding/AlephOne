@@ -29,6 +29,7 @@ AudioComponentInstance audioUnit;
 AudioStreamBasicDescription audioFormat;
 static const float kSampleRate = 44100.0;
 static const unsigned int kOutputBus = 0;
+static unsigned long lastSamples = 256;
 
 static void audioSessionInterruptionCallback(void *inUserData, UInt32 interruptionState) {
     if (interruptionState == kAudioSessionEndInterruption) {
@@ -45,7 +46,7 @@ static void audioSessionInterruptionCallback(void *inUserData, UInt32 interrupti
 
 struct ramp {
     float stopValue;
-    float slope;
+    int   buffers;
     float value;
 };
 
@@ -71,11 +72,11 @@ struct fingersData {
 
 float echoBufferL[ECHOBUFFERMAX] __attribute__ ((aligned));
 float echoBufferR[ECHOBUFFERMAX] __attribute__ ((aligned));
-float convBufferL[ECHOBUFFERMAX] __attribute__ ((aligned));
-float convBufferR[ECHOBUFFERMAX] __attribute__ ((aligned));
+//float convBufferL[ECHOBUFFERMAX] __attribute__ ((aligned));
+//float convBufferR[ECHOBUFFERMAX] __attribute__ ((aligned));
 
 float unisonDetune[UNISONMAX] = {
-    0, -0.2, 0.2    
+    0, -0.25, 0.25    
 };
 float unisonVol[UNISONMAX] = {
   1, 0.75, 0.75  
@@ -146,16 +147,25 @@ static void moveRamps(int dstFinger, int srcFinger)
 }
 
 
-static inline void setRamp(struct ramp* r, float slope, float stopValue)
+static inline void setRamp(struct ramp* r, int buffers, float stopValue)
 {
     r->stopValue = stopValue;
-    r->slope = slope;
+    r->buffers = buffers;
 }
 
-static inline void doRamp(struct ramp* r,long sample)
+
+//Do this ramp once per buffer
+static inline void doRamp(struct ramp* r)
 {
-    r->value = r->value * (1-r->slope) + r->slope * r->stopValue;
+    if(r->buffers>0)
+    {
+        //Modify the value
+        r->value = r->stopValue;
+        //Decrease the count
+        r->buffers--;        
+    }
 }
+ 
 
 
 
@@ -186,10 +196,6 @@ static void initNoise()
     for(int i=0; i<16; i++)
     {
         _harmonics[i][0][0] = 16-i;
-    }
-    for(int i=0; i<8; i++)
-    {
-        //_harmonics[i*2+7][1][0] = (16-i)/(2*i+1);
     }
     _harmonics[0][1][0] = 1;
     _harmonics[1][1][0] = 2;
@@ -267,7 +273,7 @@ static inline void renderNoisePrepare(int f)
         allFingers.finger[f].pitchRamp.value = allFingers.finger[f].pitchRamp.stopValue;
         allFingers.finger[f].exprRamp.value = allFingers.finger[f].exprRamp.stopValue;
     }
-    doRamp(&allFingers.finger[f].pitchRamp,allFingers.sampleCount);    
+    doRamp(&allFingers.finger[f].pitchRamp);    
 }
 
 static inline void renderNoiseCleanAll(unsigned long samples)
@@ -292,7 +298,7 @@ static inline float compress(float f)
 static inline void renderNoiseToBuffer(long* dataL, long* dataR, unsigned long samples)
 {
     //Distortion goes to 11
-    float innerScale = 1+10*getDistortion();
+    float innerScale = 0.5+10.5*getDistortion();
     
     //Scale to fit range when converting to integer
     float scaleFactor = 0x800000 * 2.0/M_PI;
@@ -339,10 +345,10 @@ static void renderNoiseInnerLoop(int f,unsigned long samples,float invSamples,
         float phase = allFingers.finger[f].phases[u];
         allFingers.finger[f].phases[u] = 
             renderNoiseInnerLoopInParallel(
-                                           allFingers.total[u],notep,unisonDetune[u],
+                                           allFingers.total[u],notep,unisonDetune[u]*getDetune(),
                                            pitchLocation,phase,
                                            samples,invSamples,
-                                           currentVolume*unisonVol[u],diffVolume*invSamples*unisonVol[u],
+                                           currentVolume*unisonVol[u],diffVolume*invSamples*unisonVol[u]*getDetune(),
                                            currentExpr,diffExpr*invSamples);
     }
 }
@@ -368,8 +374,10 @@ static void renderNoise(long* dataL, long* dataR, unsigned long samples)
             activeFingers++;
             renderNoisePrepare(f);
             renderNoiseInnerLoop(f,samples, invSamples, currentVolume,diffVolume,currentExpr,diffExpr);                
-            allFingers.finger[f].volRamp.value = targetVolume;
-            allFingers.finger[f].exprRamp.value = targetExpr;
+            //allFingers.finger[f].volRamp.value = targetVolume;
+            //allFingers.finger[f].exprRamp.value = targetExpr;
+            doRamp(&allFingers.finger[f].exprRamp);    
+            doRamp(&allFingers.finger[f].volRamp);    
         }
     }
     renderNoiseToBuffer(dataL,dataR,samples);
@@ -412,13 +420,12 @@ void rawEngine(int midiChannel,int doNoteAttack,float pitch,float volVal,int mid
         }
         if(doVol) //If we are in legato, then this might need to be stopped
         {
-            setRamp(&allFingers.finger[channel].volRamp, 0.008 * pitch/127.0 * ((volVal==0)?0.25:1), volVal);            
+            setRamp(&allFingers.finger[channel].volRamp, 1, volVal);            
         }
         if(volVal!=0) //Don't bother with ramping these on release
         {
-            //setRamp(&allFingers.finger[channel].pitchRamp, 0.9, pitch);
-            setRamp(&allFingers.finger[channel].pitchRamp, 0.95, pitch);
-            setRamp(&allFingers.finger[channel].exprRamp, 0.1, midiExpr/127.0);                                            
+            setRamp(&allFingers.finger[channel].pitchRamp, 1, pitch);
+            setRamp(&allFingers.finger[channel].exprRamp, 1, midiExpr/127.0);                                            
         }
     }
 }
@@ -477,7 +484,7 @@ static OSStatus SoundEngine_playCallback(void *inRefCon,
     SInt32* dataL = (SInt32*)outputBufferL->mData;
     AudioBuffer* outputBufferR = &ioData->mBuffers[1];
     SInt32* dataR = (SInt32*)outputBufferR->mData;
-    
+    lastSamples = inNumberFrames;
     renderNoise(dataL,dataR,inNumberFrames);
     return 0;
 }
