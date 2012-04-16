@@ -46,6 +46,7 @@ static void audioSessionInterruptionCallback(void *inUserData, UInt32 interrupti
 
 struct ramp {
     float stopValue;
+    float finalValue;
     int   buffers;
     float value;
 };
@@ -142,27 +143,27 @@ static void moveRamps(int dstFinger, int srcFinger)
     {
         bcopy(&allFingers.finger[srcFinger],&allFingers.finger[dstFinger],sizeof(struct fingerData));
         allFingers.finger[srcFinger].volRamp.value = 0;
-        allFingers.finger[srcFinger].volRamp.stopValue = 0;     
+        allFingers.finger[srcFinger].volRamp.stopValue = 0;    
+        allFingers.finger[srcFinger].volRamp.finalValue = 0;
     }
 }
 
 
-static inline void setRamp(struct ramp* r, int buffers, float stopValue)
+static inline void setRamp(struct ramp* r, int buffers, float finalValue)
 {
-    r->stopValue = stopValue;
+    r->finalValue = finalValue;
     r->buffers = buffers;
+    r->stopValue = ((r->buffers-1) * r->value + r->finalValue) / (r->buffers);
 }
 
 
 //Do this ramp once per buffer
 static inline void doRamp(struct ramp* r)
 {
-    if(r->buffers>0)
+    r->value = r->stopValue;
+    if(r->buffers>1)
     {
-        //Modify the value
-        r->value = r->stopValue;
-        //Decrease the count
-        r->buffers--;        
+        setRamp(r,r->buffers-1,r->finalValue);
     }
 }
  
@@ -362,20 +363,19 @@ static void renderNoise(long* dataL, long* dataR, unsigned long samples)
     for(int f=0; f<FINGERMAX; f++)
     {
         float currentVolume = allFingers.finger[f].volRamp.value;
-        float targetVolume = allFingers.finger[f].volRamp.stopValue;
-        float diffVolume = (targetVolume - currentVolume);
-        float currentExpr = allFingers.finger[f].exprRamp.value;
-        float targetExpr = allFingers.finger[f].exprRamp.stopValue;
-        float diffExpr = (targetExpr - currentExpr);
-        int isActive = (currentVolume > 0) || (targetVolume > 0);
+        float targetVolume  = allFingers.finger[f].volRamp.stopValue;
+        float finalVolume   = allFingers.finger[f].volRamp.finalValue;
+        float diffVolume    = (targetVolume - currentVolume);
+        float currentExpr   = allFingers.finger[f].exprRamp.value;
+        float targetExpr    = allFingers.finger[f].exprRamp.stopValue;
+        float diffExpr      = (targetExpr - currentExpr);
+        int isActive        = (currentVolume > 0) || (finalVolume > 0);
         
         if(isActive)
         {
             activeFingers++;
             renderNoisePrepare(f);
             renderNoiseInnerLoop(f,samples, invSamples, currentVolume,diffVolume,currentExpr,diffExpr);                
-            //allFingers.finger[f].volRamp.value = targetVolume;
-            //allFingers.finger[f].exprRamp.value = targetExpr;
             doRamp(&allFingers.finger[f].exprRamp);    
             doRamp(&allFingers.finger[f].volRamp);    
         }
@@ -420,7 +420,7 @@ void rawEngine(int midiChannel,int doNoteAttack,float pitch,float volVal,int mid
         }
         if(doVol) //If we are in legato, then this might need to be stopped
         {
-            setRamp(&allFingers.finger[channel].volRamp, 1, volVal);            
+            setRamp(&allFingers.finger[channel].volRamp, 2 + 20 * (128-pitch)/127.0, volVal);            
         }
         if(volVal!=0) //Don't bother with ramping these on release
         {
