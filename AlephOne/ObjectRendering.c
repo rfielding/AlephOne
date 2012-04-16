@@ -682,7 +682,7 @@ void WidgetsAssemble()
     distortionSlider = CreateSlider(PIC_DISTORTIONTEXT,0.662,panelBottom, 0.95,panelTop, Distortion_set, Distortion_get);
     
     //Page last
-    Page_set(NULL, 7);
+    Page_set(NULL, 6);
     
     ScaleControl_setBaseNote(0);
     ScaleControl_setCurrentScale(0);
