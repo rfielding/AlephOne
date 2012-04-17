@@ -91,22 +91,18 @@ void SurfaceTouchHandling_touchesDown(void* ctx,int finger,void* touch,int isMov
     }
     
     float e = expr;
-    float dx = (e*e*e*e)*chorusLevel*0.0000000125;
     float v = area * baseVolume;
     fingerInfo->velocity = v;
-    //logger("v=%f",v);
     if(isMoving)
     {
-        Fretless_move(fretlessp,finger1,note-dx,v,polyGroup1);
+        Fretless_move(fretlessp,finger1,note,v,polyGroup1);
         Fretless_express(fretlessp, finger1, 11, expr);
     }
     else
     {
-        //float v = area;
-        //logger("v=%f velo=%f area=%f\n",v, velocity,area);
         Fretless_beginDown(fretlessp,finger1); 
         Fretless_express(fretlessp, finger1, 11, expr);
-        Fretless_endDown(fretlessp,finger1, note-dx,polyGroup1,v,legato); 
+        Fretless_endDown(fretlessp,finger1, note,polyGroup1,v,legato); 
     }
 }
 
@@ -121,9 +117,8 @@ void SurfaceTouchHandling_tick(void* ctx)
         {
             activeFingers++;
             float expr = fingerInfo->expr;
-            float dx = (expr*expr*expr*expr)*chorusLevel;
             PitchHandler_pickPitch(phctx,finger,1,fingerInfo->fingerX,fingerInfo->fingerY);
-            Fretless_move(fretlessp,finger,fingerInfo->pitch-dx,fingerInfo->velocity,fingerInfo->string);    
+            Fretless_move(fretlessp,finger,fingerInfo->pitch,fingerInfo->velocity,fingerInfo->string);    
         }            
     }
     Fretless_flush(fretlessp);

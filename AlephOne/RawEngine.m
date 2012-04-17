@@ -123,11 +123,11 @@ float _harmonics[HARMONICSMAX][EXPR][DIST] =
 
 int reverbDataL[REVERBECHOES] __attribute__ ((aligned)) =
 {
-  436,213,339*3,230*2,1437*4,893*8,310,1569,771  
+  436*2,213*2,339*3,230*2,1437*4,893*8,310,1569,771  
 };
 int reverbDataR[REVERBECHOES] __attribute__ ((aligned)) =
 {
-  100,503,1450*3,901*2,545*4,533*8,383*4,231*5,759*6,234*7  
+  100*2,503*2,1450*3,901*2,545*4,533*8,383*4,231*5,759*6,234*7  
 };
 
 float reverbStrength[REVERBECHOES] __attribute__ ((aligned)) =
@@ -142,6 +142,7 @@ static void moveRamps(int dstFinger, int srcFinger)
     if(srcFinger != dstFinger)
     {
         bcopy(&allFingers.finger[srcFinger],&allFingers.finger[dstFinger],sizeof(struct fingerData));
+        //No impulsing happens because it's on a different finger now
         allFingers.finger[srcFinger].volRamp.value = 0;
         allFingers.finger[srcFinger].volRamp.stopValue = 0;    
         allFingers.finger[srcFinger].volRamp.finalValue = 0;
@@ -154,6 +155,7 @@ static inline void setRamp(struct ramp* r, int buffers, float finalValue)
     r->finalValue = finalValue;
     r->buffers = buffers;
     r->stopValue = ((r->buffers-1) * r->value + r->finalValue) / (r->buffers);
+    //printf("%f %f %d\n", r->value, r->stopValue, r->buffers);
 }
 
 
@@ -267,14 +269,15 @@ static inline void renderNoisePrepare(int f)
 {
     if(allFingers.finger[f].volRamp.value == 0)
     {
+        //Don't do ramping if we are currently silent
         for(int i=0; i<UNISONMAX; i++)
         {
             allFingers.finger[f].phases[i] = 0;
         }
-        allFingers.finger[f].pitchRamp.value = allFingers.finger[f].pitchRamp.stopValue;
-        allFingers.finger[f].exprRamp.value = allFingers.finger[f].exprRamp.stopValue;
+        
+        allFingers.finger[f].pitchRamp.value = allFingers.finger[f].pitchRamp.finalValue;
+        allFingers.finger[f].exprRamp.value = allFingers.finger[f].exprRamp.finalValue;
     }
-    doRamp(&allFingers.finger[f].pitchRamp);    
 }
 
 static inline void renderNoiseCleanAll(unsigned long samples)
@@ -376,7 +379,8 @@ static void renderNoise(long* dataL, long* dataR, unsigned long samples)
             activeFingers++;
             renderNoisePrepare(f);
             renderNoiseInnerLoop(f,samples, invSamples, currentVolume,diffVolume,currentExpr,diffExpr);                
-            doRamp(&allFingers.finger[f].exprRamp);    
+            doRamp(&allFingers.finger[f].pitchRamp);    
+            doRamp(&allFingers.finger[f].exprRamp);                
             doRamp(&allFingers.finger[f].volRamp);    
         }
     }
@@ -420,7 +424,9 @@ void rawEngine(int midiChannel,int doNoteAttack,float pitch,float volVal,int mid
         }
         if(doVol) //If we are in legato, then this might need to be stopped
         {
-            setRamp(&allFingers.finger[channel].volRamp, 2 + 20 * (128-pitch)/127.0, volVal);            
+            int goingDown = (pitch==0)?8:1;
+            float rampVal = (1 + 32 * (128-pitch)/127.0)*goingDown;
+            setRamp(&allFingers.finger[channel].volRamp, rampVal, volVal);            
         }
         if(volVal!=0) //Don't bother with ramping these on release
         {

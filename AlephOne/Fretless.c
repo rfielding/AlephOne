@@ -145,7 +145,18 @@ if(polyGroup < 0 || polyGroup >= POLYMAX) \
 #define FNOTECHECK(ctxp,fnote) \
 if(fnote < -0.5 || fnote >= 127.5) \
 { \
-    ctxp->fail("fnote %d",fnote); \
+    ctxp->logger("fnote %f\n",fnote); \
+    if(fnote < -0.5) \
+    { \
+        fnote = -0.5; \
+    } \
+    else \
+    { \
+        if(fnote >= 127.5) \
+        { \
+            fnote = 127.4999; \
+        } \
+    } \
 }
 
 
