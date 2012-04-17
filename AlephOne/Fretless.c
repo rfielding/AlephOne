@@ -84,6 +84,7 @@ struct Fretless_channelState
     int lastAftertouch;
     int currentFingerInChannel;
     int useCount;
+    float volume;
 };
 
 /**
@@ -152,7 +153,7 @@ if(fnote < -0.5 || fnote >= 127.5) \
     } \
     else \
     { \
-        if(fnote >= 127.5) \
+        if(fnote >= 127.4999) \
         { \
             fnote = 127.4999; \
         } \
@@ -369,6 +370,7 @@ void Fretless_boot(struct Fretless_context* ctxp)
     {
         ctxp->channels[c].lastBend = BENDCENTER;
         ctxp->channels[c].useCount = 0;
+        ctxp->channels[c].volume = 0;
         ctxp->channels[c].currentFingerInChannel = NOBODY;
         ctxp->channels[c].lastAftertouch = 0;
         for(int n=0; n<NOTEMAX; n++)
@@ -446,6 +448,11 @@ static void Fretless_numTo7BitNums(int n,int* lop,int* hip)
 int Fretless_getChannelOccupancy(struct Fretless_context* ctxp, int channel)
 {
     return ctxp->channels[channel].useCount;
+}
+
+float Fretless_getChannelVolume(struct Fretless_context* ctxp, int channel)
+{
+    return ctxp->channels[channel].volume;
 }
 
 float Fretless_getChannelBend(struct Fretless_context* ctxp, int channel)
@@ -700,6 +707,7 @@ void Fretless_endDown(struct Fretless_context* ctxp, int finger,float fnote,int 
             ctxp->midiPutch(MIDI_ON + fsPtr->channel);
             ctxp->midiPutch(fsPtr->note);
             ctxp->midiPutch(0);
+            ctxp->channels[fsPtr->channel].volume = fsPtr->velocity/127.0;
             ctxp->noteChannelDownRawBalance[fsPtr->note][fsPtr->channel]--;            
         }        
     }
@@ -730,6 +738,7 @@ void Fretless_endDown(struct Fretless_context* ctxp, int finger,float fnote,int 
         ctxp->midiPutch(MIDI_ON + turningOffPtr->channel);
         ctxp->midiPutch(turningOffPtr->note);
         ctxp->midiPutch(0);
+        ctxp->channels[turningOffPtr->channel].volume = fsPtr->velocity/127.0;
         ctxp->noteChannelDownRawBalance[turningOffPtr->note][turningOffPtr->channel]--;
     }
     
@@ -739,6 +748,7 @@ void Fretless_endDown(struct Fretless_context* ctxp, int finger,float fnote,int 
     ctxp->midiPutch(MIDI_ON + fsPtr->channel);
     ctxp->midiPutch(fsPtr->note);
     ctxp->midiPutch(fsPtr->velocity);
+    ctxp->channels[fsPtr->channel].volume = fsPtr->velocity/127.0;
     ctxp->noteChannelDownRawBalance[fsPtr->note][fsPtr->channel]++;
     if( ctxp->noteChannelDownRawBalance[fsPtr->note][fsPtr->channel] > 1 )
     {
@@ -780,6 +790,7 @@ void Fretless_up(struct Fretless_context* ctxp, int finger,int legato)
             ctxp->midiPutch(MIDI_ON + fsPtr->channel);
             ctxp->midiPutch(fsPtr->note);
             ctxp->midiPutch(0);
+            ctxp->channels[fsPtr->channel].volume = fsPtr->velocity/127.0;
             ctxp->noteChannelDownRawBalance[fsPtr->note][fsPtr->channel]--;            
         }        
     }    
@@ -804,6 +815,7 @@ void Fretless_up(struct Fretless_context* ctxp, int finger,int legato)
         ctxp->midiPutch(MIDI_ON + turningOnPtr->channel);
         ctxp->midiPutch(turningOnPtr->note);
         ctxp->midiPutch(turningOnPtr->velocity);
+        ctxp->channels[turningOnPtr->channel].volume = fsPtr->velocity/127.0;
         ctxp->noteChannelDownRawBalance[turningOnPtr->note][turningOnPtr->channel]++;
         if( ctxp->noteChannelDownRawBalance[fsPtr->note][fsPtr->channel] > 1 )
         {

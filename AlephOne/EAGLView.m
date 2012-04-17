@@ -119,8 +119,8 @@ static struct Fret_context* frctx;
     glBindTexture(GL_TEXTURE_2D, textures[0]);
     
     void* imageData = NULL;
-    unsigned int width=256;
-    unsigned int height=32;
+    unsigned int width=512;
+    unsigned int height=64;
     
  
     // Create the color space.
@@ -140,7 +140,7 @@ static struct Fret_context* frctx;
     CGContextClearRect(context, CGRectMake(0, 0, width, height));
     
     // Get the font.
-    UIFont *font = [UIFont fontWithName:@"Helvetica" size:24];
+    UIFont *font = [UIFont fontWithName:@"Helvetica" size:40];
     
     /*
     CGContextSaveGState(context);

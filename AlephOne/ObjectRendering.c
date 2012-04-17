@@ -566,7 +566,7 @@ void ObjectRendering_loadImages()
     
     //Loading up strings because we know that OpenGL context is now valid.
     //This may move to support re-rendering of strings
-    renderLabel("Channel Cycling", PIC_CHANNELCYCLINGTEXT);
+    renderLabel("MIDI Channels", PIC_CHANNELCYCLINGTEXT);
     renderLabel("Center",PIC_BASENOTETEXT);
     renderLabel("Scale",PIC_SCALETEXT);
     renderLabel("Width",PIC_WIDTHTEXT);
@@ -637,7 +637,7 @@ void WidgetsAssemble()
     //Creating a raw control given just a rendering function
     ChannelOccupancyControl_create(cx - 0.2, cy - 0.2, cx + 0.2, cy + 0.2);
     
-    float panelBottom = 0.92;
+    float panelBottom = 0.94;
     float panelTop = 1.0;
     //This button cycles through pages of controls
     pageButton = CreateButton(PIC_PAGE1TEXT,0.0,panelBottom, 0.11,panelTop, Page_set, Page_get, 8);

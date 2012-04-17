@@ -62,7 +62,7 @@ void Slider_render(void* ctx)
     VertexObjectBuilder_addColoredVertex(voCtxDynamic, w->x1,    w->y1, 0, 0, 200,50,100);             
     float s = 0.02;
     float dx = 0.4;
-    float dy = 0.075;
+    float dy = 0.065;
     VertexObjectBuilder_startTexturedObject(voCtxDynamic,trianglestrip,slider->label);
     VertexObjectBuilder_addTexturedVertex(voCtxDynamic, w->x1+s, w->y1, 0, 0,0);
     VertexObjectBuilder_addTexturedVertex(voCtxDynamic, w->x1+s, w->y1+dy, 0, 0,1);
