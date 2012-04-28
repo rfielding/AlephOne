@@ -52,10 +52,7 @@ static inline void renderNoiseComputeV(float currentVolume, float deltaVolume, u
     // deltaVolume = invSamples * diffVolume
     // v[i] = (i * (invSamples * diffVolume)) + currentVolume
     //
-    
-    xDSP_vcp(sampleIndexArray,vArray,samples);    
-    vDSP_vsmul(vArray,1,&deltaVolume,vArray,1,samples);
-    vDSP_vsadd(vArray,1,&currentVolume,vArray,1,samples);        
+    vDSP_vramp(&currentVolume,&deltaVolume,vArray,1,samples);
 }
 
 static inline void renderNoiseComputeE(float currentExpr, float deltaExpr, unsigned long samples)
@@ -67,10 +64,7 @@ static inline void renderNoiseComputeE(float currentExpr, float deltaExpr, unsig
     // //e[i] = bound{0,1}(2*(e[0] - 0.25))
     // eNot[i] = (1-e[i])
     //
-    
-    xDSP_vcp(sampleIndexArray,eArray,samples);    
-    vDSP_vsmul(eArray,1,&deltaExpr,eArray,1,samples);
-    vDSP_vsadd(eArray,1,&currentExpr,eArray,1,samples);      
+    vDSP_vramp(&currentExpr,&deltaExpr,eArray,1,samples);
     vDSP_vfill(&one,eNotArray,1,samples);
     vDSP_vsub(eNotArray,1,eArray,1,eNotArray,1,samples);    
     

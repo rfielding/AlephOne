@@ -19,7 +19,7 @@
 #include "FretlessCommon.h"
 #include "Parameters.h"
 
-#define ECHOBUFFERMAX (1024*16)
+#define ECHOBUFFERMAX (1024*32)
 #define UNISONMAX 3
 #define HARMONICSMAX 32
 #define REVERBECHOES 10
@@ -123,16 +123,16 @@ float _harmonics[HARMONICSMAX][EXPR][DIST] =
 
 int reverbDataL[REVERBECHOES] __attribute__ ((aligned)) =
 {
-  436*2,213*2,339*3,230*2,1437*4,893*8,310,1569,771  
+  436,213*2,339*3,230*2,1437*4,893*8,310,1569,771  
 };
 int reverbDataR[REVERBECHOES] __attribute__ ((aligned)) =
 {
-  100*2,503*2,1450*3,901*2,545*4,533*8,383*4,231*5,759*6,234*7  
+  100,503*2,1450*3,901*2,545*4,533*8,383*4,231*5,759*6,234*7  
 };
 
 float reverbStrength[REVERBECHOES] __attribute__ ((aligned)) =
 {
-    0.5, 0.5, 0.4, 0.6, 0.5, 0.3, 0.4, 0.4, 0.7, 0.7
+    0.5, 0.5, 0.64, 0.6, 0.65, 0.53, 0.4, 0.4, 0.7, 0.87
 };
 
 static struct fingersData allFingers;
@@ -155,7 +155,6 @@ static inline void setRamp(struct ramp* r, int buffers, float finalValue)
     r->finalValue = finalValue;
     r->buffers = buffers;
     r->stopValue = ((r->buffers-1) * r->value + r->finalValue) / (r->buffers);
-    //printf("%f %f %d\n", r->value, r->stopValue, r->buffers);
 }
 
 
@@ -331,8 +330,8 @@ static inline void renderNoiseToBuffer(long* dataL, long* dataR, unsigned long s
         }
         dataL[i] = scaleFactor * atanf(echoBufferL[n]);
         dataR[i] = scaleFactor * atanf(echoBufferR[n]);        
-        echoBufferL[n] *=  0.1 * reverbAmount; 
-        echoBufferR[n] *=  0.1 * reverbAmount;
+        echoBufferL[n] =  atanf(echoBufferL[n]) * 0.1 * reverbAmount; 
+        echoBufferR[n] =  atanf(echoBufferR[n]) * 0.1 * reverbAmount;
     }    
 }
 
@@ -372,10 +371,11 @@ static void renderNoise(long* dataL, long* dataR, unsigned long samples)
         float currentExpr   = allFingers.finger[f].exprRamp.value;
         float targetExpr    = allFingers.finger[f].exprRamp.stopValue;
         float diffExpr      = (targetExpr - currentExpr);
-        int isActive        = (currentVolume > 0) || (finalVolume > 0);
+        int isActive        = (currentVolume > 0) || (finalVolume > 0) || (targetVolume > 0);
         
         if(isActive)
         {
+            //printf("- %f %f %f\n",currentVolume, finalVolume, targetVolume);
             activeFingers++;
             renderNoisePrepare(f);
             renderNoiseInnerLoop(f,samples, invSamples, currentVolume,diffVolume,currentExpr,diffExpr);                
@@ -424,7 +424,7 @@ void rawEngine(int midiChannel,int doNoteAttack,float pitch,float volVal,int mid
         }
         if(doVol) //If we are in legato, then this might need to be stopped
         {
-            int goingDown = (pitch==0)?8:1;
+            int goingDown = (pitch==0)?4:1;
             float rampVal = (1 + 32 * (128-pitch)/127.0)*goingDown;
             setRamp(&allFingers.finger[channel].volRamp, rampVal, volVal);            
         }
