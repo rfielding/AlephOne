@@ -22,7 +22,7 @@
 #define ECHOBUFFERMAX (1024*32)
 #define UNISONMAX 3
 #define HARMONICSMAX 32
-#define REVERBECHOES 10
+#define REVERBECHOES 8
 #define AUDIOCHANNELS 2
 
 AudioComponentInstance audioUnit;
@@ -128,11 +128,11 @@ float _harmonics[HARMONICSMAX][EXPR][DIST] =
 
 int reverbDataL[REVERBECHOES] __attribute__ ((aligned)) =
 {
-  33,73*10+1,339,230*6+1,1437*9+1,893*8,310*7+1,1569*7+1,771*8+1  
+  33*6+1,73*10+1,339,230*6+1,1437*9+1,893*8,310*7+1,1569*7+1,771*8+1  
 };
 int reverbDataR[REVERBECHOES] __attribute__ ((aligned)) =
 {
-  51,97+8+1,1450,901*6+1,545*4,533*8+1,383*10+1,231*5+1,759*6+1,234*7+1  
+  51*7+3,97+8+1,1450,901*6+1,545*4,533*8+1,383*10+1,231*5+1,759*6+1,234*7+1  
 };
 
 float reverbStrength[REVERBECHOES] __attribute__ ((aligned)) =
@@ -202,12 +202,19 @@ static void initNoise()
     
     for(int i=0; i<16; i++)
     {
-        _harmonics[i][0][0] = 16-i;
+        _harmonics[i][0][0] = 1.0/(i+1);
     }
-    _harmonics[0][1][0] = 1;
-    _harmonics[1][1][0] = 2;
-    _harmonics[3][1][0] = 4;
-    _harmonics[7][1][0] = 8;
+    /*
+    for(int i=0; i<16; i++)
+    {
+        _harmonics[i+2][1][0] = 1.0/(i+1);
+    }
+     */
+    _harmonics[0][1][0] = 2;
+    _harmonics[1][1][0] = 4;
+    _harmonics[2][1][0] = 8;
+    _harmonics[3][1][0] = 16;
+    _harmonics[7][1][0] = 32;
     
     //Compute the squared off versions of our waves (not yet normalized)
     for(int expr=0; expr<EXPR; expr++)
@@ -341,7 +348,7 @@ static inline void renderNoiseToBuffer(long* dataL, long* dataR, unsigned long s
             float vL = echoBufferL[n]*invr[r];
             float vR = echoBufferR[n]*invr[r];
             float s = 1;
-            for(int n=0;n<6;n++)
+            for(int n=0;n<5;n++)
             {
                 s *= 0.6;
                 nL+=reverbDataL[r];
@@ -392,10 +399,10 @@ static void renderNoise(long* dataL, long* dataR, unsigned long samples)
     int activeFingers=0;
     float invSamples = 1.0/samples;
     
-    setRamp(&allFingers.reverbRamp, 8, getReverb());
-    setRamp(&allFingers.detuneRamp, 8, getDetune());
-    setRamp(&allFingers.timbreRamp, 8, getTimbre());
-    setRamp(&allFingers.distRamp, 8, getDistortion());
+    setRamp(&allFingers.reverbRamp, 16, getReverb());
+    setRamp(&allFingers.detuneRamp, 16, getDetune());
+    setRamp(&allFingers.timbreRamp, 16, getTimbre());
+    setRamp(&allFingers.distRamp, 16, getDistortion());
     
     //Go in channel major order because we skip by volume
     for(int f=0; f<FINGERMAX; f++)
