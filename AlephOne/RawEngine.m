@@ -128,11 +128,11 @@ float _harmonics[HARMONICSMAX][EXPR][DIST] =
 
 int reverbDataL[REVERBECHOES] __attribute__ ((aligned)) =
 {
-  3,73,339,230*6+1,1437*9+1,893*8,310*7+1,1569*7+1,771*8+1  
+  33,73*10+1,339,230*6+1,1437*9+1,893*8,310*7+1,1569*7+1,771*8+1  
 };
 int reverbDataR[REVERBECHOES] __attribute__ ((aligned)) =
 {
-  5,97,1450,901*6+1,545*4,533*8+1,383*10+1,231*5+1,759*6+1,234*7+1  
+  51,97+8+1,1450,901*6+1,545*4,533*8+1,383*10+1,231*5+1,759*6+1,234*7+1  
 };
 
 float reverbStrength[REVERBECHOES] __attribute__ ((aligned)) =
@@ -318,7 +318,7 @@ static inline void renderNoiseToBuffer(long* dataL, long* dataR, unsigned long s
     
     for(int r=0; r<REVERBECHOES; r++)
     {
-        invr[r] = (reverbStrength[r]) * reverbAmount;        
+        invr[r] = (reverbStrength[r]) * reverbAmount * 0.1;        
     }
     
     //Add pre-chorus sound together compressed
@@ -331,10 +331,7 @@ static inline void renderNoiseToBuffer(long* dataL, long* dataR, unsigned long s
             float val = compress(allFingers.total[phaseIdx][i] * innerScale);
             echoBufferL[n] += val;
             echoBufferR[n] += val;
-        }
-        
-        echoBufferL[n] = atanf(echoBufferL[n] * 0.25);
-        echoBufferR[n] = atanf(echoBufferR[n] * 0.25);
+        }        
         
         int sci = i+sc;
         for(int r=0; r<REVERBECHOES; r++)
@@ -344,9 +341,9 @@ static inline void renderNoiseToBuffer(long* dataL, long* dataR, unsigned long s
             float vL = echoBufferL[n]*invr[r];
             float vR = echoBufferR[n]*invr[r];
             float s = 1;
-            for(int n=0;n<4;n++)
+            for(int n=0;n<6;n++)
             {
-                s *= 0.5;
+                s *= 0.6;
                 nL+=reverbDataL[r];
                 nR+=reverbDataR[r];
                 int nLX = nL % ECHOBUFFERMAX;
@@ -355,8 +352,9 @@ static inline void renderNoiseToBuffer(long* dataL, long* dataR, unsigned long s
                 echoBufferR[nRX] += s*vL;
             }
         }
-        dataL[i] = scaleFactor * atanf(echoBufferL[n] * 0.75);
-        dataR[i] = scaleFactor * atanf(echoBufferR[n] * 0.75);        
+        
+        dataL[i] = scaleFactor * atanf(echoBufferL[n]);
+        dataR[i] = scaleFactor * atanf(echoBufferR[n]);        
         echoBufferL[n] = 0;
         echoBufferR[n] = 0;
     }    
@@ -466,8 +464,6 @@ void rawEngine(int midiChannel,int doNoteAttack,float pitch,float volVal,int mid
         }
         if(doVol) //If we are in legato, then this might need to be stopped
         {
-            //int goingDown = (pitch==0)?4:1;
-            //float rampVal = (1 + 32 * (128-pitch)/127.0)*goingDown;
             setRamp(&allFingers.finger[channel].volRamp, 1, volVal);            
         }
         if(volVal!=0) //Don't bother with ramping these on release
