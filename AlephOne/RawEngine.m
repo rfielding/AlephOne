@@ -128,16 +128,16 @@ float _harmonics[HARMONICSMAX][EXPR][DIST] =
 
 int reverbDataL[REVERBECHOES] __attribute__ ((aligned)) =
 {
-  436,213*2,339*3,230*2,1437*4,893*8,310,1569,771  
+  3,73,339,230*6+1,1437*9+1,893*8,310*7+1,1569*7+1,771*8+1  
 };
 int reverbDataR[REVERBECHOES] __attribute__ ((aligned)) =
 {
-  100,503*2,1450*3,901*2,545*4,533*8,383*4,231*5,759*6,234*7  
+  5,97,1450,901*6+1,545*4,533*8+1,383*10+1,231*5+1,759*6+1,234*7+1  
 };
 
 float reverbStrength[REVERBECHOES] __attribute__ ((aligned)) =
 {
-    0.5, 0.5, 0.64, 0.6, 0.65, 0.53, 0.4, 0.4, 0.7, 0.87
+    0.5, 0.5, 0.64, 0.6, 0.65, 0.53, 0.4, 0.4, 0.7, 0.9
 };
 
 static struct fingersData allFingers;
@@ -314,6 +314,13 @@ static inline void renderNoiseToBuffer(long* dataL, long* dataR, unsigned long s
     long sc = allFingers.sampleCount;
     float reverbAmount = (allFingers.reverbRamp.value);
     
+    float invr[REVERBECHOES];
+    
+    for(int r=0; r<REVERBECHOES; r++)
+    {
+        invr[r] = (reverbStrength[r]) * reverbAmount;        
+    }
+    
     //Add pre-chorus sound together compressed
     for(int i=0; i<samples; i++)
     {
@@ -325,18 +332,33 @@ static inline void renderNoiseToBuffer(long* dataL, long* dataR, unsigned long s
             echoBufferL[n] += val;
             echoBufferR[n] += val;
         }
+        
+        echoBufferL[n] = atanf(echoBufferL[n] * 0.25);
+        echoBufferR[n] = atanf(echoBufferR[n] * 0.25);
+        
+        int sci = i+sc;
         for(int r=0; r<REVERBECHOES; r++)
         {
-            float invR = reverbStrength[r] * reverbAmount;
-            int nL = (i+sc+reverbDataL[r])%ECHOBUFFERMAX;
-            int nR = (i+sc+reverbDataR[r])%ECHOBUFFERMAX;
-            echoBufferL[nL] += (0.125*echoBufferL[n] + 0.05*echoBufferR[n])*invR;
-            echoBufferR[nR] += (0.125*echoBufferR[n] + 0.05*echoBufferL[n])*invR;
+            int nL = sci+reverbDataL[r];
+            int nR = sci+reverbDataR[r];
+            float vL = echoBufferL[n]*invr[r];
+            float vR = echoBufferR[n]*invr[r];
+            float s = 1;
+            for(int n=0;n<4;n++)
+            {
+                s *= 0.5;
+                nL+=reverbDataL[r];
+                nR+=reverbDataR[r];
+                int nLX = nL % ECHOBUFFERMAX;
+                int nRX = nR % ECHOBUFFERMAX;
+                echoBufferL[nLX] += s*vR;
+                echoBufferR[nRX] += s*vL;
+            }
         }
-        dataL[i] = scaleFactor * atanf(echoBufferL[n]);
-        dataR[i] = scaleFactor * atanf(echoBufferR[n]);        
-        echoBufferL[n] =  atanf(echoBufferL[n]) * 0.1 * reverbAmount; 
-        echoBufferR[n] =  atanf(echoBufferR[n]) * 0.1 * reverbAmount;
+        dataL[i] = scaleFactor * atanf(echoBufferL[n] * 0.75);
+        dataR[i] = scaleFactor * atanf(echoBufferR[n] * 0.75);        
+        echoBufferL[n] = 0;
+        echoBufferR[n] = 0;
     }    
 }
 
@@ -383,15 +405,15 @@ static void renderNoise(long* dataL, long* dataR, unsigned long samples)
         float currentVolume = allFingers.finger[f].volRamp.value;
         float targetVolume  = allFingers.finger[f].volRamp.stopValue;
         float finalVolume   = allFingers.finger[f].volRamp.finalValue;
-        float diffVolume    = (targetVolume - currentVolume);
-        float currentExpr   = allFingers.finger[f].exprRamp.value;
-        float targetExpr    = allFingers.finger[f].exprRamp.stopValue;
-        float diffExpr      = (targetExpr - currentExpr);
         int isActive        = (currentVolume > 0) || (finalVolume > 0) || (targetVolume > 0);
         
         if(isActive)
         {
-            //printf("- %f %f %f\n",currentVolume, finalVolume, targetVolume);
+            float diffVolume    = (targetVolume - currentVolume);
+            float currentExpr   = allFingers.finger[f].exprRamp.value;
+            float targetExpr    = allFingers.finger[f].exprRamp.stopValue;
+            float diffExpr      = (targetExpr - currentExpr);
+            
             activeFingers++;
             renderNoisePrepare(f);
             renderNoiseInnerLoop(f,samples, invSamples, currentVolume,diffVolume,currentExpr,diffExpr);                
