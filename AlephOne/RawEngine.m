@@ -13,26 +13,41 @@
 #import <AudioUnit/AudioOutputUnit.h>
 #import <AudioToolbox/AudioServices.h>
 #import <AVFoundation/AVFoundation.h>
-
-
+#import <Accelerate/Accelerate.h>
 #import "RawEngine.h"
+#import "RawEngineGenerated.h"
 #include "FretlessCommon.h"
+#include "Parameters.h"
+
+#define ECHOBUFFERMAX (1024*32)
+#define UNISONMAX 3
+#define HARMONICSMAX 32
+#define REVERBECHOES 10
+#define AUDIOCHANNELS 2
 
 AudioComponentInstance audioUnit;
 AudioStreamBasicDescription audioFormat;
 static const float kSampleRate = 44100.0;
 static const unsigned int kOutputBus = 0;
+static unsigned long lastSamples = 256;
 
-#define ECHOBUFFERMAX (1024*2)
-#define WAVEMAX (1024)
-#define UNISONMAX 2
-//#define FLOATRESOLUTION (1024*8)
-#define HARMONICSMAX 32
-#define REVERBECHOES 4
+static void audioSessionInterruptionCallback(void *inUserData, UInt32 interruptionState) {
+    if (interruptionState == kAudioSessionEndInterruption) {
+        AudioSessionSetActive(YES);
+        AudioOutputUnitStart(audioUnit);
+    }
+    
+    if (interruptionState == kAudioSessionBeginInterruption) {
+        AudioOutputUnitStop(audioUnit);
+    }
+}
+
+
 
 struct ramp {
     float stopValue;
-    float slope;
+    float finalValue;
+    int   buffers;
     float value;
 };
 
@@ -48,89 +63,116 @@ struct fingerData {
 #define NTSTATE_FINISH_ON 2
 
 struct fingersData {
-    struct fingerData finger[FINGERMAX];
-    float  total[UNISONMAX][WAVEMAX];
+    float  total[UNISONMAX][WAVEMAX] __attribute__ ((aligned));
     unsigned long  sampleCount;
     int   noteTieState;
     int   otherChannel;
+    struct fingerData finger[FINGERMAX];
+
+    struct ramp reverbRamp;
+    struct ramp detuneRamp;
+    struct ramp timbreRamp;
+    struct ramp distRamp;
 };
 
 
+float echoBufferL[ECHOBUFFERMAX] __attribute__ ((aligned));
+float echoBufferR[ECHOBUFFERMAX] __attribute__ ((aligned));
+//float convBufferL[ECHOBUFFERMAX] __attribute__ ((aligned));
+//float convBufferR[ECHOBUFFERMAX] __attribute__ ((aligned));
 
-
-float echoBufferL[ECHOBUFFERMAX];
-float echoBufferR[ECHOBUFFERMAX];
-//float compressor[FLOATRESOLUTION];
-float waveMix[2][2][WAVEMAX];
-float waveFundamental[WAVEMAX];
-float harmonicsTotal[2][2];
-float harmonics[2][2][HARMONICSMAX] =
-{
-    {
-        {16, 8, 4, 2, 0, 1, 0, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
-        },  
-        {0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
-        }
-    },
-    {
-        {8, 4, 1, 2, 0, 1, 0, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0           
-        },  
-        {0, 0, 0, 0, 0, 0, 0,-1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
-        }
-    },
+float unisonDetune[UNISONMAX] = {
+    0, -0.25, 0.25    
+};
+float unisonVol[UNISONMAX] = {
+  1, 0.75, 0.75  
 };
 
-int reverbDataL[REVERBECHOES] =
+////This is how we define harmonic content... a single cycle wave for each point along the 2D axis
+float _harmonicsTotal         [EXPR][DIST];
+float _harmonics[HARMONICSMAX][EXPR][DIST] =
 {
-    1131, 181, 339, 230, 1437, 485, 310, 1569, 771    
+    {{0,0},{0,0}}, 
+    {{0,0},{0,0}}, 
+    {{0,0},{0,0}}, 
+    {{0,0},{0,0}}, 
+    {{0,0},{0,0}}, 
+    {{0,0},{0,0}}, 
+    {{0,0},{0,0}}, 
+    {{0,0},{0,0}}, 
+    {{0,0},{0,0}}, 
+    {{0,0},{0,0}}, 
+    {{0,0},{0,0}}, 
+    {{0,0},{0,0}}, 
+    {{0,0},{0,0}}, 
+    {{0,0},{0,0}}, 
+    {{0,0},{0,0}}, 
+    {{0,0},{0,0}}, 
+    {{0,0},{0,0}}, 
+    {{0,0},{0,0}}, 
+    {{0,0},{0,0}}, 
+    {{0,0},{0,0}}, 
+    {{0,0},{0,0}}, 
+    {{0,0},{0,0}}, 
+    {{0,0},{0,0}}, 
+    {{0,0},{0,0}}, 
+    {{0,0},{0,0}}, 
+    {{0,0},{0,0}}, 
+    {{0,0},{0,0}}, 
+    {{0,0},{0,0}}, 
+    {{0,0},{0,0}}, 
+    {{0,0},{0,0}}, 
+    {{0,0},{0,0}}, 
+    {{0,0},{0,0}}    
 };
 
-int reverbDataR[REVERBECHOES] =
+int reverbDataL[REVERBECHOES] __attribute__ ((aligned)) =
 {
-    419, 586, 1450, 901, 545, 1119, 383, 231, 759  
+  436,213*2,339*3,230*2,1437*4,893*8,310,1569,771  
+};
+int reverbDataR[REVERBECHOES] __attribute__ ((aligned)) =
+{
+  100,503*2,1450*3,901*2,545*4,533*8,383*4,231*5,759*6,234*7  
 };
 
-float reverbStrength[REVERBECHOES] =
+float reverbStrength[REVERBECHOES] __attribute__ ((aligned)) =
 {
-    1.0/2, 1.0/3, 1.0/4, 1.0/4, 1.0/5, 1.0/6, 1.0/7, 1.0/8, 1.0/9, 1.0/10
+    0.5, 0.5, 0.64, 0.6, 0.65, 0.53, 0.4, 0.4, 0.7, 0.87
 };
 
 static struct fingersData allFingers;
-
-static inline void copyRamp(struct ramp* dst, struct ramp* src)
-{
-    dst->stopValue = src->stopValue;
-    dst->slope = src->stopValue;
-    dst->value = src->value;
-}
 
 static void moveRamps(int dstFinger, int srcFinger)
 {
     if(srcFinger != dstFinger)
     {
-        copyRamp(&allFingers.finger[dstFinger].volRamp, &allFingers.finger[srcFinger].volRamp);
-        copyRamp(&allFingers.finger[dstFinger].pitchRamp, &allFingers.finger[srcFinger].pitchRamp);
-        copyRamp(&allFingers.finger[dstFinger].exprRamp, &allFingers.finger[srcFinger].exprRamp);
-        for(int i=0; i<UNISONMAX; i++)
-        {
-            allFingers.finger[dstFinger].phases[i] = allFingers.finger[srcFinger].phases[i];
-        }
+        bcopy(&allFingers.finger[srcFinger],&allFingers.finger[dstFinger],sizeof(struct fingerData));
+        //No impulsing happens because it's on a different finger now
         allFingers.finger[srcFinger].volRamp.value = 0;
-        allFingers.finger[srcFinger].volRamp.stopValue = 0;        
+        allFingers.finger[srcFinger].volRamp.stopValue = 0;    
+        allFingers.finger[srcFinger].volRamp.finalValue = 0;
     }
 }
 
 
-static inline void setRamp(struct ramp* r, float slope, float stopValue)
+static inline void setRamp(struct ramp* r, int buffers, float finalValue)
 {
-    r->stopValue = stopValue;
-    r->slope = slope;
+    r->finalValue = finalValue;
+    r->buffers = buffers;
+    r->stopValue = ((r->buffers-1) * r->value + r->finalValue) / (r->buffers);
 }
 
-static inline void doRamp(struct ramp* r,long sample)
+
+//Do this ramp once per buffer
+static inline void doRamp(struct ramp* r)
 {
-    r->value = r->value * (1-r->slope) + r->slope * r->stopValue;
+    r->value = r->stopValue;
+    if(r->buffers>1)
+    {
+        setRamp(r,r->buffers-1,r->finalValue);
+    }
 }
+ 
 
 
 
@@ -148,24 +190,39 @@ static inline void doRamp(struct ramp* r,long sample)
    And convoluted into waveMix, where the intent is to
    use weighted sums of the 4 possible waves.
  */
-static void setExprMix()
+static void initNoise()
 {
-    //Compute the squared off versions of our waves (not yet normalized)
-    for(int expr=0; expr<2; expr++)
+    bzero(echoBufferL,sizeof(float)*ECHOBUFFERMAX);
+    bzero(echoBufferR,sizeof(float)*ECHOBUFFERMAX);
+    
+    for(int i=0; i<SAMPLESMAX; i++)
     {
-        for(int harmonic=0; harmonic<HARMONICSMAX; harmonic++)
-        {
-            harmonics[1][expr][harmonic] = 0;                        
-        }
+        sampleIndexArray[i] = i;
+    }
+    
+    for(int i=0; i<16; i++)
+    {
+        _harmonics[i][0][0] = 16-i;
+    }
+    _harmonics[0][1][0] = 1;
+    _harmonics[1][1][0] = 2;
+    _harmonics[3][1][0] = 4;
+    _harmonics[7][1][0] = 8;
+    
+    //Compute the squared off versions of our waves (not yet normalized)
+    for(int expr=0; expr<EXPR; expr++)
+    {
         //Convolute non distorted harmonics with square wave harmonics
+        //O(n^2) with respect to the number of harmonics, but it's only called on startup
         for(int harmonic=0; harmonic<HARMONICSMAX; harmonic++)
         {            
+            _harmonics[harmonic][expr][1] = 0;
             for(int squareHarmonic=0; squareHarmonic<HARMONICSMAX; squareHarmonic++)
             {
                 int s = squareHarmonic*2+1;
                 if(s<HARMONICSMAX)
                 {
-                    harmonics[1][expr][s] += harmonics[0][expr][harmonic] / s;                                                                    
+                    _harmonics[s][expr][1] += _harmonics[harmonic][expr][0] / s;                                                                    
                 }
             }
         }
@@ -173,246 +230,186 @@ static void setExprMix()
     
     
     //Normalize the harmonics
-    for(int dist=0; dist<2; dist++)
+    for(int dist=0; dist<DIST; dist++)
     {
-        for(int expr=0; expr<2; expr++)
+        for(int expr=0; expr<EXPR; expr++)
         {
-            harmonicsTotal[dist][expr] = 0;
+            _harmonicsTotal[expr][dist] = 0;
             for(int harmonic=0; harmonic<HARMONICSMAX; harmonic++)
             {
-                harmonicsTotal[dist][expr] += harmonics[dist][expr][harmonic];                
+                _harmonicsTotal[expr][dist] += _harmonics[harmonic][expr][dist];                
             }
             for(int harmonic=0; harmonic<HARMONICSMAX; harmonic++)
             {
-                harmonics[dist][expr][harmonic] /= harmonicsTotal[dist][expr];                
+                _harmonics[harmonic][expr][dist] /= _harmonicsTotal[expr][dist];                
             }
         }
     }  
     
     //Convolute into the wave buffers
-    for(int dist=0; dist<2; dist++)
+    for(int dist=0; dist<DIST; dist++)
     {
-        for(int expr=0; expr<2; expr++)
+        for(int expr=0; expr<EXPR; expr++)
         {
             for(int sample=0; sample<WAVEMAX; sample++)
             {
-                waveMix[dist][expr][sample] = 0;                
-                waveFundamental[sample] = sinf( sample * 2.0 * M_PI / WAVEMAX );
+                waveMix[expr][dist][sample] = 0;                
+                _waveFundamental[sample] = sinf( sample * 2.0 * M_PI / WAVEMAX );
             }
-            for(int harmonic=0; harmonic<HARMONICSMAX; harmonic++)
+            for(int harmonic=0; harmonic<HARMONICSMAX/(1+expr); harmonic++)
             {
                 float h = harmonic+1;
-                float v = harmonics[dist][expr][harmonic];
+                float v = _harmonics[harmonic][expr][dist];
                 for(int sample=0; sample<WAVEMAX; sample++)
                 {
-                    waveMix[dist][expr][sample] += sinf(h * sample * 2.0 * M_PI / WAVEMAX) * v;
+                    waveMix[expr][dist][sample] += sinf(h * sample * 2.0 * M_PI / WAVEMAX) * v;
                 }
             }
         }
     }
-    
-    //Set up the compressor function  -1 .. 1
-    /*
-    for(int v=0; v<FLOATRESOLUTION; v++)
-    {
-        compressor[v] = atanf( (v*2.0/FLOATRESOLUTION - 1) * 5 )/(M_PI/2);
-    }
-     */
 }
-
-static void audioSessionInterruptionCallback(void *inUserData, UInt32 interruptionState) {
-    if (interruptionState == kAudioSessionEndInterruption) {
-        AudioSessionSetActive(YES);
-        AudioOutputUnitStart(audioUnit);
-    }
-    
-    if (interruptionState == kAudioSessionBeginInterruption) {
-        AudioOutputUnitStop(audioUnit);
-    }
-}
-
-static void initNoise()
-{
-    setExprMix();
-    bzero(echoBufferL,sizeof(float)*ECHOBUFFERMAX);
-    bzero(echoBufferR,sizeof(float)*ECHOBUFFERMAX);
-}
-
 
 static inline void renderNoisePrepare(int f)
 {
     if(allFingers.finger[f].volRamp.value == 0)
     {
+        //Don't do ramping if we are currently silent
         for(int i=0; i<UNISONMAX; i++)
         {
             allFingers.finger[f].phases[i] = 0;
         }
-        allFingers.finger[f].pitchRamp.value = allFingers.finger[f].pitchRamp.stopValue;
-        allFingers.finger[f].exprRamp.value = allFingers.finger[f].exprRamp.stopValue;
-    }
-    doRamp(&allFingers.finger[f].pitchRamp,allFingers.sampleCount);    
-}
-
-static inline void renderNoiseCleanAll(long* dataL, long* dataR,unsigned long samples)
-{
-    for(int phaseIdx=0; phaseIdx<UNISONMAX; phaseIdx++)
-    {
         
-        for(int i=0; i<samples; i++)
-        {
-            allFingers.total[phaseIdx][i] = 0;
-        }
-         
-        //Huh?  Is the inlining causing the latency?
-        //bzero(allFingers.total[phaseIdx],sizeof(float)*samples);
-    }    
+        allFingers.finger[f].pitchRamp.value = allFingers.finger[f].pitchRamp.finalValue;
+        allFingers.finger[f].exprRamp.value = allFingers.finger[f].exprRamp.finalValue;
+    }
 }
 
-static inline void reverbConvolute(long* dataL, long* dataR,unsigned long samples)
+static inline void renderNoiseCleanAll(unsigned long samples)
 {
-    long sc = allFingers.sampleCount;
-    
-    for(int r=0; r<REVERBECHOES; r++)
+    for(int u=0; u<UNISONMAX; u++)
     {
-        float invR = reverbStrength[r];
-        for(int i=0; i<samples; i++)
-        {
-            int n = (i+sc)%ECHOBUFFERMAX;
-            int nL = (i+sc+reverbDataL[r])%ECHOBUFFERMAX;
-            int nR = (i+sc+reverbDataR[r])%ECHOBUFFERMAX;
-            echoBufferL[nL] += (0.125*echoBufferL[n] + 0.12*echoBufferR[n])*invR;
-            echoBufferR[nR] += (0.125*echoBufferR[n] + 0.12*echoBufferL[n])*invR;
-        }
+        vDSP_vclr(allFingers.total[u],1,samples);        
     }
-     
-    for(int i=0; i<samples; i++)
-    {
-        int n = (i+sc)%ECHOBUFFERMAX;
-        dataL[i] = INT_MAX * 0.01 * 0.25 * echoBufferL[n];
-        dataR[i] = INT_MAX * 0.01 * 0.25 * echoBufferR[n];        
-        echoBufferL[n] *= 0.33;
-        echoBufferR[n] *= 0.33;
-    }
+}
+
+
+static inline void xDSP_vcp(float* src,float* dst,int count)
+{
+    memcpy(dst,src,count*sizeof(float));
 }
 
 static inline float compress(float f)
 {
-    //TODO: a fast atan approximation that doesn't call outside of here.
-    // latency seems to be the issue here (not throughput)
-    //return compressor[f>=1 ? (FLOATRESOLUTION-1) : ((f <= -1) ? 0 : (int)((f+1)*(FLOATRESOLUTION/2)))];
-    
-    return atanf(f * 2);
+    return atanf(f);
 }
 
-static inline void renderNoiseToBuffer(unsigned long samples,unsigned long sc)
+static inline void renderNoiseToBuffer(long* dataL, long* dataR, unsigned long samples)
 {
+    //Distortion goes to 11
+    float innerScale = 0.5+10.5*(allFingers.distRamp.value);
+    
+    //Scale to fit range when converting to integer
+    float scaleFactor = 0x800000 * 2.0/M_PI;
+    
+    long sc = allFingers.sampleCount;
+    float reverbAmount = (allFingers.reverbRamp.value);
+    
     //Add pre-chorus sound together compressed
-    for(int phaseIdx=0; phaseIdx<UNISONMAX; phaseIdx++)
+    for(int i=0; i<samples; i++)
     {
-        for(int i=0; i<samples; i++)
+        int n = (i+sc)%ECHOBUFFERMAX;
+        for(int phaseIdx=0; phaseIdx<UNISONMAX; phaseIdx++)
         {
             //Is the atanf bad?
-            float valL = compress(allFingers.total[phaseIdx][i]);
-            float valR = valL;
-            int n = (i+sc)%ECHOBUFFERMAX;
-            echoBufferL[n] += valL;
-            echoBufferR[n] += valR;
+            float val = compress(allFingers.total[phaseIdx][i] * innerScale);
+            echoBufferL[n] += val;
+            echoBufferR[n] += val;
         }
+        for(int r=0; r<REVERBECHOES; r++)
+        {
+            float invR = reverbStrength[r] * reverbAmount;
+            int nL = (i+sc+reverbDataL[r])%ECHOBUFFERMAX;
+            int nR = (i+sc+reverbDataR[r])%ECHOBUFFERMAX;
+            echoBufferL[nL] += (0.125*echoBufferL[n] + 0.05*echoBufferR[n])*invR;
+            echoBufferR[nR] += (0.125*echoBufferR[n] + 0.05*echoBufferL[n])*invR;
+        }
+        dataL[i] = scaleFactor * atanf(echoBufferL[n]);
+        dataR[i] = scaleFactor * atanf(echoBufferR[n]);        
+        echoBufferL[n] =  atanf(echoBufferL[n]) * 0.1 * reverbAmount; 
+        echoBufferR[n] =  atanf(echoBufferR[n]) * 0.1 * reverbAmount;
     }    
 }
 
-//KEEP THIS DATA-PARALLEL
-static inline float renderNoiseInnerLoopSampleMix(float s2,float s2Not, float e,float eNot, 
-                                                  float pitchLocation,int j,
-                                                  float* w00,float* w01,float* w10, float* w11)
-{
-    float unSquished = (w10[j]*s2Not + w00[j]*(s2))*eNot + (w11[j]*s2Not + w01[j]*(s2))*e;
-    return unSquished*(1-pitchLocation) + waveFundamental[j]*(pitchLocation);    
-}
 
-//KEEP THIS DATA-PARALLEL ... no branches, and no dependencies on any other values of i, or dependencies on changed values
-static inline void renderNoiseInnerLoopSample(
-                                              int f,int phaseIdx,int i,float cyclesPerSample,float pitchLocation,float p,float invSamples,
-                                              float currentVolume,float diffVolume, float currentExpr, float diffExpr,
-                                              float* w00,float* w01,float* w10, float* w11)
-{
-    float e = currentExpr + i * invSamples * (diffExpr);
-    float v = currentVolume + i * invSamples * (diffVolume);
-    float s2 = e*e;
-    float eNot = (1-e);
-    float s2Not = (1-s2);
-    float cycles = i*cyclesPerSample + p;
-    float cycleLocation = (cycles - (int)cycles); 
-    int j = (int)(cycleLocation*WAVEMAX);
-    float unAliased = renderNoiseInnerLoopSampleMix(s2,s2Not, e,eNot, 
-                                                    pitchLocation,j,
-                                                    w00,w01,w10,w11);
-    allFingers.total[phaseIdx][i] += v * unAliased;
-}
-
-static void renderNoiseInnerLoop(int f,int phaseIdx,float detune,unsigned long samples,float invSamples,
+static void renderNoiseInnerLoop(int f,unsigned long samples,float invSamples,
                                         float currentVolume,float diffVolume, float currentExpr, float diffExpr)
 {
     float notep = allFingers.finger[f].pitchRamp.value;
     float pitchLocation = notep/127.0;
-    float p = allFingers.finger[f].phases[phaseIdx];
     //note 33 is our center pitch, and it's 440hz
     //powf exits out of here, but it's not per sample... 
-    float cyclesPerSample = powf(2,(notep-33+(1-currentExpr)*detune*(1-pitchLocation))/12) * (440/(44100.0 * 32));
-    float* w00 = waveMix[0][0];
-    float* w01 = waveMix[0][1];
-    float* w10 = waveMix[1][0];
-    float* w11 = waveMix[1][1];
-    for(int i=0; i<samples; i++)
+    for(int u=0; u<UNISONMAX; u++)
     {
-        renderNoiseInnerLoopSample(f,phaseIdx,i,cyclesPerSample,pitchLocation,p,invSamples,
-                                   currentVolume,diffVolume,currentExpr,diffExpr,
-                                   w00,w01,w10,w11);
-    }         
-    allFingers.finger[f].phases[phaseIdx] = (cyclesPerSample*samples) + p;
+        float uVol = unisonVol[u];
+        if(u>0)
+        {
+            uVol *= allFingers.detuneRamp.value;
+        }
+        float phase = allFingers.finger[f].phases[u];
+        allFingers.finger[f].phases[u] = 
+        renderNoiseInnerLoopInParallel(
+                                           allFingers.total[u],notep,unisonDetune[u]*allFingers.detuneRamp.value,
+                                           pitchLocation,phase,
+                                           samples,invSamples,
+                                           currentVolume*uVol,diffVolume*invSamples*uVol,
+                                           currentExpr,diffExpr*invSamples, allFingers.timbreRamp.value);
+    }
 }
 
-//TRY TO NOT CALL OUT TO OUTSIDE WORLD FROM HERE
 static void renderNoise(long* dataL, long* dataR, unsigned long samples)
 {
-    renderNoiseCleanAll(dataL,dataR,samples);
+    renderNoiseCleanAll(samples);
     int activeFingers=0;
     float invSamples = 1.0/samples;
+    
+    setRamp(&allFingers.reverbRamp, 8, getReverb());
+    setRamp(&allFingers.detuneRamp, 8, getDetune());
+    setRamp(&allFingers.timbreRamp, 8, getTimbre());
+    setRamp(&allFingers.distRamp, 8, getDistortion());
+    
     //Go in channel major order because we skip by volume
     for(int f=0; f<FINGERMAX; f++)
     {
         float currentVolume = allFingers.finger[f].volRamp.value;
-        float targetVolume = allFingers.finger[f].volRamp.stopValue;
-        float diffVolume = (targetVolume - currentVolume);
-        float currentExpr = allFingers.finger[f].exprRamp.value;
-        float targetExpr = allFingers.finger[f].exprRamp.stopValue;
-        float diffExpr = (targetExpr - currentExpr);
-        int isActive = (currentVolume > 0) || (targetVolume > 0);
+        float targetVolume  = allFingers.finger[f].volRamp.stopValue;
+        float finalVolume   = allFingers.finger[f].volRamp.finalValue;
+        float diffVolume    = (targetVolume - currentVolume);
+        float currentExpr   = allFingers.finger[f].exprRamp.value;
+        float targetExpr    = allFingers.finger[f].exprRamp.stopValue;
+        float diffExpr      = (targetExpr - currentExpr);
+        int isActive        = (currentVolume > 0) || (finalVolume > 0) || (targetVolume > 0);
         
         if(isActive)
         {
+            //printf("- %f %f %f\n",currentVolume, finalVolume, targetVolume);
             activeFingers++;
             renderNoisePrepare(f);
-            renderNoiseInnerLoop(f,0,    0,samples, invSamples, currentVolume,diffVolume,currentExpr,diffExpr);
-            if(UNISONMAX>1)
-            {
-                renderNoiseInnerLoop(f,1, -0.2,samples, invSamples, currentVolume,diffVolume,currentExpr,diffExpr);
-                if(UNISONMAX>2)
-                {
-                    renderNoiseInnerLoop(f,2,  0.2,samples, invSamples, currentVolume,diffVolume,currentExpr,diffExpr);                
-                }                
-            }
-            allFingers.finger[f].volRamp.value = targetVolume;
-            allFingers.finger[f].exprRamp.value = targetExpr;
+            renderNoiseInnerLoop(f,samples, invSamples, currentVolume,diffVolume,currentExpr,diffExpr);                
+            doRamp(&allFingers.finger[f].pitchRamp);    
+            doRamp(&allFingers.finger[f].exprRamp);                
+            doRamp(&allFingers.finger[f].volRamp);    
         }
     }
-    renderNoiseToBuffer(samples,allFingers.sampleCount);
-    reverbConvolute(dataL,dataR,samples);
+    renderNoiseToBuffer(dataL,dataR,samples);
+    doRamp(&allFingers.reverbRamp);
+    doRamp(&allFingers.detuneRamp);
+    doRamp(&allFingers.timbreRamp);
+    doRamp(&allFingers.distRamp);
     allFingers.sampleCount += samples;
 }
 
 void rawEngine(int midiChannel,int doNoteAttack,float pitch,float volVal,int midiExprParm,int midiExpr)
-{
+{    
     //printf("%d %d %f %f %d %d\n",midiChannel, doNoteAttack, pitch, volVal, midiExprParm, midiExpr);
     int channel = midiChannel;
     //Handle the note-tie state machine.  We expect the note-off to come before note-on in the note-tie,
@@ -447,12 +444,14 @@ void rawEngine(int midiChannel,int doNoteAttack,float pitch,float volVal,int mid
         }
         if(doVol) //If we are in legato, then this might need to be stopped
         {
-            setRamp(&allFingers.finger[channel].volRamp, 0.008 * pitch/127.0 * ((volVal==0)?0.25:1), volVal);            
+            //int goingDown = (pitch==0)?4:1;
+            //float rampVal = (1 + 32 * (128-pitch)/127.0)*goingDown;
+            setRamp(&allFingers.finger[channel].volRamp, 1, volVal);            
         }
         if(volVal!=0) //Don't bother with ramping these on release
         {
-            setRamp(&allFingers.finger[channel].pitchRamp, 0.9, pitch);
-            setRamp(&allFingers.finger[channel].exprRamp, 0.1, midiExpr/127.0);                                            
+            setRamp(&allFingers.finger[channel].pitchRamp, 1, pitch);
+            setRamp(&allFingers.finger[channel].exprRamp, 1, midiExpr/127.0);                                            
         }
     }
 }
@@ -511,7 +510,7 @@ static OSStatus SoundEngine_playCallback(void *inRefCon,
     SInt32* dataL = (SInt32*)outputBufferL->mData;
     AudioBuffer* outputBufferR = &ioData->mBuffers[1];
     SInt32* dataR = (SInt32*)outputBufferR->mData;
-    
+    lastSamples = inNumberFrames;
     renderNoise(dataL,dataR,inNumberFrames);
     return 0;
 }
@@ -561,7 +560,7 @@ void SoundEngine_start()
             audioFormat.mBytesPerPacket = sizeof(AudioUnitSampleType);
             audioFormat.mFramesPerPacket = 1;
             audioFormat.mBytesPerFrame = sizeof(AudioUnitSampleType);
-            audioFormat.mChannelsPerFrame = 2;
+            audioFormat.mChannelsPerFrame = AUDIOCHANNELS;
             audioFormat.mBitsPerChannel = 8 * sizeof(AudioUnitSampleType);
             audioFormat.mReserved = 0;
             // Apply format

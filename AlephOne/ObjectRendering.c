@@ -21,6 +21,7 @@
 #include "SurfaceDrawHandling.h"
 
 #include "FretlessCommon.h"
+#include "Parameters.h"
 
 #include <math.h>
 #include <stdlib.h>
@@ -72,7 +73,6 @@ struct Slider_data* heightSlider;
 
 struct Slider_data* intonationSlider;
 struct Slider_data* rootNoteSlider;
-struct Slider_data* chorusSlider;
 
 
 struct Slider_data* midiChannelSlider;
@@ -95,6 +95,12 @@ struct Button_data* initialSnapButton;
 struct Slider_data* snapSpeedSlider;
 
 struct Button_data* engineButton;
+
+struct Slider_data* distortionSlider;
+struct Slider_data* detuneSlider;
+struct Slider_data* timbreSlider;
+struct Slider_data* reverbSlider;
+struct Slider_data* sensitivitySlider;
 
 static char stringRenderBuffer[1024];
 
@@ -212,7 +218,6 @@ void Page_set(void* ctx, int val)
     midiChannelSlider->rect->isActive = FALSE;
     midiChannelSpanSlider->rect->isActive = FALSE;
     midiBendSlider->rect->isActive = FALSE;
-    chorusSlider->rect->isActive = FALSE;
     octAutoButton->rect->isActive = FALSE;
     legatoButton->rect->isActive = FALSE;
     polyButton->rect->isActive = FALSE;
@@ -226,6 +231,11 @@ void Page_set(void* ctx, int val)
     initialSnapButton->rect->isActive = FALSE;
     snapSpeedSlider->rect->isActive = FALSE;
     engineButton->rect->isActive = FALSE;
+    distortionSlider->rect->isActive = FALSE;
+    detuneSlider->rect->isActive = FALSE;
+    timbreSlider->rect->isActive = FALSE;
+    reverbSlider->rect->isActive = FALSE;
+    sensitivitySlider->rect->isActive = FALSE;
     switch(val)
     {
         case 0:
@@ -237,7 +247,6 @@ void Page_set(void* ctx, int val)
         case 1:
             intonationSlider->rect->isActive = TRUE;
             rootNoteSlider->rect->isActive = TRUE;
-            chorusSlider->rect->isActive = TRUE;
             break;
         case 2:
             midiChannelSlider->rect->isActive = TRUE;
@@ -256,6 +265,13 @@ void Page_set(void* ctx, int val)
             initialSnapButton->rect->isActive = TRUE;
             snapSpeedSlider->rect->isActive = TRUE;
             engineButton->rect->isActive = TRUE;
+            sensitivitySlider->rect->isActive = TRUE;
+            break;
+        case 6:
+            distortionSlider->rect->isActive = TRUE;
+            detuneSlider->rect->isActive = TRUE;
+            timbreSlider->rect->isActive = TRUE;
+            reverbSlider->rect->isActive = TRUE;
             break;
     }
 }
@@ -321,14 +337,54 @@ int Snap_get(void* ctx)
     return PitchHandler_getSnap(phctx);
 }
 
-void Chorus_set(void* ctx, float val)
+void Distortion_set(void* ctx, float val)
 {
-    SurfaceTouchHandling_setChorusLevel(val);
+    setDistortion(val);
 }
 
-float Chorus_get(void* ctx)
+float Distortion_get(void* ctx)
 {
-    return SurfaceTouchHandling_getChorusLevel();
+    return getDistortion();
+}
+
+void Timbre_set(void* ctx, float val)
+{
+    setTimbre(val);
+}
+
+float Timbre_get(void* ctx)
+{
+    return getTimbre();
+}
+
+void Reverb_set(void* ctx, float val)
+{
+    setReverb(val);
+}
+
+float Reverb_get(void* ctx)
+{
+    return getReverb();
+}
+
+void Detune_set(void* ctx, float val)
+{
+    setDetune(val);
+}
+
+float Detune_get(void* ctx)
+{
+    return getDetune();
+}
+
+void Sensitivity_set(void* ctx, float val)
+{
+    setSensitivity(val);
+}
+
+float Sensitivity_get()
+{
+    return getSensitivity();
 }
 
 void MidiBase_set(void* ctx, float val)
@@ -523,7 +579,7 @@ void ObjectRendering_loadImages()
     
     //Loading up strings because we know that OpenGL context is now valid.
     //This may move to support re-rendering of strings
-    renderLabel("Channel Cycling", PIC_CHANNELCYCLINGTEXT);
+    renderLabel("MIDI Channels", PIC_CHANNELCYCLINGTEXT);
     renderLabel("Center",PIC_BASENOTETEXT);
     renderLabel("Scale",PIC_SCALETEXT);
     renderLabel("Width",PIC_WIDTHTEXT);
@@ -540,7 +596,11 @@ void ObjectRendering_loadImages()
     renderLabel("Bend", PIC_MIDIBENDTEXT);
     MidiBend_set(NULL,MidiBend_get(NULL));
     
-    renderLabel("Chorus", PIC_CHORUSTEXT);
+    renderLabel("Distortion", PIC_DISTORTIONTEXT);
+    renderLabel("Detune", PIC_DETUNETEXT);
+    renderLabel("Timbre", PIC_TIMBRETEXT);
+    renderLabel("Reverb", PIC_REVERBTEXT);
+    
     renderLabel("Oct Auto", PIC_OCTTEXT);
     
     renderLabel("Legato:y", PIC_LEGATOTEXT);
@@ -553,10 +613,11 @@ void ObjectRendering_loadImages()
     renderLabel("Toggle", PIC_SCALETOGGLETEXT);
     renderLabel("Commit", PIC_SCALECOMMITTEXT);
     
-    renderLabel("Down Snap", PIC_INITIALSNAPTEXT);
-    renderLabel("Snap Speed", PIC_SNAPSPEEDTEXT);
+    renderLabel("Snap", PIC_INITIALSNAPTEXT);
+    renderLabel("Speed", PIC_SNAPSPEEDTEXT);
     renderLabel("Internal", PIC_ENGINETEXT);
     
+    renderLabel("Sensitivity", PIC_SENSITIVITY);
     //Render a contiguous group of note pre-rendered images
     //(sharps/flats don't exist for now... a problem I will tackle later)
     for(int n=0; n < 12; n++)
@@ -590,10 +651,10 @@ void WidgetsAssemble()
     //Creating a raw control given just a rendering function
     ChannelOccupancyControl_create(cx - 0.2, cy - 0.2, cx + 0.2, cy + 0.2);
     
-    float panelBottom = 0.92;
+    float panelBottom = 0.94;
     float panelTop = 1.0;
     //This button cycles through pages of controls
-    pageButton = CreateButton(PIC_PAGE1TEXT,0.0,panelBottom, 0.11,panelTop, Page_set, Page_get, 7);
+    pageButton = CreateButton(PIC_PAGE1TEXT,0.0,panelBottom, 0.11,panelTop, Page_set, Page_get, 8);
     
     //Page 0
     widthSlider = CreateSlider(PIC_WIDTHTEXT,0.12,panelBottom, 0.5,panelTop, Cols_set, Cols_get);
@@ -604,7 +665,6 @@ void WidgetsAssemble()
     //Page 1
     intonationSlider = CreateSlider(PIC_SCALETEXT,0.12,panelBottom, 0.33,panelTop, Intonation_set, NULL);
     rootNoteSlider = CreateSlider(PIC_ROOTNOTETEXT,0.332,panelBottom, 0.66,panelTop, RootNote_set, NULL);
-    chorusSlider = CreateSlider(PIC_CHORUSTEXT,0.662,panelBottom, 0.95,panelTop, Chorus_set, Chorus_get);
     
     //Page 2
     midiChannelSlider = CreateSlider(PIC_MIDIBASETEXT, 0.12,panelBottom, 0.33,panelTop, MidiBase_set, MidiBase_get);    
@@ -624,10 +684,17 @@ void WidgetsAssemble()
     scaleCommitButton = CreateButton(PIC_SCALECOMMITTEXT,0.682,panelBottom, 0.88,panelTop, ScaleCommit_set,ScaleCommit_get,1);
     
     //Page 5
-    initialSnapButton = CreateButton(PIC_INITIALSNAPTEXT, 0.12, panelBottom, 0.48, panelTop, Snap_set, Snap_get, 2);
-    snapSpeedSlider = CreateSlider(PIC_SNAPSPEEDTEXT, 0.482, panelBottom, 0.78, panelTop, SnapSpeed_set, SnapSpeed_get);
+    initialSnapButton = CreateButton(PIC_INITIALSNAPTEXT, 0.12, panelBottom, 0.25, panelTop, Snap_set, Snap_get, 2);
+    snapSpeedSlider = CreateSlider(PIC_SNAPSPEEDTEXT, 0.252, panelBottom, 0.48, panelTop, SnapSpeed_set, SnapSpeed_get);
+    sensitivitySlider = CreateSlider(PIC_SENSITIVITY, 0.482, panelBottom, 0.78, panelTop, Sensitivity_set, Sensitivity_get);
     engineButton = CreateButton(PIC_ENGINETEXT, 0.78, panelBottom, 0.95, panelTop, Engine_set, NULL,2);
     engineButton->val = 1; //This is in the enabled state from the beginning
+    
+    //Page 6
+    reverbSlider = CreateSlider(PIC_REVERBTEXT,0.12,panelBottom, 0.30,panelTop, Reverb_set, Reverb_get);
+    detuneSlider = CreateSlider(PIC_DETUNETEXT,0.302,panelBottom, 0.48,panelTop, Detune_set, Detune_get);
+    timbreSlider = CreateSlider(PIC_TIMBRETEXT,0.482,panelBottom, 0.66,panelTop, Timbre_set, Timbre_get);
+    distortionSlider = CreateSlider(PIC_DISTORTIONTEXT,0.662,panelBottom, 0.95,panelTop, Distortion_set, Distortion_get);
     
     //Page last
     Page_set(NULL, 6);

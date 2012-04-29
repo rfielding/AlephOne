@@ -62,7 +62,7 @@ void Button_render(void* ctx)
 
         float s = 0.01;
         float dx = 0.4;
-        float dy = 0.075;
+        float dy = 0.065;
         VertexObjectBuilder_startTexturedObject(voCtxDynamic,trianglestrip,button->label);
         VertexObjectBuilder_addTexturedVertex(voCtxDynamic, w->x1+s, w->y1, 0, 0,0);
         VertexObjectBuilder_addTexturedVertex(voCtxDynamic, w->x1+s, w->y1+dy, 0, 0,1);

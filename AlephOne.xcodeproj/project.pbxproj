@@ -34,6 +34,7 @@
 		49691AD414B0DD6E009AB83D /* note-10.png in Resources */ = {isa = PBXBuildFile; fileRef = 49691ACF14B0DD6E009AB83D /* note-10.png */; };
 		49691ADD14B57412009AB83D /* ScaleControl.c in Sources */ = {isa = PBXBuildFile; fileRef = 49691ADC14B57411009AB83D /* ScaleControl.c */; };
 		499ADD8814AC0A200007CAA3 /* alephonep2.png in Resources */ = {isa = PBXBuildFile; fileRef = 499ADD8714AC0A200007CAA3 /* alephonep2.png */; };
+		499B032F153A833300BE7455 /* Parameters.c in Sources */ = {isa = PBXBuildFile; fileRef = 499B032E153A833200BE7455 /* Parameters.c */; };
 		49B39079144914DC008C9F6E /* UIKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 49B39078144914DC008C9F6E /* UIKit.framework */; };
 		49B3907B144914DC008C9F6E /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 49B3907A144914DC008C9F6E /* Foundation.framework */; };
 		49B3907D144914DC008C9F6E /* CoreGraphics.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 49B3907C144914DC008C9F6E /* CoreGraphics.framework */; };
@@ -70,6 +71,9 @@
 		49DE52BA14DB7AC100970F58 /* AudioToolbox.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 49DE52B714DB7AC100970F58 /* AudioToolbox.framework */; };
 		49DE52BC14DB7AC100970F58 /* CoreAudio.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 49DE52B914DB7AC100970F58 /* CoreAudio.framework */; };
 		49DE52BE14DB7EF400970F58 /* AVFoundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 49DE52BD14DB7EF400970F58 /* AVFoundation.framework */; };
+		49EBD7481502F7A400E50DCA /* Accelerate.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 49EBD7471502F7A400E50DCA /* Accelerate.framework */; };
+		49EBD74A1503535000E50DCA /* RawEngineGenerated.m in Sources */ = {isa = PBXBuildFile; fileRef = 49EBD7491503535000E50DCA /* RawEngineGenerated.m */; };
+		49EBD74D15035C9700E50DCA /* RawEngine.dsp in Resources */ = {isa = PBXBuildFile; fileRef = 49EBD74C15035C9700E50DCA /* RawEngine.dsp */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -119,6 +123,8 @@
 		49691ADC14B57411009AB83D /* ScaleControl.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = ScaleControl.c; sourceTree = "<group>"; };
 		49691ADE14B5742D009AB83D /* ScaleControl.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ScaleControl.h; sourceTree = "<group>"; };
 		499ADD8714AC0A200007CAA3 /* alephonep2.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = alephonep2.png; sourceTree = "<group>"; };
+		499B032E153A833200BE7455 /* Parameters.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = Parameters.c; sourceTree = "<group>"; };
+		499B0331153A834600BE7455 /* Parameters.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = Parameters.h; sourceTree = "<group>"; };
 		499FE5B014ECB54E00DA92CB /* FretlessCommon.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = FretlessCommon.h; sourceTree = "<group>"; };
 		49B39074144914DC008C9F6E /* AlephOne.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = AlephOne.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		49B39078144914DC008C9F6E /* UIKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = UIKit.framework; path = System/Library/Frameworks/UIKit.framework; sourceTree = SDKROOT; };
@@ -173,6 +179,10 @@
 		49DE52B714DB7AC100970F58 /* AudioToolbox.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AudioToolbox.framework; path = System/Library/Frameworks/AudioToolbox.framework; sourceTree = SDKROOT; };
 		49DE52B914DB7AC100970F58 /* CoreAudio.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreAudio.framework; path = System/Library/Frameworks/CoreAudio.framework; sourceTree = SDKROOT; };
 		49DE52BD14DB7EF400970F58 /* AVFoundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AVFoundation.framework; path = System/Library/Frameworks/AVFoundation.framework; sourceTree = SDKROOT; };
+		49EBD7471502F7A400E50DCA /* Accelerate.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Accelerate.framework; path = System/Library/Frameworks/Accelerate.framework; sourceTree = SDKROOT; };
+		49EBD7491503535000E50DCA /* RawEngineGenerated.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = RawEngineGenerated.m; sourceTree = "<group>"; };
+		49EBD74B1503547D00E50DCA /* RawEngineGenerated.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RawEngineGenerated.h; sourceTree = "<group>"; };
+		49EBD74C15035C9700E50DCA /* RawEngine.dsp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = RawEngine.dsp; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -189,6 +199,7 @@
 				49DE52BA14DB7AC100970F58 /* AudioToolbox.framework in Frameworks */,
 				49DE52BC14DB7AC100970F58 /* CoreAudio.framework in Frameworks */,
 				49DE52BE14DB7EF400970F58 /* AVFoundation.framework in Frameworks */,
+				49EBD7481502F7A400E50DCA /* Accelerate.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -240,6 +251,8 @@
 				49C8C39014DA303E00388555 /* DeMIDI.c */,
 				49C8C39214DA305300388555 /* DeMIDI.h */,
 				499FE5B014ECB54E00DA92CB /* FretlessCommon.h */,
+				499B032E153A833200BE7455 /* Parameters.c */,
+				499B0331153A834600BE7455 /* Parameters.h */,
 			);
 			name = ProjectAgnostic;
 			sourceTree = "<group>";
@@ -253,6 +266,9 @@
 				496862851481FB7600460B4B /* CoreMIDIRenderer.m */,
 				49DE52B314DB771500970F58 /* RawEngine.h */,
 				49DE52B414DB771500970F58 /* RawEngine.m */,
+				49EBD7491503535000E50DCA /* RawEngineGenerated.m */,
+				49EBD74B1503547D00E50DCA /* RawEngineGenerated.h */,
+				49EBD74C15035C9700E50DCA /* RawEngine.dsp */,
 			);
 			name = ProjectAgnostic;
 			sourceTree = "<group>";
@@ -278,6 +294,7 @@
 		49B39077144914DC008C9F6E /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				49EBD7471502F7A400E50DCA /* Accelerate.framework */,
 				49DE52BD14DB7EF400970F58 /* AVFoundation.framework */,
 				49DE52B714DB7AC100970F58 /* AudioToolbox.framework */,
 				49DE52B914DB7AC100970F58 /* CoreAudio.framework */,
@@ -426,7 +443,7 @@
 		49B3906B144914DB008C9F6E /* Project object */ = {
 			isa = PBXProject;
 			attributes = {
-				LastUpgradeCheck = 0420;
+				LastUpgradeCheck = 0430;
 				ORGANIZATIONNAME = "Check Point Software";
 			};
 			buildConfigurationList = 49B3906E144914DB008C9F6E /* Build configuration list for PBXProject "AlephOne" */;
@@ -475,6 +492,7 @@
 				49691AD214B0DD6E009AB83D /* note-6.png in Resources */,
 				49691AD314B0DD6E009AB83D /* note-8.png in Resources */,
 				49691AD414B0DD6E009AB83D /* note-10.png in Resources */,
+				49EBD74D15035C9700E50DCA /* RawEngine.dsp in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -534,6 +552,8 @@
 				49691ADD14B57412009AB83D /* ScaleControl.c in Sources */,
 				49C8C39114DA303E00388555 /* DeMIDI.c in Sources */,
 				49DE52B514DB771500970F58 /* RawEngine.m in Sources */,
+				49EBD74A1503535000E50DCA /* RawEngineGenerated.m in Sources */,
+				499B032F153A833300BE7455 /* Parameters.c in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -596,15 +616,18 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ARCHS = "$(ARCHS_UNIVERSAL_IPHONE_OS)";
+				CODE_SIGN_IDENTITY = "iPhone Developer: Robert Fielding (7YBYR6MD2J)";
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
 				GCC_C_LANGUAGE_STANDARD = gnu99;
-				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_OPTIMIZATION_LEVEL = s;
 				GCC_PREPROCESSOR_DEFINITIONS = DEBUG;
 				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
 				GCC_VERSION = com.apple.compilers.llvmgcc42;
 				GCC_WARN_ABOUT_RETURN_TYPE = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 4.2;
+				IPHONEOS_DEPLOYMENT_TARGET = 5.0;
+				PROVISIONING_PROFILE = "617504A4-3142-4049-AD95-06B90D346B68";
+				"PROVISIONING_PROFILE[sdk=iphoneos*]" = "";
 				SDKROOT = iphoneos;
 				TARGETED_DEVICE_FAMILY = "1,2";
 			};
@@ -614,13 +637,16 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ARCHS = "$(ARCHS_UNIVERSAL_IPHONE_OS)";
+				CODE_SIGN_IDENTITY = "iPhone Developer: Robert Fielding (7YBYR6MD2J)";
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
 				GCC_C_LANGUAGE_STANDARD = gnu99;
 				GCC_VERSION = com.apple.compilers.llvmgcc42;
 				GCC_WARN_ABOUT_RETURN_TYPE = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 4.2;
+				IPHONEOS_DEPLOYMENT_TARGET = 5.0;
 				OTHER_CFLAGS = "-DNS_BLOCK_ASSERTIONS=1";
+				PROVISIONING_PROFILE = "617504A4-3142-4049-AD95-06B90D346B68";
+				"PROVISIONING_PROFILE[sdk=iphoneos*]" = "";
 				SDKROOT = iphoneos;
 				TARGETED_DEVICE_FAMILY = "1,2";
 			};

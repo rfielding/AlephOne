@@ -102,6 +102,7 @@ void ChannelOccupancyControl_render(void* ctx)
     for(int channel=0; channel<16; channel++)
     {
         float r = (diameter*0.5) * Fretless_getChannelOccupancy(fctx, channel);
+        float v = Fretless_getChannelVolume(fctx, channel);
         float a = channel/16.0 * 2*M_PI;
         float cosA = cosf(a-0.15);
         float sinA = sinf(a-0.15);
@@ -121,8 +122,8 @@ void ChannelOccupancyControl_render(void* ctx)
         
         //Draw the channel cycling
         VertexObjectBuilder_addColoredVertex(voCtxDynamic,cx,cy,0,0, 255, 0,255);        
-        VertexObjectBuilder_addColoredVertex(voCtxDynamic,cx+r*sinA,cy+r*cosA,0,0, 200, 0,  0);        
-        VertexObjectBuilder_addColoredVertex(voCtxDynamic,cx+r*sinB,cy+r*cosB,0,0, 255, 0,  0); 
+        VertexObjectBuilder_addColoredVertex(voCtxDynamic,cx+r*sinA*v,cy+r*cosA*v,0,0, 200, 0,  0);        
+        VertexObjectBuilder_addColoredVertex(voCtxDynamic,cx+r*sinB*v,cy+r*cosB*v,0,0, 255, 0,  0); 
         
         //Draw what the bend manipulation is doing
         VertexObjectBuilder_addColoredVertex(voCtxDynamic,cx+rC*sinA,cy+rC*cosA,0,red, green, blue,255);        
@@ -131,10 +132,10 @@ void ChannelOccupancyControl_render(void* ctx)
         
     }
     VertexObjectBuilder_startTexturedObject(voCtxDynamic,trianglestrip,PIC_CHANNELCYCLINGTEXT);
-    VertexObjectBuilder_addTexturedVertex(voCtxDynamic, cx-diameter/2 + diameter/8, cy+diameter/8 - diameter/4, 0, 0,1);
-    VertexObjectBuilder_addTexturedVertex(voCtxDynamic, cx-diameter/2 + diameter/8, cy-diameter/8 - diameter/4, 0, 0,0);
-    VertexObjectBuilder_addTexturedVertex(voCtxDynamic, cx+diameter/2 + diameter/8, cy+diameter/8 - diameter/4, 0, 1,1);
-    VertexObjectBuilder_addTexturedVertex(voCtxDynamic, cx+diameter/2 + diameter/8, cy-diameter/8 - diameter/4, 0, 1,0);
+    VertexObjectBuilder_addTexturedVertex(voCtxDynamic, cx-diameter/2 + diameter/8, cy+diameter/8 - diameter/5, 0, 0,1);
+    VertexObjectBuilder_addTexturedVertex(voCtxDynamic, cx-diameter/2 + diameter/8, cy-diameter/8 - diameter/5, 0, 0,0);
+    VertexObjectBuilder_addTexturedVertex(voCtxDynamic, cx+diameter/2 + diameter/8, cy+diameter/8 - diameter/5, 0, 1,1);
+    VertexObjectBuilder_addTexturedVertex(voCtxDynamic, cx+diameter/2 + diameter/8, cy-diameter/8 - diameter/5, 0, 1,0);
 }
 
 struct ChannelOccupancyControl_data* ChannelOccupancyControl_create(float x1,float y1, float x2,float y2)
