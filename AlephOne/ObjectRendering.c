@@ -100,6 +100,7 @@ struct Slider_data* distortionSlider;
 struct Slider_data* detuneSlider;
 struct Slider_data* timbreSlider;
 struct Slider_data* reverbSlider;
+struct Slider_data* sensitivitySlider;
 
 static char stringRenderBuffer[1024];
 
@@ -234,6 +235,7 @@ void Page_set(void* ctx, int val)
     detuneSlider->rect->isActive = FALSE;
     timbreSlider->rect->isActive = FALSE;
     reverbSlider->rect->isActive = FALSE;
+    sensitivitySlider->rect->isActive = FALSE;
     switch(val)
     {
         case 0:
@@ -263,6 +265,7 @@ void Page_set(void* ctx, int val)
             initialSnapButton->rect->isActive = TRUE;
             snapSpeedSlider->rect->isActive = TRUE;
             engineButton->rect->isActive = TRUE;
+            sensitivitySlider->rect->isActive = TRUE;
             break;
         case 6:
             distortionSlider->rect->isActive = TRUE;
@@ -372,6 +375,16 @@ void Detune_set(void* ctx, float val)
 float Detune_get(void* ctx)
 {
     return getDetune();
+}
+
+void Sensitivity_set(void* ctx, float val)
+{
+    setSensitivity(val);
+}
+
+float Sensitivity_get()
+{
+    return getSensitivity();
 }
 
 void MidiBase_set(void* ctx, float val)
@@ -600,10 +613,11 @@ void ObjectRendering_loadImages()
     renderLabel("Toggle", PIC_SCALETOGGLETEXT);
     renderLabel("Commit", PIC_SCALECOMMITTEXT);
     
-    renderLabel("Down Snap", PIC_INITIALSNAPTEXT);
-    renderLabel("Snap Speed", PIC_SNAPSPEEDTEXT);
+    renderLabel("Snap", PIC_INITIALSNAPTEXT);
+    renderLabel("Speed", PIC_SNAPSPEEDTEXT);
     renderLabel("Internal", PIC_ENGINETEXT);
     
+    renderLabel("Sensitivity", PIC_SENSITIVITY);
     //Render a contiguous group of note pre-rendered images
     //(sharps/flats don't exist for now... a problem I will tackle later)
     for(int n=0; n < 12; n++)
@@ -670,8 +684,9 @@ void WidgetsAssemble()
     scaleCommitButton = CreateButton(PIC_SCALECOMMITTEXT,0.682,panelBottom, 0.88,panelTop, ScaleCommit_set,ScaleCommit_get,1);
     
     //Page 5
-    initialSnapButton = CreateButton(PIC_INITIALSNAPTEXT, 0.12, panelBottom, 0.48, panelTop, Snap_set, Snap_get, 2);
-    snapSpeedSlider = CreateSlider(PIC_SNAPSPEEDTEXT, 0.482, panelBottom, 0.78, panelTop, SnapSpeed_set, SnapSpeed_get);
+    initialSnapButton = CreateButton(PIC_INITIALSNAPTEXT, 0.12, panelBottom, 0.25, panelTop, Snap_set, Snap_get, 2);
+    snapSpeedSlider = CreateSlider(PIC_SNAPSPEEDTEXT, 0.252, panelBottom, 0.48, panelTop, SnapSpeed_set, SnapSpeed_get);
+    sensitivitySlider = CreateSlider(PIC_SENSITIVITY, 0.482, panelBottom, 0.78, panelTop, Sensitivity_set, Sensitivity_get);
     engineButton = CreateButton(PIC_ENGINETEXT, 0.78, panelBottom, 0.95, panelTop, Engine_set, NULL,2);
     engineButton->val = 1; //This is in the enabled state from the beginning
     

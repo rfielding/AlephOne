@@ -22,4 +22,4 @@ float renderNoiseInnerLoopInParallel(
                                      float pitchLocation,float phase,
                                      unsigned long samples,float invSamples,
                                      float currentVolume,float deltaVolume,
-                                     float currentExpr,float deltaExpr);
+                                     float currentExpr,float deltaExpr, float timbreVal);

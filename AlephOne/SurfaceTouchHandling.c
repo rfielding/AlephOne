@@ -13,7 +13,7 @@
 #include "TouchMapping.h"
 #include "PitchHandler.h"
 #include "FretlessCommon.h"
-
+#include "Parameters.h"
 
 static float chorusLevelDesired = 0.1;
 static float chorusLevel = 0;
@@ -90,8 +90,8 @@ void SurfaceTouchHandling_touchesDown(void* ctx,int finger,void* touch,int isMov
         polyGroup1 = finger;
     }
     
-    float e = expr;
-    float v = area * baseVolume;
+    //float e = expr;
+    float v = (area * getSensitivity() + 1 * (1-getSensitivity())) * baseVolume;
     fingerInfo->velocity = v;
     if(isMoving)
     {
@@ -116,7 +116,7 @@ void SurfaceTouchHandling_tick(void* ctx)
         if(fingerInfo->isActive)
         {
             activeFingers++;
-            float expr = fingerInfo->expr;
+            //float expr = fingerInfo->expr;
             PitchHandler_pickPitch(phctx,finger,1,fingerInfo->fingerX,fingerInfo->fingerY);
             Fretless_move(fretlessp,finger,fingerInfo->pitch,fingerInfo->velocity,fingerInfo->string);    
         }            

@@ -10,6 +10,7 @@ static float distortion = 1;
 static float reverb = 1;
 static float timbre = 1;
 static float detune = 1;
+static float sensitivity = 1;
 
 float getDistortion()
 {
@@ -49,4 +50,14 @@ float getDetune()
 void setDetune(float val)
 {
     detune = val;
+}
+
+float getSensitivity()
+{
+    return sensitivity;
+}
+
+void setSensitivity(float val)
+{
+    sensitivity = val;
 }

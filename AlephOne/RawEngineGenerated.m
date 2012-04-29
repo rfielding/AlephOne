@@ -7,7 +7,6 @@
 //
 #import <Accelerate/Accelerate.h>
 #import "RawEngineGenerated.h"
-#include "Parameters.h"
 
 static inline void xDSP_vcp(float* src,float* dst,int count)
 {
@@ -53,6 +52,7 @@ static inline void renderNoiseComputeV(float currentVolume, float deltaVolume, u
     // v[i] = (i * (invSamples * diffVolume)) + currentVolume
     //
     vDSP_vramp(&currentVolume,&deltaVolume,vArray,1,samples);
+    //printf("%f %f %f\n",vArray[0],vArray[samples-1],deltaVolume);
 }
 
 static inline void renderNoiseComputeE(float currentExpr, float deltaExpr, unsigned long samples)
@@ -129,7 +129,7 @@ float renderNoiseInnerLoopInParallel(
                                      float pitchLocation,float phase,
                                      unsigned long samples,float invSamples,
                                      float currentVolume,float deltaVolume,
-                                     float currentExpr,float deltaExpr)
+                                     float currentExpr,float deltaExpr, float timbreVal)
 {
     float cyclesPerSample = powf(2,(notep-33+(1-currentExpr)*detune*(1-pitchLocation))/12) * (440/(44100.0 * 32));
     // [0 .. 0.25] == 0
@@ -137,7 +137,7 @@ float renderNoiseInnerLoopInParallel(
     // [0.75 .. 1]    1
     pitchLocation = pitchLocation - 0.25;
     pitchLocation = pitchLocation*2;
-    pitchLocation += (1-getTimbre());
+    pitchLocation += (1-timbreVal);
     
     pitchLocation = (pitchLocation<0) ? 0 : pitchLocation;
     pitchLocation = (pitchLocation>1) ? 1 : pitchLocation;

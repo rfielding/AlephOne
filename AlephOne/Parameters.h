@@ -10,3 +10,6 @@ void  setTimbre(float val);
 
 float getDetune();
 void  setDetune(float val);
+
+float getSensitivity();
+void  setSensitivity(float val);

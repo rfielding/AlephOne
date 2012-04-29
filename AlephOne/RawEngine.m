@@ -68,6 +68,11 @@ struct fingersData {
     int   noteTieState;
     int   otherChannel;
     struct fingerData finger[FINGERMAX];
+
+    struct ramp reverbRamp;
+    struct ramp detuneRamp;
+    struct ramp timbreRamp;
+    struct ramp distRamp;
 };
 
 
@@ -301,13 +306,13 @@ static inline float compress(float f)
 static inline void renderNoiseToBuffer(long* dataL, long* dataR, unsigned long samples)
 {
     //Distortion goes to 11
-    float innerScale = 0.5+10.5*getDistortion();
+    float innerScale = 0.5+10.5*(allFingers.distRamp.value);
     
     //Scale to fit range when converting to integer
     float scaleFactor = 0x800000 * 2.0/M_PI;
     
     long sc = allFingers.sampleCount;
-    float reverbAmount = getReverb();
+    float reverbAmount = (allFingers.reverbRamp.value);
     
     //Add pre-chorus sound together compressed
     for(int i=0; i<samples; i++)
@@ -345,14 +350,19 @@ static void renderNoiseInnerLoop(int f,unsigned long samples,float invSamples,
     //powf exits out of here, but it's not per sample... 
     for(int u=0; u<UNISONMAX; u++)
     {
+        float uVol = unisonVol[u];
+        if(u>0)
+        {
+            uVol *= allFingers.detuneRamp.value;
+        }
         float phase = allFingers.finger[f].phases[u];
         allFingers.finger[f].phases[u] = 
-            renderNoiseInnerLoopInParallel(
-                                           allFingers.total[u],notep,unisonDetune[u]*getDetune(),
+        renderNoiseInnerLoopInParallel(
+                                           allFingers.total[u],notep,unisonDetune[u]*allFingers.detuneRamp.value,
                                            pitchLocation,phase,
                                            samples,invSamples,
-                                           currentVolume*unisonVol[u],diffVolume*invSamples*unisonVol[u]*getDetune(),
-                                           currentExpr,diffExpr*invSamples);
+                                           currentVolume*uVol,diffVolume*invSamples*uVol,
+                                           currentExpr,diffExpr*invSamples, allFingers.timbreRamp.value);
     }
 }
 
@@ -361,6 +371,12 @@ static void renderNoise(long* dataL, long* dataR, unsigned long samples)
     renderNoiseCleanAll(samples);
     int activeFingers=0;
     float invSamples = 1.0/samples;
+    
+    setRamp(&allFingers.reverbRamp, 8, getReverb());
+    setRamp(&allFingers.detuneRamp, 8, getDetune());
+    setRamp(&allFingers.timbreRamp, 8, getTimbre());
+    setRamp(&allFingers.distRamp, 8, getDistortion());
+    
     //Go in channel major order because we skip by volume
     for(int f=0; f<FINGERMAX; f++)
     {
@@ -385,6 +401,10 @@ static void renderNoise(long* dataL, long* dataR, unsigned long samples)
         }
     }
     renderNoiseToBuffer(dataL,dataR,samples);
+    doRamp(&allFingers.reverbRamp);
+    doRamp(&allFingers.detuneRamp);
+    doRamp(&allFingers.timbreRamp);
+    doRamp(&allFingers.distRamp);
     allFingers.sampleCount += samples;
 }
 
@@ -424,9 +444,9 @@ void rawEngine(int midiChannel,int doNoteAttack,float pitch,float volVal,int mid
         }
         if(doVol) //If we are in legato, then this might need to be stopped
         {
-            int goingDown = (pitch==0)?4:1;
-            float rampVal = (1 + 32 * (128-pitch)/127.0)*goingDown;
-            setRamp(&allFingers.finger[channel].volRamp, rampVal, volVal);            
+            //int goingDown = (pitch==0)?4:1;
+            //float rampVal = (1 + 32 * (128-pitch)/127.0)*goingDown;
+            setRamp(&allFingers.finger[channel].volRamp, 1, volVal);            
         }
         if(volVal!=0) //Don't bother with ramping these on release
         {
