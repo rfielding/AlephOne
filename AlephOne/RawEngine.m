@@ -22,9 +22,8 @@
 #define ECHOBUFFERMAX (1024*128)
 #define UNISONMAX 3
 #define HARMONICSMAX 16
-#define REVERBECHOES 8
+#define REVERBECHOES 10
 #define AUDIOCHANNELS 2
-#define SUBECHO 6
 
 AudioComponentInstance audioUnit;
 AudioStreamBasicDescription audioFormat;
@@ -93,16 +92,18 @@ float harmonics[EXPR][DIST][HARMONICSMAX];
 
 int reverbDataL[REVERBECHOES] __attribute__ ((aligned)) =
 {
-  17,73*4+1,339*5,230*3+1,1437*3+1,893*8,310*1+1,1569*7+1 
+  //17,73*4+1,339*3+1,230*3+1,1437*3+1,893*8,310*1+1,1569*7+1 
+  3,7,13,19,29,37,43,49,53,59
 };
 int reverbDataR[REVERBECHOES] __attribute__ ((aligned)) =
 {
-  11,97*3+1,1450*2,901*4+1,545*4,533*2+1,383*10+1,231*3+1 
+  //41,97*3+1,1450*2+1,901*4+1,545*4,533*2+1,383*8+1,231*3+1 
+  5,11,17,23,31,41,47,51,57,61
 };
 
 float reverbStrength[REVERBECHOES] __attribute__ ((aligned)) =
 {
-    0.9, 0.85, 0.74, 0.7, 0.75, 0.83, 0.9, 0.9
+    0.995, 0.9975, 0.98, 0.99, 0.99, 0.99, 0.99, 0.99,0.9,0.9
 };
 
 static struct fingersData allFingers;
@@ -170,6 +171,19 @@ static void setupSampleIndexArray()
 
 static void initNoise()
 {
+    //Tune to D
+    int noteInSamples = (3*100)/4;
+    for(int i=0;i<4;i++)
+    {
+        reverbDataL[i] *= noteInSamples*2;
+        reverbDataR[i] *= noteInSamples*2;
+    }
+    for(int i=4;i<8;i++)
+    {
+        reverbDataL[i] *= noteInSamples*3;
+        reverbDataR[i] *= noteInSamples*3;
+    }
+    
     bzero(echoBufferL,sizeof(float)*ECHOBUFFERMAX);
     bzero(echoBufferR,sizeof(float)*ECHOBUFFERMAX);
     setupSampleIndexArray();
@@ -273,14 +287,8 @@ static inline void renderNoiseToBuffer(long* dataL, long* dataR, unsigned long s
     
     long sc = allFingers.sampleCount;
     float reverbAmount = (allFingers.reverbRamp.value);
-    float noReverbAmount = 1 - reverbAmount;
+    float noReverbAmount = (1 - reverbAmount);
     
-    float invr[REVERBECHOES];
-    
-    for(int r=0; r<REVERBECHOES; r++)
-    {
-        invr[r] = (reverbStrength[r]) * 0.1;        
-    }
     
     //Add pre-chorus sound together compressed
     for(int i=0; i<samples; i++)
@@ -298,8 +306,8 @@ static inline void renderNoiseToBuffer(long* dataL, long* dataR, unsigned long s
             float val = dist*compress(raw * innerScale) + noDist*raw;
             rawTotal += val;
         }        
-        totalL = feedL*0.2 + rawTotal;
-        totalR = feedR*0.2 + rawTotal;
+        totalL = feedL*0.05 + rawTotal;
+        totalR = feedR*0.05 + rawTotal;
         echoBufferL[n] = 0;
         echoBufferR[n] = 0;
         
@@ -308,25 +316,16 @@ static inline void renderNoiseToBuffer(long* dataL, long* dataR, unsigned long s
         {
             int nL = sci+reverbDataL[r];
             int nR = sci+reverbDataR[r];
-            float vL = totalL*invr[r];
-            float vR = totalR*invr[r];
-            float s = 1;
-            float s2 = 1;
-            for(int n=0;n<SUBECHO;n++)
-            {
-                s *= 0.995;
-                s2 = s * 0.125;
-                nL+=reverbDataL[r];
-                nR+=reverbDataR[r];
-                int nLX = nL % ECHOBUFFERMAX;
-                int nRX = nR % ECHOBUFFERMAX;
-                echoBufferL[nLX] += s2*vL + s*vR;
-                echoBufferR[nRX] += s2*vR + s*vL;
-            }
+            float vL = totalL*reverbStrength[r];
+            float vR = totalR*reverbStrength[r];
+            int nLX = nL % ECHOBUFFERMAX;
+            int nRX = nR % ECHOBUFFERMAX;
+            echoBufferL[nLX] += 0.5*vL + vR;
+            echoBufferR[nRX] += 0.5*vR + vL;
         }
         
-        dataL[i] = scaleFactor * atanf(rawTotal*noReverbAmount*0.5 + feedL*reverbAmount*0.2);
-        dataR[i] = scaleFactor * atanf(rawTotal*noReverbAmount*0.5 + feedR*reverbAmount*0.2);        
+        dataL[i] = scaleFactor * atanf(rawTotal*noReverbAmount + feedL*reverbAmount*0.05);
+        dataR[i] = scaleFactor * atanf(rawTotal*noReverbAmount + feedR*reverbAmount*0.05);        
     }    
 }
 
