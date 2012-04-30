@@ -103,7 +103,7 @@ int reverbDataR[REVERBECHOES] __attribute__ ((aligned)) =
 
 float reverbStrength[REVERBECHOES] __attribute__ ((aligned)) =
 {
-    0.995, 0.9975, 0.98, 0.99, 0.99, 0.99, 0.99, 0.99,0.9,0.9
+    0.99, 0.99, 0.98, 0.99, 0.99, 0.99, 0.99, 0.99,0.9,0.9
 };
 
 static struct fingersData allFingers;
@@ -172,7 +172,7 @@ static void setupSampleIndexArray()
 static void initNoise()
 {
     //Tune to D
-    int noteInSamples = (3*100)/4;
+    int noteInSamples = (3*50)/4;
     for(int i=0;i<4;i++)
     {
         reverbDataL[i] *= noteInSamples*2;
@@ -180,8 +180,8 @@ static void initNoise()
     }
     for(int i=4;i<8;i++)
     {
-        reverbDataL[i] *= noteInSamples*3;
-        reverbDataR[i] *= noteInSamples*3;
+        reverbDataL[i] *= noteInSamples*5;
+        reverbDataR[i] *= noteInSamples*5;
     }
     
     bzero(echoBufferL,sizeof(float)*ECHOBUFFERMAX);
