@@ -324,8 +324,8 @@ static inline void renderNoiseToBuffer(long* dataL, long* dataR, unsigned long s
             echoBufferR[nRX] += 0.5*vR + vL;
         }
         
-        dataL[i] = scaleFactor * atanf(rawTotal*noReverbAmount + feedL*reverbAmount*0.05);
-        dataR[i] = scaleFactor * atanf(rawTotal*noReverbAmount + feedR*reverbAmount*0.05);        
+        dataL[i] = scaleFactor * atanf(rawTotal*noReverbAmount + feedL*reverbAmount*0.04);
+        dataR[i] = scaleFactor * atanf(rawTotal*noReverbAmount + feedR*reverbAmount*0.04);        
     }    
 }
 
