@@ -123,6 +123,20 @@ static inline void renderNoiseSampleMix(float* output,float pitchLocation,unsign
     
 }
 
+float reshapePitchLocationCurve(float pitchLocation, float timbreVal)
+{
+    pitchLocation += (1-timbreVal);
+    /*
+    if(pitchLocation > 0.75)
+    {
+        pitchLocation = (pitchLocation-0.75)*2*(1+timbreVal) + 0.75;
+    }*/
+    pitchLocation = (pitchLocation<0) ? 0 : pitchLocation;
+    pitchLocation = (pitchLocation>1) ? 1 : pitchLocation;
+    
+    return pitchLocation;
+}
+
 float renderNoiseInnerLoopInParallel(
                                      float* output,
                                      float notep,float detune,
@@ -132,15 +146,7 @@ float renderNoiseInnerLoopInParallel(
                                      float currentExpr,float deltaExpr, float timbreVal)
 {
     float cyclesPerSample = powf(2,(notep-33+(1-currentExpr)*detune*(1-pitchLocation))/12) * (440/(44100.0 * 32));
-    // [0 .. 0.25] == 0
-    // [0.25 .. 0.75] ramp from 0 to 1
-    // [0.75 .. 1]    1
-    pitchLocation = pitchLocation - 0.25;
-    pitchLocation = pitchLocation*2;
-    pitchLocation += (1-timbreVal);
-    
-    pitchLocation = (pitchLocation<0) ? 0 : pitchLocation;
-    pitchLocation = (pitchLocation>1) ? 1 : pitchLocation;
+    pitchLocation = reshapePitchLocationCurve(pitchLocation, timbreVal );
     
     renderNoiseComputeWaveIndexJ(phase,cyclesPerSample, samples);
     renderNoiseComputeV(currentVolume, deltaVolume, samples);    

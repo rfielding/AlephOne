@@ -599,7 +599,7 @@ void ObjectRendering_loadImages()
     renderLabel("Distortion", PIC_DISTORTIONTEXT);
     renderLabel("Detune", PIC_DETUNETEXT);
     renderLabel("Timbre", PIC_TIMBRETEXT);
-    renderLabel("Reverb", PIC_REVERBTEXT);
+    renderLabel("Space", PIC_REVERBTEXT);
     
     renderLabel("Oct Auto", PIC_OCTTEXT);
     
