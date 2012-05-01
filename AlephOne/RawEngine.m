@@ -55,6 +55,7 @@ struct fingerData {
     struct ramp pitchRamp;
     struct ramp volRamp;
     struct ramp exprRamp;
+    struct ramp pitchLocation;
     float phases[UNISONMAX];
 };
 
@@ -253,6 +254,7 @@ static inline void renderNoisePrepare(int f)
         }
         
         allFingers.finger[f].pitchRamp.value = allFingers.finger[f].pitchRamp.finalValue;
+        allFingers.finger[f].pitchLocation.value = allFingers.finger[f].pitchLocation.finalValue;
         allFingers.finger[f].exprRamp.value = allFingers.finger[f].exprRamp.finalValue;
     }
 }
@@ -280,20 +282,22 @@ static inline void renderNoiseToBuffer(long* dataL, long* dataR, unsigned long s
 {
     float dist = (allFingers.distRamp.value);
     float noDist = 1 - dist;
+    dist=dist*dist;
     float innerScale = (0.5+10.5*dist)*0.5;
     
     //Scale to fit range when converting to integer
     float scaleFactor = 0x800000 * 2.0/M_PI;
     
     long sc = allFingers.sampleCount;
-    float reverbAmount = (allFingers.reverbRamp.value);
+    float reverbAmount = (allFingers.reverbRamp.value * allFingers.reverbRamp.value);
     float noReverbAmount = (1 - reverbAmount);
-    
+    reverbAmount = reverbAmount*0.9;
     
     //Add pre-chorus sound together compressed
     for(int i=0; i<samples; i++)
     {
         int n = (i+sc)%ECHOBUFFERMAX;
+        int n2 = (i+1+sc)%ECHOBUFFERMAX;
         float rawTotal=0;
         float totalL=0;
         float totalR=0;
@@ -303,11 +307,23 @@ static inline void renderNoiseToBuffer(long* dataL, long* dataR, unsigned long s
         {
             float raw = allFingers.total[phaseIdx][i];
             //Is the atanf bad?
-            float val = dist*compress(raw * innerScale) + noDist*raw;
+            float val = dist*compress(raw * innerScale) + 3*noDist*raw;
             rawTotal += val;
         }        
-        totalL = feedL*0.05 + rawTotal;
-        totalR = feedR*0.05 + rawTotal;
+        //These variables determine whether we get feedback, or creeping silence.
+        float totalScale = 0.3;
+        float feedScale = 0.099;
+        float channelBleed = 0.125;
+        float finalScale = 2;
+        float scaledTotal = rawTotal*totalScale;
+        float feedRawL = feedL*feedScale*reverbAmount;
+        float feedRawR = feedR*feedScale*reverbAmount;
+        totalL = feedRawL + scaledTotal;
+        totalR = feedRawR + scaledTotal;
+        echoBufferL[n2] += echoBufferL[n];
+        echoBufferR[n2] += echoBufferR[n];
+        echoBufferL[n2] *= 0.4555;
+        echoBufferR[n2] *= 0.4555;
         echoBufferL[n] = 0;
         echoBufferR[n] = 0;
         
@@ -320,21 +336,20 @@ static inline void renderNoiseToBuffer(long* dataL, long* dataR, unsigned long s
             float vR = totalR*reverbStrength[r];
             int nLX = nL % ECHOBUFFERMAX;
             int nRX = nR % ECHOBUFFERMAX;
-            echoBufferL[nLX] += 0.5*vL + vR;
-            echoBufferR[nRX] += 0.5*vR + vL;
+            echoBufferL[nLX] += vL + channelBleed*vR;
+            echoBufferR[nRX] += vR + channelBleed*vL;
         }
         
-        dataL[i] = scaleFactor * atanf(rawTotal*noReverbAmount + feedL*reverbAmount*0.04);
-        dataR[i] = scaleFactor * atanf(rawTotal*noReverbAmount + feedR*reverbAmount*0.04);        
+        dataL[i] = scaleFactor * atanf(finalScale * (feedRawL + scaledTotal*noReverbAmount));
+        dataR[i] = scaleFactor * atanf(finalScale * (feedRawR + scaledTotal*noReverbAmount));        
     }    
 }
 
 
 static void renderNoiseInnerLoop(int f,unsigned long samples,float invSamples,
-                                        float currentVolume,float diffVolume, float currentExpr, float diffExpr)
+                                        float currentVolume,float diffVolume, float currentExpr, float diffExpr,float currentPitchLocation, float deltaPitchLocation)
 {
     float notep = allFingers.finger[f].pitchRamp.value;
-    float pitchLocation = notep/127.0;
     //note 33 is our center pitch, and it's 440hz
     //powf exits out of here, but it's not per sample... 
     for(int u=0; u<UNISONMAX; u++)
@@ -348,7 +363,7 @@ static void renderNoiseInnerLoop(int f,unsigned long samples,float invSamples,
         allFingers.finger[f].phases[u] = 
         renderNoiseInnerLoopInParallel(
                                            allFingers.total[u],notep,unisonDetune[u]*allFingers.detuneRamp.value,
-                                           pitchLocation,phase,
+                                           currentPitchLocation,deltaPitchLocation,phase,
                                            samples,invSamples,
                                            currentVolume*uVol,diffVolume*invSamples*uVol,
                                            currentExpr,diffExpr*invSamples, allFingers.timbreRamp.value);
@@ -361,7 +376,7 @@ static void renderNoise(long* dataL, long* dataR, unsigned long samples)
     int activeFingers=0;
     float invSamples = 1.0/samples;
     
-    setRamp(&allFingers.reverbRamp, 16, getReverb());
+    setRamp(&allFingers.reverbRamp, 64, getReverb());
     setRamp(&allFingers.detuneRamp, 16, getDetune());
     setRamp(&allFingers.timbreRamp, 16, getTimbre());
     setRamp(&allFingers.distRamp, 16, getDistortion());
@@ -380,11 +395,15 @@ static void renderNoise(long* dataL, long* dataR, unsigned long samples)
             float currentExpr   = allFingers.finger[f].exprRamp.value;
             float targetExpr    = allFingers.finger[f].exprRamp.stopValue;
             float diffExpr      = (targetExpr - currentExpr);
+            float currentPitchLocation = allFingers.finger[f].pitchLocation.value;
+            float targetPitchLocation = allFingers.finger[f].pitchLocation.stopValue;
+            float deltaPitchLocation = (targetPitchLocation - currentPitchLocation);
             
             activeFingers++;
             renderNoisePrepare(f);
-            renderNoiseInnerLoop(f,samples, invSamples, currentVolume,diffVolume,currentExpr,diffExpr);                
+            renderNoiseInnerLoop(f,samples, invSamples, currentVolume,diffVolume,currentExpr,diffExpr,currentPitchLocation,deltaPitchLocation);                
             doRamp(&allFingers.finger[f].pitchRamp);    
+            doRamp(&allFingers.finger[f].pitchLocation);    
             doRamp(&allFingers.finger[f].exprRamp);                
             doRamp(&allFingers.finger[f].volRamp);    
         }
@@ -395,6 +414,17 @@ static void renderNoise(long* dataL, long* dataR, unsigned long samples)
     doRamp(&allFingers.timbreRamp);
     doRamp(&allFingers.distRamp);
     allFingers.sampleCount += samples;
+}
+
+float findFilterLevel(float pitchLocation, float timbre)
+{
+    float cutoffScale = 1-timbre;
+    float pitchFilter = pitchLocation*1.25;
+    if(pitchFilter>1)
+    {
+        pitchFilter=1;
+    }
+    return cutoffScale * pitchFilter;
 }
 
 void rawEngine(int midiChannel,int doNoteAttack,float pitch,float volVal,int midiExprParm,int midiExpr)
@@ -443,7 +473,8 @@ void rawEngine(int midiChannel,int doNoteAttack,float pitch,float volVal,int mid
         if(volVal!=0) //Don't bother with ramping these on release
         {
             setRamp(&allFingers.finger[channel].pitchRamp, 1, pitch);
-            setRamp(&allFingers.finger[channel].exprRamp, 1, midiExpr/127.0);                                            
+            setRamp(&allFingers.finger[channel].pitchLocation, 1, findFilterLevel(pitch/127.0,getTimbre()));
+            setRamp(&allFingers.finger[channel].exprRamp, 4, midiExpr/127.0);                                            
         }
     }
 }
