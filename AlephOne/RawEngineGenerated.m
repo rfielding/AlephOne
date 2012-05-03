@@ -25,6 +25,7 @@ float registerRight[SAMPLESMAX] __attribute__ ((aligned));
 
 float waveIndexArray[SAMPLESMAX] __attribute__ ((aligned));
 float waveMixArray[SAMPLESMAX] __attribute__ ((aligned));
+float waveOctAverate[SAMPLESMAX] __attribute__ ((aligned));
 
 float pitchLocationArray[SAMPLESMAX] __attribute__((aligned));
 
@@ -100,8 +101,10 @@ static inline void renderNoiseSampleMixInternal(float* waveLo, float* waveHi, fl
     vDSP_vmul(eScaleArray,1, registerLeft,1, eScaleArray,1, samples);    
 }
 
-static inline void renderNoiseSampleMix(float* output,float pitchLocation,float pitchLocationDelta,unsigned long samples)
+static inline void renderNoiseSampleMix(float* output,float notep,float pitchLocation,float pitchLocationDelta,unsigned long samples)
 {
+    int octave = (int)(notep/12);
+    float octLocation = notep - 12*octave;
     float pitchLocationNot=(1-pitchLocation);
     float pitchLocationNotDelta=-pitchLocationDelta;
     
@@ -109,8 +112,8 @@ static inline void renderNoiseSampleMix(float* output,float pitchLocation,float 
     //  (d[i] * waveMix[0][1][j[i]] + dNot[i] * waveMix[0][0][j[i]]) * eNot[i]  +
     //  (d[i] * waveMix[1][1][j[i]] + dNot[i] * waveMix[1][0][j[i]]) * e[i] 
     //   
-    renderNoiseSampleMixInternal(waveMix[0][0], waveMix[0][1],eNotArray,samples);
-    renderNoiseSampleMixInternal(waveMix[1][0], waveMix[1][1],eArray,samples);
+    renderNoiseSampleMixInternal(waveMix[octave][0][0], waveMix[octave][0][1],eNotArray,samples);
+    renderNoiseSampleMixInternal(waveMix[octave][1][0], waveMix[octave][1][1],eArray,samples);
     vDSP_vadd(eArray,1, eNotArray,1, registerLeft,1, samples);
     
     //
@@ -148,7 +151,7 @@ float renderNoiseInnerLoopInParallel(
     renderNoiseComputeWaveIndexJ(phase,cyclesPerSample, samples);
     renderNoiseComputeV(currentVolume, deltaVolume, samples);    
     renderNoiseComputeE(currentExpr, deltaExpr, samples);    
-    renderNoiseSampleMix(output,pitchLocation,pitchLocationDelta,samples);
+    renderNoiseSampleMix(output,notep,pitchLocation,pitchLocationDelta,samples);
     return (cyclesPerSample*samples) + phase;
 }
 

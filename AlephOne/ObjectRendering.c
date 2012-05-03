@@ -308,13 +308,13 @@ float Cols_get(void* ctx)
 
 void Rows_set(void* ctx, float val)
 {
-    PitchHandler_setRowCount(phctx, 2 + val*6);
+    PitchHandler_setRowCount(phctx, 1 + val*6);
     SurfaceDraw_drawBackground();
 }
 
 float Rows_get(void* ctx)
 {
-    return (PitchHandler_getRowCount(phctx)-2)/6;
+    return (PitchHandler_getRowCount(phctx)-1)/6;
 }
 
 void SnapSpeed_set(void* ctx, float val)
@@ -651,7 +651,7 @@ void WidgetsAssemble()
     //Creating a raw control given just a rendering function
     ChannelOccupancyControl_create(cx - 0.2, cy - 0.2, cx + 0.2, cy + 0.2);
     
-    float panelBottom = 0.94;
+    float panelBottom = 0.93;
     float panelTop = 1.0;
     //This button cycles through pages of controls
     pageButton = CreateButton(PIC_PAGE1TEXT,0.0,panelBottom, 0.11,panelTop, Page_set, Page_get, 8);

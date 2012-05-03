@@ -21,7 +21,7 @@
 
 #define ECHOBUFFERMAX (1024*128)
 #define UNISONMAX 3
-#define HARMONICSMAX 16
+#define HARMONICSMAX 32
 #define REVERBECHOES 10
 #define AUDIOCHANNELS 2
 
@@ -81,6 +81,10 @@ float echoBufferL[ECHOBUFFERMAX] __attribute__ ((aligned));
 float echoBufferR[ECHOBUFFERMAX] __attribute__ ((aligned));
 //float convBufferL[ECHOBUFFERMAX] __attribute__ ((aligned));
 //float convBufferR[ECHOBUFFERMAX] __attribute__ ((aligned));
+
+float octaveHarmonicLimit[OCTAVES] = {
+  32,32,32,32,32,24,16,8,4,2,2    
+};
 
 float unisonDetune[UNISONMAX] = {
     0, -0.25, 0.25    
@@ -221,25 +225,28 @@ static void initNoise()
     }
     
     //Convolute into the wave buffers
-    for(int dist=0; dist<DIST; dist++)
+    for(int oct=0; oct<OCTAVES; oct++)
     {
-        for(int expr=0; expr<EXPR; expr++)
+        for(int dist=0; dist<DIST; dist++)
         {
-            for(int sample=0; sample<WAVEMAX; sample++)
+            for(int expr=0; expr<EXPR; expr++)
             {
-                waveMix[expr][dist][sample] = 0;                
-                _waveFundamental[sample] = sinf( 1 * sample * 2.0 * M_PI / WAVEMAX );
-            }
-            for(int harmonic=0; harmonic<HARMONICSMAX; harmonic++)
-            {
-                float h = harmonic+1;
-                float harmonicWeight = harmonics[expr][dist][harmonic];
                 for(int sample=0; sample<WAVEMAX; sample++)
                 {
-                    waveMix[expr][dist][sample] += sinf(h * sample * 2.0 * M_PI / WAVEMAX) * harmonicWeight;
+                    waveMix[oct][expr][dist][sample] = 0;                
+                    _waveFundamental[sample] = sinf( 1 * sample * 2.0 * M_PI / WAVEMAX );
+                }
+                for(int harmonic=0; harmonic<HARMONICSMAX && harmonic<octaveHarmonicLimit[oct]; harmonic++)
+                {
+                    float h = harmonic+1;
+                    float harmonicWeight = harmonics[expr][dist][harmonic];
+                    for(int sample=0; sample<WAVEMAX; sample++)
+                    {
+                        waveMix[oct][expr][dist][sample] += sinf(h * sample * 2.0 * M_PI / WAVEMAX) * harmonicWeight;
+                    }
                 }
             }
-        }
+        }        
     }
 }
 
