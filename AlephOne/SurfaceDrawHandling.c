@@ -89,8 +89,8 @@ void SurfaceDraw_drawBackground()
         VertexObjectBuilder_addColoredVertex(voCtxDynamic, 1, f-dyd, 0, 0,  50,  50,  40);
     }
     
-    float dx = 0.023;
-    float iy = 0.023;
+    float dx = 0.05;
+    float iy = 0.05;
     //Start at bottom corner, increment a chromatic until we are off the screen,
     //then move to next string and detune 
     //and repeat until we are out of strings.
@@ -177,7 +177,7 @@ void drawMoveableFrets()
         int red = 0;
         int green = usage*50;
         int blue = bCol;
-        int trans = 200;
+        int trans = 180;
         
         int rede = 0;
         int greene = 255;
