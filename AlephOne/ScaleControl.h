@@ -31,8 +31,8 @@ struct ScaleControl_data* ScaleControl_create(float x1,float y1, float x2,float 
 
 void ScaleControl_clear(void* ctx);
 void ScaleControl_toggle(void* ctx);
-void ScaleControl_commit(void* ctx);
 void ScaleControl_setCurrentScale(int currentScale);
 int ScaleControl_getCurrentScale();
 void ScaleControl_setBaseNote(int currentBase);
 int ScaleControl_getBaseNote();
+void ScaleControl_defaults(void*ctx);

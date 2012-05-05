@@ -34,6 +34,8 @@
 #include "ButtonControl.h"
 #include "RawEngine.h"
 
+#define PAGEMAX 8
+
 static void* ObjectRendering_imageContext;
 static void (*ObjectRendering_imageRender)(void*,char*,unsigned int*,float*,float*,int);
 static void (*ObjectRendering_stringRender)(void*,char*,unsigned int*,float*,float*,int);
@@ -64,7 +66,8 @@ static float textureWidth[TEXTURECOUNT];
 static float textureHeight[TEXTURECOUNT];
 static float lightPosition[3];
 
-struct Button_data* pageButton;
+struct Button_data* pagePrevButton;
+struct Button_data* pageNextButton;
 
 //All the references to controls
 struct Slider_data* baseSlider;
@@ -105,6 +108,7 @@ struct Slider_data* sensitivitySlider;
 static char stringRenderBuffer[1024];
 
 static float baseNote = 2.0;
+static int currentPage = 0;
 
 void WidgetsAssemble();
 
@@ -239,10 +243,8 @@ void Page_set(void* ctx, int val)
     switch(val)
     {
         case 0:
-            baseSlider->rect->isActive = TRUE;
             widthSlider->rect->isActive = TRUE;
             heightSlider->rect->isActive = TRUE;
-            octAutoButton->rect->isActive = TRUE;
             break;
         case 1:
             intonationSlider->rect->isActive = TRUE;
@@ -273,8 +275,30 @@ void Page_set(void* ctx, int val)
             timbreSlider->rect->isActive = TRUE;
             reverbSlider->rect->isActive = TRUE;
             break;
+        case 7:
+            baseSlider->rect->isActive = TRUE;
+            octAutoButton->rect->isActive = TRUE;
+            break;
     }
 }
+
+void Page_jump_set(void* ctx,int val,int jump)
+{
+    //The two buttons are always in sync
+    currentPage = (currentPage + PAGEMAX + jump) % PAGEMAX;
+    Page_set(ctx, currentPage);
+}
+
+void Page_next_set(void* ctx,int val)
+{
+    Page_jump_set(ctx,val,1);
+}
+
+void Page_prev_set(void* ctx,int val)
+{
+    Page_jump_set(ctx,val,-1);
+}
+
 
 int Page_get(void* ctx)
 {
@@ -425,7 +449,7 @@ int OctAuto_get(void* ctx)
 
 void Legato_set(void* ctx, int val)
 {
-    char cval = "ndy"[val];
+    char cval = "ny"[val];
     sprintf(stringRenderBuffer,"Legato:%c", cval);
     reRenderString(stringRenderBuffer, PIC_LEGATOTEXT);
     return SurfaceTouchHandling_setLegato(val);
@@ -520,13 +544,13 @@ int ScaleToggle_get(void* ctx)
     return 0;
 }
 
-void ScaleCommit_set(void* ctx,int val)
+void ScaleFretDefaults_set(void* ctx,int val)
 {
-    struct Fret_context* fretContext = PitchHandler_frets(phctx);
-    ScaleControl_commit(fretContext);
+    //struct Fret_context* fretContext = PitchHandler_frets(phctx);
+    ScaleControl_defaults(ctx);
 }
 
-int ScaleCommit_get(void* ctx)
+int ScaleFretDefaults_get(void* ctx)
 {
     return 0;
 }
@@ -583,7 +607,10 @@ void ObjectRendering_loadImages()
     renderLabel("Center",PIC_BASENOTETEXT);
     renderLabel("Scale",PIC_SCALETEXT);
     renderLabel("Width",PIC_WIDTHTEXT);
-    renderLabel("Page",PIC_PAGE1TEXT);
+    
+    renderLabel("\u219E",PIC_PAGE1TEXT);
+    renderLabel("\u21A0",PIC_PAGE2TEXT);
+    
     renderLabel("Circle Of Fifths", PIC_ROOTNOTETEXT);
     renderLabel("Height", PIC_HEIGHTTEXT);
     
@@ -607,11 +634,11 @@ void ObjectRendering_loadImages()
     renderLabel("String", PIC_POLYTEXT);
     renderLabel("Velocity", PIC_BASEVOLTEXT);
     
-    renderLabel("Scale Edit", PIC_SCALEBUTTONTEXT);
+    renderLabel("Re-Fret", PIC_SCALEBUTTONTEXT);
     renderLabel("The Octave", PIC_SCALECONTROLTEXT);
     renderLabel("Clear", PIC_SCALECLEARTEXT);
     renderLabel("Toggle", PIC_SCALETOGGLETEXT);
-    renderLabel("Commit", PIC_SCALECOMMITTEXT);
+    renderLabel("Defaults", PIC_SCALEFRETDEFAULTTEXT);
     
     renderLabel("Snap", PIC_INITIALSNAPTEXT);
     renderLabel("Speed", PIC_SNAPSPEEDTEXT);
@@ -645,61 +672,65 @@ void WidgetsAssemble()
     
     itemP = SurfaceDraw_create();    
 
-    float cx = 0.8;
-    float cy = 0.2;
+    //float cx = 0.8;
+    //float cy = 0.2;
     
     //Creating a raw control given just a rendering function
-    ChannelOccupancyControl_create(cx - 0.2, cy - 0.2, cx + 0.2, cy + 0.2);
+    //ChannelOccupancyControl_create(cx - 0.2, cy - 0.2, cx + 0.2, cy + 0.2);
     
+    float farLeft = 0.07;
+    float farRight = 0.94;
     float panelBottom = 0.93;
     float panelTop = 1.0;
     //This button cycles through pages of controls
-    pageButton = CreateButton(PIC_PAGE1TEXT,0.0,panelBottom, 0.11,panelTop, Page_set, Page_get, 8);
+    pagePrevButton = CreateButton(PIC_PAGE1TEXT,0.0,panelBottom, farLeft-0.01,panelTop, Page_prev_set, Page_get,1);
+    pageNextButton = CreateButton(PIC_PAGE2TEXT,farRight+0.01,panelBottom, 1.0,panelTop, Page_next_set, Page_get,1);
     
     //Page 0
-    widthSlider = CreateSlider(PIC_WIDTHTEXT,0.12,panelBottom, 0.5,panelTop, Cols_set, Cols_get);
+    widthSlider = CreateSlider(PIC_WIDTHTEXT,farLeft,panelBottom, 0.5,panelTop, Cols_set, Cols_get);
     heightSlider = CreateSlider(PIC_HEIGHTTEXT,0.502,panelBottom, 0.80,panelTop, Rows_set, Rows_get);
-    baseSlider = CreateSlider(PIC_BASENOTETEXT,0.12,panelBottom-0.07, 0.80,panelBottom, NoteDiff_set, NoteDiff_get);    
-    octAutoButton = CreateButton(PIC_OCTTEXT,0.802,panelBottom-0.07, 1,panelTop, OctAuto_set, OctAuto_get, 2);
+    
     
     //Page 1
-    intonationSlider = CreateSlider(PIC_SCALETEXT,0.12,panelBottom, 0.33,panelTop, Intonation_set, NULL);
-    rootNoteSlider = CreateSlider(PIC_ROOTNOTETEXT,0.332,panelBottom, 0.66,panelTop, RootNote_set, NULL);
+    intonationSlider = CreateSlider(PIC_SCALETEXT,farLeft,panelBottom, 0.5,panelTop, Intonation_set, NULL);
+    rootNoteSlider = CreateSlider(PIC_ROOTNOTETEXT,0.52,panelBottom, farRight,panelTop, RootNote_set, NULL);
     
     //Page 2
-    midiChannelSlider = CreateSlider(PIC_MIDIBASETEXT, 0.12,panelBottom, 0.33,panelTop, MidiBase_set, MidiBase_get);    
+    midiChannelSlider = CreateSlider(PIC_MIDIBASETEXT, farLeft,panelBottom, 0.33,panelTop, MidiBase_set, MidiBase_get);    
     midiChannelSpanSlider = CreateSlider(PIC_MIDISPANTEXT, 0.332,panelBottom, 0.66,panelTop, MidiSpan_set, MidiSpan_get);    
-    midiBendSlider = CreateSlider(PIC_MIDIBENDTEXT, 0.662,panelBottom, 0.95,panelTop, MidiBend_set, MidiBend_get);
+    midiBendSlider = CreateSlider(PIC_MIDIBENDTEXT, 0.662,panelBottom, farRight,panelTop, MidiBend_set, MidiBend_get);
 
     //Page 3
-    legatoButton = CreateButton(PIC_LEGATOTEXT, 0.12, panelBottom, 0.28, panelTop, Legato_set, Legato_get, 3);
+    legatoButton = CreateButton(PIC_LEGATOTEXT, farLeft, panelBottom, 0.28, panelTop, Legato_set, Legato_get, 2);
     polyButton = CreateButton(PIC_POLYTEXT, 0.282, panelBottom, 0.5, panelTop, Poly_set, Poly_get, 3);
-    baseVolumeSlider = CreateSlider(PIC_BASEVOLTEXT, 0.502,panelBottom, 0.95,panelTop, Vel_set, Vel_get);
+    baseVolumeSlider = CreateSlider(PIC_BASEVOLTEXT, 0.502,panelBottom, farRight,panelTop, Vel_set, Vel_get);
     
     //Page 4
-    scaleControlButton = CreateButton(PIC_SCALEBUTTONTEXT, 0.12, panelBottom, 0.28, panelTop, Scale_set, Scale_get, 2);
+    scaleControlButton = CreateButton(PIC_SCALEBUTTONTEXT, farLeft, panelBottom, 0.28, panelTop, Scale_set, Scale_get, 2);
     scaleControl = ScaleControl_create(0, 0, 1, panelBottom);
     scaleClearButton = CreateButton(PIC_SCALECLEARTEXT,0.282,panelBottom, 0.48,panelTop, ScaleClear_set,ScaleClear_get,1);
     scaleToggleButton = CreateButton(PIC_SCALETOGGLETEXT,0.482,panelBottom, 0.68,panelTop, ScaleToggle_set,ScaleToggle_get,1);    
-    scaleCommitButton = CreateButton(PIC_SCALECOMMITTEXT,0.682,panelBottom, 0.88,panelTop, ScaleCommit_set,ScaleCommit_get,1);
+    scaleCommitButton = CreateButton(PIC_SCALEFRETDEFAULTTEXT,0.682,panelBottom, 0.88,panelTop, ScaleFretDefaults_set,ScaleFretDefaults_get,1);
     
     //Page 5
-    initialSnapButton = CreateButton(PIC_INITIALSNAPTEXT, 0.12, panelBottom, 0.25, panelTop, Snap_set, Snap_get, 2);
+    initialSnapButton = CreateButton(PIC_INITIALSNAPTEXT, farLeft, panelBottom, 0.25, panelTop, Snap_set, Snap_get, 2);
     snapSpeedSlider = CreateSlider(PIC_SNAPSPEEDTEXT, 0.252, panelBottom, 0.48, panelTop, SnapSpeed_set, SnapSpeed_get);
     sensitivitySlider = CreateSlider(PIC_SENSITIVITY, 0.482, panelBottom, 0.78, panelTop, Sensitivity_set, Sensitivity_get);
-    engineButton = CreateButton(PIC_ENGINETEXT, 0.78, panelBottom, 0.95, panelTop, Engine_set, NULL,2);
+    engineButton = CreateButton(PIC_ENGINETEXT, 0.78, panelBottom, farRight, panelTop, Engine_set, NULL,2);
     engineButton->val = 1; //This is in the enabled state from the beginning
     
     //Page 6
-    reverbSlider = CreateSlider(PIC_REVERBTEXT,0.12,panelBottom, 0.30,panelTop, Reverb_set, Reverb_get);
+    reverbSlider = CreateSlider(PIC_REVERBTEXT,farLeft,panelBottom, 0.30,panelTop, Reverb_set, Reverb_get);
     detuneSlider = CreateSlider(PIC_DETUNETEXT,0.302,panelBottom, 0.48,panelTop, Detune_set, Detune_get);
     timbreSlider = CreateSlider(PIC_TIMBRETEXT,0.482,panelBottom, 0.66,panelTop, Timbre_set, Timbre_get);
-    distortionSlider = CreateSlider(PIC_DISTORTIONTEXT,0.662,panelBottom, 0.95,panelTop, Distortion_set, Distortion_get);
+    distortionSlider = CreateSlider(PIC_DISTORTIONTEXT,0.662,panelBottom, farRight,panelTop, Distortion_set, Distortion_get);
+    
+    //Page 7
+    octAutoButton = CreateButton(PIC_OCTTEXT,farLeft,panelBottom,farLeft+0.2,panelTop, OctAuto_set, OctAuto_get, 2);
+    baseSlider = CreateSlider(PIC_BASENOTETEXT,farLeft+0.21,panelBottom, farRight,panelTop, NoteDiff_set, NoteDiff_get);    
     
     //Page last
-    Page_set(NULL, 6);
+    Page_set(NULL, PAGEMAX-1);
     
-    ScaleControl_setBaseNote(0);
-    ScaleControl_setCurrentScale(0);
-    ScaleControl_commit(NULL);
+    ScaleControl_defaults(NULL);
 }

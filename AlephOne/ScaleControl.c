@@ -44,100 +44,7 @@ float spRatios[SPRATIOS];
 #define ETRADIUS (0.058)
 
 
-void ScaleControl_defaults(void*ctx)
-{
-    //Diatonic minor
-    etPicked[0][1][0] = 3;
-    etPicked[2][1][0] = 3;
-    etPicked[3][1][0] = 3;
-    etPicked[5][1][0] = 3;
-    etPicked[7][1][0] = 3;
-    etPicked[8][1][0] = 3;
-    etPicked[10][1][0] = 3;
 
-    //Harmonic minor
-    etPicked[0][1][1] = 3;
-    etPicked[2][1][1] = 3;
-    etPicked[3][1][1] = 3;
-    etPicked[5][1][1] = 3;
-    etPicked[7][1][1] = 3;
-    etPicked[8][1][1] = 3;
-    etPicked[11][1][1] = 1;
-
-    //Chromatic
-    etPicked[0][1][2] = 3;
-    etPicked[1][1][2] = 1;
-    etPicked[2][1][2] = 3;
-    etPicked[3][1][2] = 3;
-    etPicked[4][1][2] = 1;
-    etPicked[5][1][2] = 3;
-    etPicked[6][1][2] = 1;
-    etPicked[7][1][2] = 3;
-    etPicked[8][1][2] = 3;
-    etPicked[9][1][2] = 1;
-    etPicked[10][1][2] = 3;
-    etPicked[11][1][2] = 1;
-
-    //Chromatic with quartertones
-    etPicked[0][1][3] = 3;
-    etPicked[1][1][3] = 2;
-    etPicked[3][3][3] = 1;
-    etPicked[2][1][3] = 3;
-    etPicked[3][1][3] = 3;
-    etPicked[4][1][3] = 2;
-    etPicked[5][1][3] = 3;
-    etPicked[6][1][3] = 2;
-    etPicked[13][3][3] = 1;
-    etPicked[7][1][3] = 3;
-    etPicked[8][1][3] = 3;
-    etPicked[17][3][3] = 1;
-    etPicked[9][1][3] = 2;
-    etPicked[10][1][3] = 3;
-    etPicked[11][1][3] = 2;
-  
-    //Partial 53ET
-    etPicked[0][5][4] = 3;
-    etPicked[4][5][4] = 1;
-    etPicked[5][5][4] = 1;
-    etPicked[9][5][4] = 3;
-    etPicked[9+4][5][4] = 1;
-    etPicked[9+5][5][4] = 1;
-    etPicked[9+5+4][5][4] = 1;
-    etPicked[9+5+5][5][4] = 1;
-    
-    etPicked[22+0][5][4] = 3;
-    etPicked[22+4][5][4] = 1;
-    etPicked[22+5][5][4] = 1;
-    etPicked[22+9][5][4] = 3;
-    etPicked[22+9+4][5][4] = 1;
-    etPicked[22+9+5][5][4] = 1;
-    etPicked[22+9+5+4][5][4] = 1;
-    etPicked[22+9+5+5][5][4] = 1;
-    
-    etPicked[44][5][4] = 3;
-    etPicked[44+1][5][4] = 1;
-    etPicked[44+4][5][4] = 1;
-    etPicked[44+5][5][4] = 1;
-    
-    
-    //full 53et
-    for(int i=0;i<53;i++)
-    {
-        etPicked[i][5][5] = 1;
-    }  
-    //full 31et
-    for(int i=0;i<31;i++)
-    {
-        etPicked[i][4][6] = 1;
-    }
-    //full 19et
-    for(int i=0;i<19;i++)
-    {
-        etPicked[i][2][7] = 1;
-    }
-    
-    ScaleControl_commit(NULL);    
-}
 
 void ScaleControl_clear(void* ctx)
 {
@@ -269,10 +176,17 @@ void ScaleControl_render(void* ctx)
             }
             VertexObjectBuilder_addColoredVertex(voCtxDynamic,x1,y1,0, r, g, b,200);                            
             VertexObjectBuilder_addColoredVertex(voCtxDynamic,x2,y2,0, r, g, b,200);                            
+            if(etPicked[note][e][currentScale])
+            {
+                VertexObjectBuilder_addColoredVertex(voCtxDynamic,cx+r2*sinA,cy+r2*cosA,0, 200,100,200,200);                            
+                VertexObjectBuilder_addColoredVertex(voCtxDynamic,cx+0.5*diameter*sinA,cy+0.5*diameter*cosA,0, 200,100,200,200);                                            
+            }
         }
         r = r2;
         r2 = r + diameter*ETRADIUS;
     }
+    VertexObjectBuilder_addColoredVertex(voCtxDynamic,cx,cy+r2,0, 255, 255, 255,180);                            
+    VertexObjectBuilder_addColoredVertex(voCtxDynamic,cx,cy,0, 255, 255, 255,180);                            
     
     //Show harmonics versus the currently cursor-ed note at angle tau
     //Diatonic markers hardcoded in
@@ -377,13 +291,7 @@ void ScaleControl_down(void* ctx,int finger,void* touch,int isMoving,float x,flo
 
 
 
-void ScaleControl_toggle(void* ctx)
-{
-    if(fret)
-    {
-        etPicked[fret][ring][currentScale] = !etPicked[fret][ring][currentScale];        
-    }
-}
+
 
 void ScaleControl_commit(void* ctx)
 {
@@ -405,6 +313,117 @@ void ScaleControl_commit(void* ctx)
         }
     }
     //printf("commited scale %d\n",currentScale);    
+}
+
+void ScaleControl_toggle(void* ctx)
+{
+    if(fret)
+    {
+        etPicked[fret][ring][currentScale] = !etPicked[fret][ring][currentScale];        
+    }
+    ScaleControl_commit(ctx);
+}
+
+void ScaleControl_setCurrentScale(int currentScaleArg)
+{
+    //printf("currentScale=%d\n",currentScale);
+    currentScale = currentScaleArg;
+    ScaleControl_commit(NULL);
+}
+
+void ScaleControl_defaults(void*ctx)
+{
+    //Diatonic minor
+    etPicked[0][1][0] = 3;
+    etPicked[2][1][0] = 3;
+    etPicked[3][1][0] = 3;
+    etPicked[5][1][0] = 3;
+    etPicked[7][1][0] = 3;
+    etPicked[8][1][0] = 3;
+    etPicked[10][1][0] = 3;
+    
+    //Harmonic minor
+    etPicked[0][1][1] = 3;
+    etPicked[2][1][1] = 3;
+    etPicked[3][1][1] = 3;
+    etPicked[5][1][1] = 3;
+    etPicked[7][1][1] = 3;
+    etPicked[8][1][1] = 3;
+    etPicked[11][1][1] = 1;
+    
+    //Chromatic
+    etPicked[0][1][2] = 3;
+    etPicked[1][1][2] = 1;
+    etPicked[2][1][2] = 3;
+    etPicked[3][1][2] = 3;
+    etPicked[4][1][2] = 1;
+    etPicked[5][1][2] = 3;
+    etPicked[6][1][2] = 1;
+    etPicked[7][1][2] = 3;
+    etPicked[8][1][2] = 3;
+    etPicked[9][1][2] = 1;
+    etPicked[10][1][2] = 3;
+    etPicked[11][1][2] = 1;
+    
+    //Chromatic with quartertones
+    etPicked[0][1][3] = 3;
+    etPicked[1][1][3] = 2;
+    etPicked[3][3][3] = 1;
+    etPicked[2][1][3] = 3;
+    etPicked[3][1][3] = 3;
+    etPicked[4][1][3] = 2;
+    etPicked[5][1][3] = 3;
+    etPicked[6][1][3] = 2;
+    etPicked[13][3][3] = 1;
+    etPicked[7][1][3] = 3;
+    etPicked[8][1][3] = 3;
+    etPicked[17][3][3] = 1;
+    etPicked[9][1][3] = 2;
+    etPicked[10][1][3] = 3;
+    etPicked[11][1][3] = 2;
+    
+    //Partial 53ET
+    etPicked[0][5][4] = 3;
+    etPicked[4][5][4] = 1;
+    etPicked[5][5][4] = 1;
+    etPicked[9][5][4] = 3;
+    etPicked[9+4][5][4] = 1;
+    etPicked[9+5][5][4] = 1;
+    etPicked[9+5+4][5][4] = 1;
+    etPicked[9+5+5][5][4] = 1;
+    
+    etPicked[22+0][5][4] = 3;
+    etPicked[22+4][5][4] = 1;
+    etPicked[22+5][5][4] = 1;
+    etPicked[22+9][5][4] = 3;
+    etPicked[22+9+4][5][4] = 1;
+    etPicked[22+9+5][5][4] = 1;
+    etPicked[22+9+5+4][5][4] = 1;
+    etPicked[22+9+5+5][5][4] = 1;
+    
+    etPicked[44][5][4] = 3;
+    etPicked[44+1][5][4] = 1;
+    etPicked[44+4][5][4] = 1;
+    etPicked[44+5][5][4] = 1;
+    
+    
+    //full 53et
+    for(int i=0;i<53;i++)
+    {
+        etPicked[i][5][5] = 1;
+    }  
+    //full 31et
+    for(int i=0;i<31;i++)
+    {
+        etPicked[i][4][6] = 1;
+    }
+    //full 19et
+    for(int i=0;i<19;i++)
+    {
+        etPicked[i][2][7] = 1;
+    }
+    
+    ScaleControl_setCurrentScale(3);
 }
 
 struct ScaleControl_data* ScaleControl_create(float x1,float y1, float x2,float y2)
@@ -431,12 +450,7 @@ int ScaleControl_getBaseNote()
     return currentBase;
 }
 
-void ScaleControl_setCurrentScale(int currentScaleArg)
-{
-    //printf("currentScale=%d\n",currentScale);
-    currentScale = currentScaleArg;
-    ScaleControl_commit(NULL);
-}
+
 
 int ScaleControl_getCurrentScale()
 {
