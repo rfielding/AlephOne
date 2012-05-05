@@ -178,7 +178,7 @@ void ObjectRendering_init(
   
     SurfaceDraw_init(voCtxDynamicArg,phctxArg,trianglesArg,trianglestripArg,linesArg);
     SliderControl_init(voCtxDynamicArg,phctxArg,trianglesArg,trianglestripArg,linestripArg);
-    ButtonControl_init(voCtxDynamicArg,phctxArg,trianglesArg,trianglestripArg);
+    ButtonControl_init(voCtxDynamicArg,phctxArg,trianglesArg,trianglestripArg,linesArg);
     ChannelOccupancyControl_init(triangles,trianglestrip,linestrip,voCtxDynamicArg, fctxArg);
     ScaleControl_init(triangles,trianglestrip,linestrip,linesArg,voCtxDynamicArg, fctxArg,fretctx,reRenderString);
     WidgetsAssemble();
@@ -680,54 +680,54 @@ void WidgetsAssemble()
     
     float farLeft = 0.07;
     float farRight = 0.94;
-    float panelBottom = 0.93;
+    float panelBottom = 0.9275;
     float panelTop = 1.0;
     //This button cycles through pages of controls
-    pagePrevButton = CreateButton(PIC_PAGE1TEXT,0.0,panelBottom, farLeft-0.01,panelTop, Page_prev_set, Page_get,1);
-    pageNextButton = CreateButton(PIC_PAGE2TEXT,farRight+0.01,panelBottom, 1.0,panelTop, Page_next_set, Page_get,1);
+    pagePrevButton = CreateButton(PIC_PAGE1TEXT,0,panelBottom, farLeft,panelTop, Page_prev_set, Page_get,1);
+    pageNextButton = CreateButton(PIC_PAGE2TEXT,farRight,panelBottom, 1.0,panelTop, Page_next_set, Page_get,1);
     
     //Page 0
     widthSlider = CreateSlider(PIC_WIDTHTEXT,farLeft,panelBottom, 0.5,panelTop, Cols_set, Cols_get);
-    heightSlider = CreateSlider(PIC_HEIGHTTEXT,0.502,panelBottom, 0.80,panelTop, Rows_set, Rows_get);
+    heightSlider = CreateSlider(PIC_HEIGHTTEXT,0.5,panelBottom, farRight,panelTop, Rows_set, Rows_get);
     
     
     //Page 1
     intonationSlider = CreateSlider(PIC_SCALETEXT,farLeft,panelBottom, 0.5,panelTop, Intonation_set, NULL);
-    rootNoteSlider = CreateSlider(PIC_ROOTNOTETEXT,0.52,panelBottom, farRight,panelTop, RootNote_set, NULL);
+    rootNoteSlider = CreateSlider(PIC_ROOTNOTETEXT,0.5,panelBottom, farRight,panelTop, RootNote_set, NULL);
     
     //Page 2
     midiChannelSlider = CreateSlider(PIC_MIDIBASETEXT, farLeft,panelBottom, 0.33,panelTop, MidiBase_set, MidiBase_get);    
-    midiChannelSpanSlider = CreateSlider(PIC_MIDISPANTEXT, 0.332,panelBottom, 0.66,panelTop, MidiSpan_set, MidiSpan_get);    
-    midiBendSlider = CreateSlider(PIC_MIDIBENDTEXT, 0.662,panelBottom, farRight,panelTop, MidiBend_set, MidiBend_get);
+    midiChannelSpanSlider = CreateSlider(PIC_MIDISPANTEXT, 0.33,panelBottom, 0.66,panelTop, MidiSpan_set, MidiSpan_get);    
+    midiBendSlider = CreateSlider(PIC_MIDIBENDTEXT, 0.66,panelBottom, farRight,panelTop, MidiBend_set, MidiBend_get);
 
     //Page 3
     legatoButton = CreateButton(PIC_LEGATOTEXT, farLeft, panelBottom, 0.28, panelTop, Legato_set, Legato_get, 2);
-    polyButton = CreateButton(PIC_POLYTEXT, 0.282, panelBottom, 0.5, panelTop, Poly_set, Poly_get, 3);
-    baseVolumeSlider = CreateSlider(PIC_BASEVOLTEXT, 0.502,panelBottom, farRight,panelTop, Vel_set, Vel_get);
+    polyButton = CreateButton(PIC_POLYTEXT, 0.28, panelBottom, 0.5, panelTop, Poly_set, Poly_get, 3);
+    baseVolumeSlider = CreateSlider(PIC_BASEVOLTEXT, 0.5,panelBottom, farRight,panelTop, Vel_set, Vel_get);
     
     //Page 4
     scaleControlButton = CreateButton(PIC_SCALEBUTTONTEXT, farLeft, panelBottom, 0.28, panelTop, Scale_set, Scale_get, 2);
     scaleControl = ScaleControl_create(0, 0, 1, panelBottom);
-    scaleClearButton = CreateButton(PIC_SCALECLEARTEXT,0.282,panelBottom, 0.48,panelTop, ScaleClear_set,ScaleClear_get,1);
-    scaleToggleButton = CreateButton(PIC_SCALETOGGLETEXT,0.482,panelBottom, 0.68,panelTop, ScaleToggle_set,ScaleToggle_get,1);    
-    scaleCommitButton = CreateButton(PIC_SCALEFRETDEFAULTTEXT,0.682,panelBottom, 0.88,panelTop, ScaleFretDefaults_set,ScaleFretDefaults_get,1);
+    scaleClearButton = CreateButton(PIC_SCALECLEARTEXT,0.28,panelBottom, 0.48,panelTop, ScaleClear_set,ScaleClear_get,1);
+    scaleToggleButton = CreateButton(PIC_SCALETOGGLETEXT,0.48,panelBottom, 0.68,panelTop, ScaleToggle_set,ScaleToggle_get,1);    
+    scaleCommitButton = CreateButton(PIC_SCALEFRETDEFAULTTEXT,0.68,panelBottom, 0.88,panelTop, ScaleFretDefaults_set,ScaleFretDefaults_get,1);
     
     //Page 5
     initialSnapButton = CreateButton(PIC_INITIALSNAPTEXT, farLeft, panelBottom, 0.25, panelTop, Snap_set, Snap_get, 2);
-    snapSpeedSlider = CreateSlider(PIC_SNAPSPEEDTEXT, 0.252, panelBottom, 0.48, panelTop, SnapSpeed_set, SnapSpeed_get);
-    sensitivitySlider = CreateSlider(PIC_SENSITIVITY, 0.482, panelBottom, 0.78, panelTop, Sensitivity_set, Sensitivity_get);
+    snapSpeedSlider = CreateSlider(PIC_SNAPSPEEDTEXT, 0.25, panelBottom, 0.48, panelTop, SnapSpeed_set, SnapSpeed_get);
+    sensitivitySlider = CreateSlider(PIC_SENSITIVITY, 0.48, panelBottom, 0.78, panelTop, Sensitivity_set, Sensitivity_get);
     engineButton = CreateButton(PIC_ENGINETEXT, 0.78, panelBottom, farRight, panelTop, Engine_set, NULL,2);
     engineButton->val = 1; //This is in the enabled state from the beginning
     
     //Page 6
     reverbSlider = CreateSlider(PIC_REVERBTEXT,farLeft,panelBottom, 0.30,panelTop, Reverb_set, Reverb_get);
-    detuneSlider = CreateSlider(PIC_DETUNETEXT,0.302,panelBottom, 0.48,panelTop, Detune_set, Detune_get);
-    timbreSlider = CreateSlider(PIC_TIMBRETEXT,0.482,panelBottom, 0.66,panelTop, Timbre_set, Timbre_get);
-    distortionSlider = CreateSlider(PIC_DISTORTIONTEXT,0.662,panelBottom, farRight,panelTop, Distortion_set, Distortion_get);
+    detuneSlider = CreateSlider(PIC_DETUNETEXT,0.30,panelBottom, 0.48,panelTop, Detune_set, Detune_get);
+    timbreSlider = CreateSlider(PIC_TIMBRETEXT,0.48,panelBottom, 0.66,panelTop, Timbre_set, Timbre_get);
+    distortionSlider = CreateSlider(PIC_DISTORTIONTEXT,0.66,panelBottom, farRight,panelTop, Distortion_set, Distortion_get);
     
     //Page 7
     octAutoButton = CreateButton(PIC_OCTTEXT,farLeft,panelBottom,farLeft+0.2,panelTop, OctAuto_set, OctAuto_get, 2);
-    baseSlider = CreateSlider(PIC_BASENOTETEXT,farLeft+0.21,panelBottom, farRight,panelTop, NoteDiff_set, NoteDiff_get);    
+    baseSlider = CreateSlider(PIC_BASENOTETEXT,farLeft+0.2,panelBottom, farRight,panelTop, NoteDiff_set, NoteDiff_get);    
     
     //Page last
     Page_set(NULL, PAGEMAX-1);

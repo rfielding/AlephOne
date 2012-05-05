@@ -15,6 +15,7 @@
 
 static int triangles;
 static int trianglestrip;
+static int lines;
 static struct VertexObjectBuilder* voCtxDynamic;
 static struct PitchHandler_context* phctx;
 
@@ -22,11 +23,13 @@ void ButtonControl_init(
                         struct VertexObjectBuilder* voCtxDynamicArg,
                         struct PitchHandler_context* phctxArg,
                         int trianglesArg,
-                        int trianglestripArg
+                        int trianglestripArg,
+                        int linesArg
                         )
 {
     triangles = trianglesArg;
     trianglestrip = trianglestripArg;
+    lines = linesArg;
     phctx = phctxArg;
     voCtxDynamic = voCtxDynamicArg;
 }
@@ -39,30 +42,44 @@ void Button_render(void* ctx)
     
     if(button)
     {
+        float dy = 0.002;
+        float dx = 0.002;
         struct WidgetTree_rect* w = button->rect;
         if(w)
         {            
-            int r = 255 * ((button->val) %2);
-            int g = 255 * ((button->val/2) %4);
-            int b = 255 * ((button->val/4) %8);
+            int r = 205 * ((button->val) %2) + 50;
+            int g = 205 * ((button->val/2) %4) + 50;
+            int b = 205 * ((button->val/4) %8) + 50;
             if(button->downState)
             {
                 VertexObjectBuilder_startColoredObject(voCtxDynamic,trianglestrip);
-                VertexObjectBuilder_addColoredVertex(voCtxDynamic, w->x1, w->y1, 0, 255,255,255,100);
-                VertexObjectBuilder_addColoredVertex(voCtxDynamic, w->x1, w->y2, 0, 255,255,255,100);
-                VertexObjectBuilder_addColoredVertex(voCtxDynamic, w->x2, w->y1, 0, 255,255,255,100);
-                VertexObjectBuilder_addColoredVertex(voCtxDynamic, w->x2, w->y2, 0, 255,255,255,100);                            
+                VertexObjectBuilder_addColoredVertex(voCtxDynamic, w->x1+dx, w->y1+dy, 0, 255,255,255,100);
+                VertexObjectBuilder_addColoredVertex(voCtxDynamic, w->x1+dx, w->y2-dy, 0, 255,255,255,100);
+                VertexObjectBuilder_addColoredVertex(voCtxDynamic, w->x2-dx, w->y1+dy, 0, 255,255,255,100);
+                VertexObjectBuilder_addColoredVertex(voCtxDynamic, w->x2-dx, w->y2-dy, 0, 255,255,255,100);                            
             }
             VertexObjectBuilder_startColoredObject(voCtxDynamic,trianglestrip);
-            VertexObjectBuilder_addColoredVertex(voCtxDynamic, w->x1, w->y1, 0, r,  g,b,200);
-            VertexObjectBuilder_addColoredVertex(voCtxDynamic, w->x1, w->y2, 0, r,  g,b, 80);
-            VertexObjectBuilder_addColoredVertex(voCtxDynamic, w->x2, w->y1, 0, r,  g,b,127);
-            VertexObjectBuilder_addColoredVertex(voCtxDynamic, w->x2, w->y2, 0, r,  g,b, 80);                
+            VertexObjectBuilder_addColoredVertex(voCtxDynamic, w->x1+dx, w->y1+dy, 0, r,  g,b,200);
+            VertexObjectBuilder_addColoredVertex(voCtxDynamic, w->x1+dx, w->y2-dy, 0, r,  g,b, 80);
+            VertexObjectBuilder_addColoredVertex(voCtxDynamic, w->x2-dx, w->y1+dy, 0, r,  g,b,127);
+            VertexObjectBuilder_addColoredVertex(voCtxDynamic, w->x2-dx, w->y2-dy, 0, r,  g,b, 80);   
+            
+            VertexObjectBuilder_startColoredObject(voCtxDynamic, lines);
+            
+            VertexObjectBuilder_addColoredVertex(voCtxDynamic, w->x2-dx, w->y2-dy, 0, 255,255,255,150);
+            VertexObjectBuilder_addColoredVertex(voCtxDynamic, w->x1+dx, w->y2-dy, 0, 255,255,255,150);
+            VertexObjectBuilder_addColoredVertex(voCtxDynamic, w->x1+dx, w->y2-dy, 0, 255,255,255,150);
+            VertexObjectBuilder_addColoredVertex(voCtxDynamic, w->x1+dx, w->y1+dy, 0, 255,255,255,150);
+            
+            VertexObjectBuilder_addColoredVertex(voCtxDynamic, w->x1+dx, w->y1+dy, 0, 255,255,255,100);
+            VertexObjectBuilder_addColoredVertex(voCtxDynamic, w->x2-dx, w->y1+dy, 0, 255,255,255,100);
+            VertexObjectBuilder_addColoredVertex(voCtxDynamic, w->x2-dx, w->y1+dy, 0, 255,255,255,100);
+            VertexObjectBuilder_addColoredVertex(voCtxDynamic, w->x2-dx, w->y2-dy, 0, 255,255,255,100);
         }
 
         float s = 0.01;
-        float dx = 0.4;
-        float dy = 0.06;
+        dx = 0.4;
+        dy = 0.06;
         VertexObjectBuilder_startTexturedObject(voCtxDynamic,trianglestrip,button->label);
         VertexObjectBuilder_addTexturedVertex(voCtxDynamic, w->x1+s, w->y1, 0, 0,0);
         VertexObjectBuilder_addTexturedVertex(voCtxDynamic, w->x1+s, w->y1+dy, 0, 0,1);
