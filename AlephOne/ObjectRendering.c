@@ -115,10 +115,11 @@ struct Slider_data* timbreSlider;
 struct Slider_data* reverbSlider;
 struct Slider_data* sensitivitySlider;
 
-struct Button_data* loopStartButton;
+struct Button_data* loopCountInButton;
 struct Button_data* loopRepeatButton;
-struct Button_data* loopPlayButton;
-struct Button_data* loopClearButton;
+
+struct Slider_data* loopFeedSlider;
+struct Slider_data* loopFadeSlider;
 
 static char stringRenderBuffer[1024];
 
@@ -255,10 +256,10 @@ void Page_set(void* ctx, int val)
     timbreSlider->rect->isActive = FALSE;
     reverbSlider->rect->isActive = FALSE;
     sensitivitySlider->rect->isActive = FALSE;
-    loopStartButton->rect->isActive = FALSE;
+    loopCountInButton->rect->isActive = FALSE;
     loopRepeatButton->rect->isActive = FALSE;
-    loopPlayButton->rect->isActive = FALSE;
-    loopClearButton->rect->isActive = FALSE;
+    loopFeedSlider->rect->isActive = FALSE;
+    loopFadeSlider->rect->isActive = FALSE;
     switch(val)
     {
         case PAGE_WIDTH:
@@ -299,12 +300,12 @@ void Page_set(void* ctx, int val)
             octAutoButton->rect->isActive = TRUE;
             break;
         case PAGE_LOOP:
-            /* not yet ready
-            loopStartButton->rect->isActive = TRUE;
+            ///* not yet ready
+            loopCountInButton->rect->isActive = TRUE;
             loopRepeatButton->rect->isActive = TRUE;
-            loopPlayButton->rect->isActive = TRUE;
-            loopClearButton->rect->isActive = TRUE;
-             */
+            loopFeedSlider->rect->isActive = TRUE;
+            loopFadeSlider->rect->isActive = TRUE;
+             //*/
             break;
     }
 }
@@ -571,12 +572,12 @@ int ScaleToggle_get(void* ctx)
     return 0;
 }
 
-void LoopStart_set(void* ctx,int val)
+void LoopCountIn_set(void* ctx,int val)
 {
-    loopStart();
+    loopCountIn();
 }
 
-int LoopStart_get(void* ctx)
+int LoopCountIn_get(void* ctx)
 {
     return 0;
 }
@@ -591,24 +592,24 @@ int LoopRepeat_get(void* ctx)
     return 0;
 }
 
-void LoopPlay_set(void* ctx,int val)
+void LoopFeed_set(void* ctx,float val)
 {
-    loopPlay();
+    setLoopFeed(val);
 }
 
-int LoopPlay_get(void* ctx)
+float LoopFeed_get(void* ctx)
 {
-    return 0;
+    return getLoopFeed(); 
 }
 
-void LoopClear_set(void* ctx,int val)
+void LoopFade_set(void* ctx,float val)
 {
-    loopClear();
+    setLoopFade(val);
 }
 
-int LoopClear_get(void* ctx)
+float LoopFade_get(void* ctx)
 {
-    return 0;
+    return getLoopFade();
 }
 
 void ScaleFretDefaults_set(void* ctx,int val)
@@ -712,10 +713,10 @@ void ObjectRendering_loadImages()
     renderLabel("Speed", PIC_SNAPSPEEDTEXT);
     renderLabel("Audio", PIC_ENGINETEXT);
     
-    renderLabel("Record", PIC_LOOPRECORD);
+    renderLabel("Count In", PIC_LOOPRECORD);
     renderLabel("Loop", PIC_LOOPREPEAT);
-    renderLabel("Play", PIC_LOOPPLAY);
-    renderLabel("Clear", PIC_LOOPCLEAR);
+    renderLabel("Fade", PIC_LOOPCLEAR);
+    renderLabel("Feed", PIC_LOOPPLAY);
     
     renderLabel("Sensitivity", PIC_SENSITIVITY);
     //Render a contiguous group of note pre-rendered images
@@ -751,10 +752,10 @@ void WidgetsAssemble()
     pagePrevButton = CreateButton(PIC_PAGE1TEXT,0,panelBottom, farLeft,panelTop, Page_prev_set, Page_get,1);
     pageNextButton = CreateButton(PIC_PAGE2TEXT,farRight,panelBottom, 1.0,panelTop, Page_next_set, Page_get,1);
 
-    loopStartButton = CreateButton(PIC_LOOPRECORD, farLeft, panelBottom, 0.28, panelTop, LoopStart_set, LoopStart_get, 1);
-    loopRepeatButton = CreateButton(PIC_LOOPREPEAT, 0.28, panelBottom, 0.48, panelTop, LoopRepeat_set, LoopRepeat_get, 1);
-    loopPlayButton = CreateButton(PIC_LOOPPLAY, 0.48, panelBottom, 0.68, panelTop, LoopPlay_set, LoopPlay_get, 1);
-    loopClearButton = CreateButton(PIC_LOOPCLEAR, 0.68, panelBottom, farRight, panelTop, LoopClear_set, LoopClear_get, 1);
+    loopRepeatButton = CreateButton(PIC_LOOPREPEAT, farLeft, panelBottom, 0.28, panelTop, LoopRepeat_set, LoopRepeat_get, 1);
+    loopCountInButton = CreateButton(PIC_LOOPRECORD, 0.28, panelBottom, 0.48, panelTop, LoopCountIn_set, LoopCountIn_get, 1);
+    loopFadeSlider = CreateSlider(PIC_LOOPCLEAR, 0.48, panelBottom, 0.68, panelTop, LoopFade_set, LoopFade_get);
+    loopFeedSlider = CreateSlider(PIC_LOOPPLAY, 0.68, panelBottom, farRight, panelTop, LoopFeed_set, LoopFeed_get);
     
     //Page 0
     intonationSlider = CreateSlider(PIC_SCALETEXT,farLeft,panelBottom, 0.5,panelTop, Intonation_set, NULL);

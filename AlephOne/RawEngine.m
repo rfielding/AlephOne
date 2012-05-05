@@ -80,10 +80,13 @@ struct fingersData {
 
 float loopBufferL[LOOPBUFFERMAX] __attribute__ ((aligned));
 float loopBufferR[LOOPBUFFERMAX] __attribute__ ((aligned));
-int loopIndexStart = 0;
-int loopIndexRepeat = 0;
-int loopRecording = 0;
-int loopPlaying = 0;
+unsigned long loopIndexCountIn = 0;
+unsigned long loopIndexRepeat = 0;
+unsigned long releaseUntil = 0;
+unsigned long loopRecordAt = 0;
+//int loopRecording = 0;
+float loopFeeding = 0;
+float loopDying = 0;
 
 float echoBufferL[ECHOBUFFERMAX] __attribute__ ((aligned));
 float echoBufferR[ECHOBUFFERMAX] __attribute__ ((aligned));
@@ -296,6 +299,58 @@ static inline float compress(float f)
     return atanf(f);
 }
 
+
+/**
+ States:
+ 
+ Cleared
+ loopIndexRepeat = loopIndexCountIn = loopRecordAt
+ 
+ CountIn
+ loopIndexRepeat < loopIndexCountIn
+ now < loopRecordAt
+ 
+ Recording
+ loopIndexRepeat < loopIndexCountIn
+ loopRecordAt <= now
+ 
+ Looping
+ loopRecordAt < loopIndexRepeat
+ 
+ */
+void loopCountIn()
+{
+    loopIndexCountIn = allFingers.sampleCount;
+    loopRecordAt = allFingers.sampleCount + (loopIndexCountIn - loopIndexRepeat);
+}
+
+void loopRepeat()
+{
+    loopDying = 0;
+    loopIndexRepeat = allFingers.sampleCount;
+    releaseUntil = loopIndexRepeat + (loopRecordAt - loopIndexCountIn);
+}
+
+void setLoopFeed(float val)
+{
+    loopFeeding = val;
+}
+
+float getLoopFeed()
+{
+    return loopFeeding;
+}
+
+void setLoopFade(float val)
+{
+    loopDying = val;
+}
+
+float getLoopFade()
+{
+    return loopDying;
+}
+
 static inline void renderNoiseToBuffer(long* dataL, long* dataR, unsigned long samples)
 {
     float dist = (allFingers.distRamp.value);
@@ -314,6 +369,7 @@ static inline void renderNoiseToBuffer(long* dataL, long* dataR, unsigned long s
     //Add pre-chorus sound together compressed
     for(int i=0; i<samples; i++)
     {
+        unsigned long now = allFingers.sampleCount + i;
         int n = (i+sc)%ECHOBUFFERMAX;
         int n2 = (i+1+sc)%ECHOBUFFERMAX;
         float rawTotal=0;
@@ -321,8 +377,28 @@ static inline void renderNoiseToBuffer(long* dataL, long* dataR, unsigned long s
         float totalR=0;
         float feedL = echoBufferL[n];
         float feedR = echoBufferR[n];
-        float lL = loopBufferL[n] * loopPlaying;
-        float lR = loopBufferR[n] * loopPlaying;
+        
+        
+        float lL = 0;
+        float lR = 0;
+        int validLoop = (loopRecordAt < loopIndexRepeat);
+        int doneLooping = (loopIndexCountIn < loopRecordAt);
+        int loopLength = (loopIndexRepeat - loopRecordAt);
+        int lN = (now - loopRecordAt);
+        
+        //Read from the looper into our audio
+        if(validLoop && doneLooping)
+        {
+            int loopIdx = lN % loopLength;
+            if(loopDying)
+            {
+                loopBufferL[loopIdx] *= (1-loopDying);
+                loopBufferR[loopIdx] *= (1-loopDying);
+            }
+            lL = loopBufferL[ loopIdx ];
+            lR = loopBufferR[ loopIdx ];
+        }
+        
         for(int phaseIdx=0; phaseIdx<UNISONMAX; phaseIdx++)
         {
             float raw = allFingers.total[phaseIdx][i];
@@ -362,20 +438,30 @@ static inline void renderNoiseToBuffer(long* dataL, long* dataR, unsigned long s
         
         float aL = atanf(finalScale * (feedRawL + scaledTotal*noReverbAmount + lL));
         float aR = atanf(finalScale * (feedRawR + scaledTotal*noReverbAmount + lR));
-        if(loopRecording)
+        float aLRaw = atanf(finalScale * (feedRawL + scaledTotal*noReverbAmount));
+        float aRRaw = atanf(finalScale * (feedRawR + scaledTotal*noReverbAmount));
+        
+        
+        int inBufferRange = (lN < LOOPBUFFERMAX);
+        int stillCountingIn = (loopIndexRepeat < loopIndexCountIn);
+        int shouldFeed = 0;
+        int releasing = (now < releaseUntil);
+        
+        if(inBufferRange)
         {
-            int lN = (allFingers.sampleCount + i - loopIndexStart);
-            if(loopPlaying)
-            {
-                loopBufferL[lN] = (loopBufferL[lN] + aL)/2;            
-                loopBufferR[lN] = (loopBufferR[lN] + aR)/2;                            
-            }
-            else 
-            {
-                loopBufferL[lN] = aL;
-                loopBufferR[lN] = aR;
-            }
+            shouldFeed = (stillCountingIn || releasing);
         }
+        if(validLoop)
+        {
+            lN = lN % loopLength;
+            shouldFeed = 1;
+        }
+        if(shouldFeed)
+        {
+            loopBufferL[lN] = (((1-loopFeeding)*loopBufferL[lN] + aLRaw*loopFeeding) + loopBufferL[lN])/2;
+            loopBufferR[lN] = (((1-loopFeeding)*loopBufferR[lN] + aRRaw*loopFeeding) + loopBufferR[lN])/2;                             
+        }
+        
         dataL[i] = scaleFactor * aL;
         dataR[i] = scaleFactor * aR;        
     }    
@@ -461,31 +547,6 @@ float findFilterLevel(float pitchLocation, float timbre)
         pitchFilter=1;
     }
     return cutoffScale * pitchFilter;
-}
-
-void loopStart()
-{
-    loopIndexStart = allFingers.sampleCount;
-    loopRecording = 1;
-}
-
-void loopRepeat()
-{
-    loopIndexRepeat = allFingers.sampleCount;
-    loopRecording = 0;
-    loopPlaying = 1;
-}
-
-void loopPlay()
-{
-    loopPlaying = !loopPlaying;
-}
-
-void loopClear()
-{
-    loopIndexRepeat = 0;
-    loopRecording = 0;
-    loopPlaying = 0;
 }
 
 
