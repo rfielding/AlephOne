@@ -84,6 +84,7 @@ unsigned long loopIndexCountIn = 0;
 unsigned long loopIndexRepeat = 0;
 unsigned long releaseUntil = 0;
 unsigned long loopRecordAt = 0;
+
 //int loopRecording = 0;
 float loopFeeding = 0;
 float loopDying = 0;
@@ -205,6 +206,7 @@ static void initNoise()
     
     bzero(echoBufferL,sizeof(float)*ECHOBUFFERMAX);
     bzero(echoBufferR,sizeof(float)*ECHOBUFFERMAX);
+    
     setupSampleIndexArray();
     
     clearHarmonics(harmonics[0][0]);
@@ -381,22 +383,27 @@ static inline void renderNoiseToBuffer(long* dataL, long* dataR, unsigned long s
         
         float lL = 0;
         float lR = 0;
-        int validLoop = (loopRecordAt < loopIndexRepeat);
-        int doneLooping = (loopIndexCountIn < loopRecordAt);
-        int loopLength = (loopIndexRepeat - loopRecordAt);
-        int lN = (now - loopRecordAt);
         
         //Read from the looper into our audio
-        if(validLoop && doneLooping)
+        if(loopRecordAt > 0 && loopIndexCountIn > 0 && loopIndexRepeat > 0)
         {
-            int loopIdx = lN % loopLength;
-            if(loopDying)
+            int lN = (now - loopRecordAt);
+            int loopLength = (loopIndexRepeat - loopRecordAt);
+            if(loopRecordAt < loopIndexRepeat && 
+               loopIndexCountIn < loopRecordAt && 
+               loopRecordAt < now && 
+               loopRecordAt < loopIndexRepeat &&
+               0 < loopLength && loopLength < LOOPBUFFERMAX)
             {
-                loopBufferL[loopIdx] *= (1-loopDying);
-                loopBufferR[loopIdx] *= (1-loopDying);
-            }
-            lL = loopBufferL[ loopIdx ];
-            lR = loopBufferR[ loopIdx ];
+                int loopIdx = lN % loopLength;
+                if(loopDying)
+                {
+                    loopBufferL[loopIdx] *= (1-loopDying);
+                    loopBufferR[loopIdx] *= (1-loopDying);
+                }
+                lL = loopBufferL[ loopIdx ];
+                lR = loopBufferR[ loopIdx ];
+            }            
         }
         
         for(int phaseIdx=0; phaseIdx<UNISONMAX; phaseIdx++)
@@ -441,25 +448,24 @@ static inline void renderNoiseToBuffer(long* dataL, long* dataR, unsigned long s
         float aLRaw = atanf(finalScale * (feedRawL + scaledTotal*noReverbAmount));
         float aRRaw = atanf(finalScale * (feedRawR + scaledTotal*noReverbAmount));
         
-        
-        int inBufferRange = (lN < LOOPBUFFERMAX);
-        int stillCountingIn = (loopIndexRepeat < loopIndexCountIn);
-        int shouldFeed = 0;
-        int releasing = (now < releaseUntil);
-        
-        if(inBufferRange)
+    
+        if(loopRecordAt > 0 || loopIndexCountIn > 0 || loopIndexRepeat > 0)
         {
-            shouldFeed = (stillCountingIn || releasing);
-        }
-        if(validLoop)
-        {
-            lN = lN % loopLength;
-            shouldFeed = 1;
-        }
-        if(shouldFeed)
-        {
-            loopBufferL[lN] = (((1-loopFeeding)*loopBufferL[lN] + aLRaw*loopFeeding) + loopBufferL[lN])/2;
-            loopBufferR[lN] = (((1-loopFeeding)*loopBufferR[lN] + aRRaw*loopFeeding) + loopBufferR[lN])/2;                             
+            int loopIdx = (now - loopRecordAt);
+            
+            if(0 <= loopIdx && loopIdx < LOOPBUFFERMAX && 
+               loopRecordAt <= now && 
+               ((loopIndexRepeat < loopRecordAt) || (now<releaseUntil)))
+            {
+                loopBufferL[loopIdx] = aLRaw;
+                loopBufferR[loopIdx] = aRRaw;                                                             
+            }
+            else 
+            {
+                loopIdx = loopIdx % (loopIndexRepeat - loopRecordAt);
+                loopBufferL[loopIdx] = (1-loopFeeding*0.5)*loopBufferL[loopIdx] + aLRaw*loopFeeding*0.5;
+                loopBufferR[loopIdx] = (1-loopFeeding*0.5)*loopBufferR[loopIdx] + aRRaw*loopFeeding*0.5;                                             
+            }            
         }
         
         dataL[i] = scaleFactor * aL;
