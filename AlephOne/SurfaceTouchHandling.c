@@ -102,7 +102,7 @@ void SurfaceTouchHandling_touchesDown(void* ctx,int finger,void* touch,int isMov
     {
         Fretless_beginDown(fretlessp,finger1); 
         Fretless_express(fretlessp, finger1, 11, expr);
-        Fretless_endDown(fretlessp,finger1, note,polyGroup1,v,legato); 
+        Fretless_endDown(fretlessp,finger1, note,polyGroup1,v,legato?2:0); 
     }
 }
 
