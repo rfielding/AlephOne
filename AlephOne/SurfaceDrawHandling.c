@@ -171,7 +171,7 @@ void drawMoveableFrets()
     while(PitchHandler_getFret(phctx,&pitch, &x, &y, &importance, &usage,&ourFret))
     {
         float dxi = dx*importance*(1+usage)*0.5;
-        float dyi = dy*(1+importance*0.1);
+        float dyi = dy*(1+importance*0.1)*0.5;
         float bCol = importance * 255.0 / 4.0;
         
         int red = 0;
