@@ -25,6 +25,7 @@
 #define REVERBECHOES 10
 #define AUDIOCHANNELS 2
 
+BOOL audioIsRunning = FALSE;
 AudioComponentInstance audioUnit;
 AudioStreamBasicDescription audioFormat;
 static const float kSampleRate = 44100.0;
@@ -83,7 +84,7 @@ float echoBufferR[ECHOBUFFERMAX] __attribute__ ((aligned));
 //float convBufferR[ECHOBUFFERMAX] __attribute__ ((aligned));
 
 float octaveHarmonicLimit[OCTAVES] = {
-  32,32,32,32,32,24,16,8,4,2,2    
+  32,32,32,32,32,24,16,8,4,2,2,1    
 };
 
 float unisonDetune[UNISONMAX] = {
@@ -524,6 +525,7 @@ void SoundEngine_wake()
     [[AVAudioSession sharedInstance] setCategory:AVAudioSessionCategoryPlayback error:&categoryError];
     fixGDLatency();
     initNoise();
+    audioIsRunning = TRUE;
 }
 
 
@@ -658,7 +660,14 @@ void SoundEngine_start()
 
 void rawEngineStart()
 {
-    SoundEngine_start();
+    if(audioIsRunning == FALSE)
+    {
+        SoundEngine_start();
+    }
+    else 
+    {
+        AudioOutputUnitStart(audioUnit);
+    }
     NSLog(@"rawEngineStart");
 }
 

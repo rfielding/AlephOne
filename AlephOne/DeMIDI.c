@@ -28,6 +28,7 @@ void DeMIDI_start(void (*rawEngineArg)(int midiChannel,int doNoteAttack,float pi
 void DeMIDI_stop()
 {
     //Stop the sound engine
+    rawEngine = NULL;
 }
 
 #define S_EXPECT_STATUS 0

@@ -11,7 +11,7 @@
 #define SAMPLESMAX 1024
 #define DIST 2
 #define EXPR 2
-#define OCTAVES 11
+#define OCTAVES 12
 
 float  waveMix        [OCTAVES][EXPR][DIST][WAVEMAX];
 float _waveFundamental            [WAVEMAX];

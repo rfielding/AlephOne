@@ -132,8 +132,6 @@ static inline void renderNoiseSampleMixInternal(float notep,int eL,int dL,int eH
 
 static inline void renderNoiseSampleMix(float* output,float notep,float pitchLocation,float pitchLocationDelta,unsigned long samples)
 {
-    int octave = (int)(notep/12);
-    float octLocation = notep - 12*octave;
     float pitchLocationNot=(1-pitchLocation);
     float pitchLocationNotDelta=-pitchLocationDelta;
     
