@@ -11,3 +11,8 @@
 void rawEngine(int midiChannel,int doNoteAttack,float pitch,float volVal,int midiExprParm,int midiExpr);
 void rawEngineStart();
 void rawEngineStop();
+
+void loopStart();
+void loopRepeat();
+void loopPlay();
+void loopClear();

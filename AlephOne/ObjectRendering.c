@@ -34,16 +34,17 @@
 #include "ButtonControl.h"
 #include "RawEngine.h"
 
-#define PAGEMAX 8
+#define PAGEMAX 9
 
-#define PAGE_SCALE 0
-#define PAGE_REVERB 1
-#define PAGE_POLY 2
-#define PAGE_ROUND 3
-#define PAGE_SNAP 4
-#define PAGE_WIDTH 5
-#define PAGE_FRETS 6
-#define PAGE_MIDI 7
+#define PAGE_LOOP 0
+#define PAGE_SCALE 1
+#define PAGE_REVERB 2
+#define PAGE_POLY 3
+#define PAGE_ROUND 4
+#define PAGE_SNAP 5
+#define PAGE_WIDTH 6
+#define PAGE_FRETS 7
+#define PAGE_MIDI 8
 
 static void* ObjectRendering_imageContext;
 static void (*ObjectRendering_imageRender)(void*,char*,unsigned int*,float*,float*,int);
@@ -113,6 +114,11 @@ struct Slider_data* detuneSlider;
 struct Slider_data* timbreSlider;
 struct Slider_data* reverbSlider;
 struct Slider_data* sensitivitySlider;
+
+struct Button_data* loopStartButton;
+struct Button_data* loopRepeatButton;
+struct Button_data* loopPlayButton;
+struct Button_data* loopClearButton;
 
 static char stringRenderBuffer[1024];
 
@@ -249,6 +255,10 @@ void Page_set(void* ctx, int val)
     timbreSlider->rect->isActive = FALSE;
     reverbSlider->rect->isActive = FALSE;
     sensitivitySlider->rect->isActive = FALSE;
+    loopStartButton->rect->isActive = FALSE;
+    loopRepeatButton->rect->isActive = FALSE;
+    loopPlayButton->rect->isActive = FALSE;
+    loopClearButton->rect->isActive = FALSE;
     switch(val)
     {
         case PAGE_WIDTH:
@@ -287,6 +297,14 @@ void Page_set(void* ctx, int val)
         case PAGE_ROUND:
             baseSlider->rect->isActive = TRUE;
             octAutoButton->rect->isActive = TRUE;
+            break;
+        case PAGE_LOOP:
+            /* not yet ready
+            loopStartButton->rect->isActive = TRUE;
+            loopRepeatButton->rect->isActive = TRUE;
+            loopPlayButton->rect->isActive = TRUE;
+            loopClearButton->rect->isActive = TRUE;
+             */
             break;
     }
 }
@@ -553,6 +571,46 @@ int ScaleToggle_get(void* ctx)
     return 0;
 }
 
+void LoopStart_set(void* ctx,int val)
+{
+    loopStart();
+}
+
+int LoopStart_get(void* ctx)
+{
+    return 0;
+}
+
+void LoopRepeat_set(void* ctx,int val)
+{
+    loopRepeat();
+}
+
+int LoopRepeat_get(void* ctx)
+{
+    return 0;
+}
+
+void LoopPlay_set(void* ctx,int val)
+{
+    loopPlay();
+}
+
+int LoopPlay_get(void* ctx)
+{
+    return 0;
+}
+
+void LoopClear_set(void* ctx,int val)
+{
+    loopClear();
+}
+
+int LoopClear_get(void* ctx)
+{
+    return 0;
+}
+
 void ScaleFretDefaults_set(void* ctx,int val)
 {
     //struct Fret_context* fretContext = PitchHandler_frets(phctx);
@@ -654,6 +712,11 @@ void ObjectRendering_loadImages()
     renderLabel("Speed", PIC_SNAPSPEEDTEXT);
     renderLabel("Audio", PIC_ENGINETEXT);
     
+    renderLabel("Record", PIC_LOOPRECORD);
+    renderLabel("Loop", PIC_LOOPREPEAT);
+    renderLabel("Play", PIC_LOOPPLAY);
+    renderLabel("Clear", PIC_LOOPCLEAR);
+    
     renderLabel("Sensitivity", PIC_SENSITIVITY);
     //Render a contiguous group of note pre-rendered images
     //(sharps/flats don't exist for now... a problem I will tackle later)
@@ -687,6 +750,11 @@ void WidgetsAssemble()
     //This button cycles through pages of controls
     pagePrevButton = CreateButton(PIC_PAGE1TEXT,0,panelBottom, farLeft,panelTop, Page_prev_set, Page_get,1);
     pageNextButton = CreateButton(PIC_PAGE2TEXT,farRight,panelBottom, 1.0,panelTop, Page_next_set, Page_get,1);
+
+    loopStartButton = CreateButton(PIC_LOOPRECORD, farLeft, panelBottom, 0.28, panelTop, LoopStart_set, LoopStart_get, 1);
+    loopRepeatButton = CreateButton(PIC_LOOPREPEAT, 0.28, panelBottom, 0.48, panelTop, LoopRepeat_set, LoopRepeat_get, 1);
+    loopPlayButton = CreateButton(PIC_LOOPPLAY, 0.48, panelBottom, 0.68, panelTop, LoopPlay_set, LoopPlay_get, 1);
+    loopClearButton = CreateButton(PIC_LOOPCLEAR, 0.68, panelBottom, farRight, panelTop, LoopClear_set, LoopClear_get, 1);
     
     //Page 0
     intonationSlider = CreateSlider(PIC_SCALETEXT,farLeft,panelBottom, 0.5,panelTop, Intonation_set, NULL);

@@ -19,6 +19,7 @@
 #include "FretlessCommon.h"
 #include "Parameters.h"
 
+#define LOOPBUFFERMAX (1024*1024)
 #define ECHOBUFFERMAX (1024*128)
 #define UNISONMAX 3
 #define HARMONICSMAX 32
@@ -77,6 +78,12 @@ struct fingersData {
     struct ramp distRamp;
 };
 
+float loopBufferL[LOOPBUFFERMAX] __attribute__ ((aligned));
+float loopBufferR[LOOPBUFFERMAX] __attribute__ ((aligned));
+int loopIndexStart = 0;
+int loopIndexRepeat = 0;
+int loopRecording = 0;
+int loopPlaying = 0;
 
 float echoBufferL[ECHOBUFFERMAX] __attribute__ ((aligned));
 float echoBufferR[ECHOBUFFERMAX] __attribute__ ((aligned));
@@ -189,6 +196,9 @@ static void initNoise()
         reverbDataL[i] *= noteInSamples*5;
         reverbDataR[i] *= noteInSamples*5;
     }
+    
+    bzero(loopBufferL,sizeof(float)*LOOPBUFFERMAX);
+    bzero(loopBufferR,sizeof(float)*LOOPBUFFERMAX);
     
     bzero(echoBufferL,sizeof(float)*ECHOBUFFERMAX);
     bzero(echoBufferR,sizeof(float)*ECHOBUFFERMAX);
@@ -311,6 +321,8 @@ static inline void renderNoiseToBuffer(long* dataL, long* dataR, unsigned long s
         float totalR=0;
         float feedL = echoBufferL[n];
         float feedR = echoBufferR[n];
+        float lL = loopBufferL[n] * loopPlaying;
+        float lR = loopBufferR[n] * loopPlaying;
         for(int phaseIdx=0; phaseIdx<UNISONMAX; phaseIdx++)
         {
             float raw = allFingers.total[phaseIdx][i];
@@ -348,8 +360,24 @@ static inline void renderNoiseToBuffer(long* dataL, long* dataR, unsigned long s
             echoBufferR[nRX] += vR + channelBleed*vL;
         }
         
-        dataL[i] = scaleFactor * atanf(finalScale * (feedRawL + scaledTotal*noReverbAmount));
-        dataR[i] = scaleFactor * atanf(finalScale * (feedRawR + scaledTotal*noReverbAmount));        
+        float aL = atanf(finalScale * (feedRawL + scaledTotal*noReverbAmount + lL));
+        float aR = atanf(finalScale * (feedRawR + scaledTotal*noReverbAmount + lR));
+        if(loopRecording)
+        {
+            int lN = (allFingers.sampleCount + i - loopIndexStart);
+            if(loopPlaying)
+            {
+                loopBufferL[lN] = (loopBufferL[lN] + aL)/2;            
+                loopBufferR[lN] = (loopBufferR[lN] + aR)/2;                            
+            }
+            else 
+            {
+                loopBufferL[lN] = aL;
+                loopBufferR[lN] = aR;
+            }
+        }
+        dataL[i] = scaleFactor * aL;
+        dataR[i] = scaleFactor * aR;        
     }    
 }
 
@@ -434,6 +462,32 @@ float findFilterLevel(float pitchLocation, float timbre)
     }
     return cutoffScale * pitchFilter;
 }
+
+void loopStart()
+{
+    loopIndexStart = allFingers.sampleCount;
+    loopRecording = 1;
+}
+
+void loopRepeat()
+{
+    loopIndexRepeat = allFingers.sampleCount;
+    loopRecording = 0;
+    loopPlaying = 1;
+}
+
+void loopPlay()
+{
+    loopPlaying = !loopPlaying;
+}
+
+void loopClear()
+{
+    loopIndexRepeat = 0;
+    loopRecording = 0;
+    loopPlaying = 0;
+}
+
 
 void rawEngine(int midiChannel,int doNoteAttack,float pitch,float volVal,int midiExprParm,int midiExpr)
 {    

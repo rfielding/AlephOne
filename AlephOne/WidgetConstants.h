@@ -53,3 +53,8 @@
 #define PIC_NOTE9 41
 #define PIC_NOTE10 42
 #define PIC_NOTE11 43
+
+#define PIC_LOOPRECORD 44
+#define PIC_LOOPPLAY 45
+#define PIC_LOOPREPEAT 46
+#define PIC_LOOPCLEAR 47
