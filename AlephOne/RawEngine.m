@@ -78,16 +78,26 @@ struct fingersData {
     struct ramp distRamp;
 };
 
+// loopIndexBufferAt is the sample corresponding to loopBufferL[0]
+//    [bufferAt] [loopIndexStartLoop] [loopIndexEndLoop] [loopIndexReleaseLoop] [loopIndexBufferOverflowAt]
 float loopBufferL[LOOPBUFFERMAX] __attribute__ ((aligned));
 float loopBufferR[LOOPBUFFERMAX] __attribute__ ((aligned));
-unsigned long loopIndexCountIn = 0;
-unsigned long loopIndexRepeat = 0;
-unsigned long releaseUntil = 0;
-unsigned long loopRecordAt = 0;
 
-//int loopRecording = 0;
-float loopFeeding = 0;
-float loopDying = 0;
+struct {
+    unsigned long idxRequest;
+    unsigned long idxBuffer;
+    unsigned long idxStartLoop;
+    unsigned long idxEndLoop;
+    unsigned long idxRelease;
+    unsigned long idxOverflow;
+    
+    int size;
+    int offset;
+    
+    float feeding;
+    float dying;
+} loop;
+
 
 float echoBufferL[ECHOBUFFERMAX] __attribute__ ((aligned));
 float echoBufferR[ECHOBUFFERMAX] __attribute__ ((aligned));
@@ -109,12 +119,10 @@ float harmonics[EXPR][DIST][HARMONICSMAX];
 
 int reverbDataL[REVERBECHOES] __attribute__ ((aligned)) =
 {
-  //17,73*4+1,339*3+1,230*3+1,1437*3+1,893*8,310*1+1,1569*7+1 
   3,7,13,19,29,37,43,49,53,59
 };
 int reverbDataR[REVERBECHOES] __attribute__ ((aligned)) =
 {
-  //41,97*3+1,1450*2+1,901*4+1,545*4,533*2+1,383*8+1,231*3+1 
   5,11,17,23,31,41,47,51,57,61
 };
 
@@ -186,6 +194,24 @@ static void setupSampleIndexArray()
     }    
 }
 
+void loopClear()
+{
+    loop.idxRequest = 0;
+    loop.idxBuffer = 0;
+    loop.idxStartLoop = 0;
+    loop.idxEndLoop = 0;
+    loop.idxRelease = 0;
+    loop.idxOverflow = 0;
+    
+    loop.size = 0;
+    loop.offset = 0;
+    
+    loop.feeding = 0;
+    loop.dying = 0;
+    bzero(loopBufferL,sizeof(float)*LOOPBUFFERMAX);
+    bzero(loopBufferR,sizeof(float)*LOOPBUFFERMAX);
+}
+
 static void initNoise()
 {
     //Tune to D
@@ -201,8 +227,7 @@ static void initNoise()
         reverbDataR[i] *= noteInSamples*5;
     }
     
-    bzero(loopBufferL,sizeof(float)*LOOPBUFFERMAX);
-    bzero(loopBufferR,sizeof(float)*LOOPBUFFERMAX);
+    loopClear();
     
     bzero(echoBufferL,sizeof(float)*ECHOBUFFERMAX);
     bzero(echoBufferR,sizeof(float)*ECHOBUFFERMAX);
@@ -302,57 +327,111 @@ static inline float compress(float f)
 }
 
 
-/**
- States:
- 
- Cleared
- loopIndexRepeat = loopIndexCountIn = loopRecordAt
- 
- CountIn
- loopIndexRepeat < loopIndexCountIn
- now < loopRecordAt
- 
- Recording
- loopIndexRepeat < loopIndexCountIn
- loopRecordAt <= now
- 
- Looping
- loopRecordAt < loopIndexRepeat
- 
- */
-void loopCountIn()
-{
-    loopIndexCountIn = allFingers.sampleCount;
-    loopRecordAt = allFingers.sampleCount + (loopIndexCountIn - loopIndexRepeat);
-}
 
+
+// loopIndexBufferAt is the sample corresponding to loopBufferL[0]
+//    [requestAt] [bufferAt] [loopIndexStartLoop] [loopIndexEndLoop] [loopIndexReleaseLoop] [loopIndexBufferOverflowAt]
 void loopRepeat()
 {
-    loopDying = 0;
-    loopIndexRepeat = allFingers.sampleCount;
-    releaseUntil = loopIndexRepeat + (loopRecordAt - loopIndexCountIn);
+    if(loop.idxRequest == 0)
+    {
+        loop.idxRequest = allFingers.sampleCount;
+        loop.idxBuffer = 0;
+        loop.idxStartLoop = 0;
+        loop.idxEndLoop = 0;
+        loop.idxRelease = 0;
+        loop.idxOverflow = 0;
+        loop.size = 0;
+        loop.offset = 0;
+        //printf("loop.idxRequest = %lu\n",loop.idxRequest);
+    }
+    else 
+    {
+        if(loop.idxRequest < loop.idxBuffer && allFingers.sampleCount < loop.idxOverflow && loop.idxEndLoop==0)
+        {
+            loop.idxEndLoop = allFingers.sampleCount;
+            loop.size = (loop.idxEndLoop - loop.idxStartLoop);
+            loop.idxRelease = loop.idxEndLoop + loop.size;
+            //We need to write in the tail of the loop
+            for(int i=0; i < loop.offset; i++)
+            {
+                loopBufferL[loop.size - loop.offset + i ] += loopBufferL[i];
+                loopBufferR[loop.size - loop.offset + i ] += loopBufferR[i];
+            }
+            //printf("loop.idxEndLoop = %lu\n",loop.idxEndLoop);
+            //printf("loop.idxRelease = %lu\n",loop.idxRelease);
+            //printf("loop.size = %d\n",loop.size);
+        }
+        else 
+        {
+            //We overflowed, so record nothing
+            loop.idxRequest = 0;
+            loop.idxBuffer = 0;
+            loop.idxStartLoop = 0;
+            loop.idxEndLoop = 0;
+            loop.idxRelease = 0;
+            loop.idxOverflow = 0;   
+            loop.size = 0;
+            loop.offset = 0;
+            //printf("loop reset\n");
+        }
+    }
 }
+
+void loopCountIn()
+{
+    if(0 < loop.idxRequest && loop.idxBuffer==0)
+    {
+        //Recording should start now
+        loop.idxBuffer = allFingers.sampleCount;
+        loop.offset = (loop.idxBuffer - loop.idxRequest);
+        loop.idxStartLoop = loop.idxBuffer + loop.offset;
+        loop.idxEndLoop = 0;
+        loop.idxRelease = 0;
+        loop.idxOverflow = loop.idxBuffer + LOOPBUFFERMAX;
+        loop.size = 0;
+        //printf("loop.idxBuffer = %lu  offset %d\n",loop.idxBuffer,loop.offset);
+        //printf("loop.idxStartLoop = %lu\n",loop.idxStartLoop);
+        //printf("loop.idxOverflow = %lu\n",loop.idxOverflow);
+    }
+    else
+    {
+        loop.idxRequest = 0;
+        loop.idxBuffer = 0;
+        loop.idxStartLoop = 0;
+        loop.idxEndLoop = 0;
+        loop.idxRelease = 0;
+        loop.idxOverflow = 0;   
+        loop.size = 0;
+        loop.offset = 0;
+        //printf("loop reset\n");        
+    }
+}
+
+
 
 void setLoopFeed(float val)
 {
-    loopFeeding = val;
+    loop.feeding = val;
 }
 
 float getLoopFeed()
 {
-    return loopFeeding;
+    return loop.feeding;
 }
 
 void setLoopFade(float val)
 {
-    loopDying = val;
+    loop.dying = val;
 }
 
 float getLoopFade()
 {
-    return loopDying;
+    return loop.dying;
 }
 
+// loopIndexBufferAt is the sample corresponding to loopBufferL[0]
+//    [requestAt] [bufferAt] [loopIndexStartLoop] [loopIndexEndLoop] [loopIndexReleaseLoop] [loopIndexBufferOverflowAt]
 static inline void renderNoiseToBuffer(long* dataL, long* dataR, unsigned long samples)
 {
     float dist = (allFingers.distRamp.value);
@@ -385,25 +464,14 @@ static inline void renderNoiseToBuffer(long* dataL, long* dataR, unsigned long s
         float lR = 0;
         
         //Read from the looper into our audio
-        if(loopRecordAt > 0 && loopIndexCountIn > 0 && loopIndexRepeat > 0)
+        //loopSize is only non-zero when all other values are checked and set correctly
+        if(loop.size > 0)
         {
-            int lN = (now - loopRecordAt);
-            int loopLength = (loopIndexRepeat - loopRecordAt);
-            if(loopRecordAt < loopIndexRepeat && 
-               loopIndexCountIn < loopRecordAt && 
-               loopRecordAt < now && 
-               loopRecordAt < loopIndexRepeat &&
-               0 < loopLength && loopLength < LOOPBUFFERMAX)
-            {
-                int loopIdx = lN % loopLength;
-                if(loopDying)
-                {
-                    loopBufferL[loopIdx] *= (1-loopDying);
-                    loopBufferR[loopIdx] *= (1-loopDying);
-                }
-                lL = loopBufferL[ loopIdx ];
-                lR = loopBufferR[ loopIdx ];
-            }            
+            int loopIdx = loop.offset + (now - loop.idxBuffer - loop.offset)%loop.size;
+            loopBufferL[loopIdx] *= (1-loop.dying);
+            loopBufferR[loopIdx] *= (1-loop.dying);
+            lL = loopBufferL[ loopIdx ];
+            lR = loopBufferR[ loopIdx ];
         }
         
         for(int phaseIdx=0; phaseIdx<UNISONMAX; phaseIdx++)
@@ -448,24 +516,27 @@ static inline void renderNoiseToBuffer(long* dataL, long* dataR, unsigned long s
         float aLRaw = atanf(finalScale * (feedRawL + scaledTotal*noReverbAmount));
         float aRRaw = atanf(finalScale * (feedRawR + scaledTotal*noReverbAmount));
         
-    
-        if(loopRecordAt > 0 || loopIndexCountIn > 0 || loopIndexRepeat > 0)
+        //We are recording
+        if(
+           (loop.size==0 && 0 < loop.idxBuffer && loop.idxBuffer <= now) ||
+           (loop.size>0 && loop.idxEndLoop <= now && now < loop.idxRelease)
+           )
         {
-            int loopIdx = (now - loopRecordAt);
-            
-            if(0 <= loopIdx && loopIdx < LOOPBUFFERMAX && 
-               loopRecordAt <= now && 
-               ((loopIndexRepeat < loopRecordAt) || (now<releaseUntil)))
+            if(now < loop.idxOverflow)
             {
+                int loopIdx = (now - loop.idxBuffer);
                 loopBufferL[loopIdx] = aLRaw;
-                loopBufferR[loopIdx] = aRRaw;                                                             
+                loopBufferR[loopIdx] = aRRaw;                
             }
-            else 
+        }
+        else 
+        {
+            if(0 < loop.size)
             {
-                loopIdx = loopIdx % (loopIndexRepeat - loopRecordAt);
-                loopBufferL[loopIdx] = (1-loopFeeding*0.5)*loopBufferL[loopIdx] + aLRaw*loopFeeding*0.5;
-                loopBufferR[loopIdx] = (1-loopFeeding*0.5)*loopBufferR[loopIdx] + aRRaw*loopFeeding*0.5;                                             
-            }            
+                int loopIdx = loop.offset + (now - loop.idxBuffer - loop.offset)%loop.size;
+                loopBufferL[loopIdx] = (1-loop.feeding*0.5)*loopBufferL[loopIdx] + aLRaw*loop.feeding*0.5;
+                loopBufferR[loopIdx] = (1-loop.feeding*0.5)*loopBufferR[loopIdx] + aRRaw*loop.feeding*0.5;
+            }
         }
         
         dataL[i] = scaleFactor * aL;
