@@ -194,7 +194,7 @@ static void setupSampleIndexArray()
     }    
 }
 
-void loopClear()
+void loopReset()
 {
     loop.idxRequest = 0;
     loop.idxBuffer = 0;
@@ -205,11 +205,15 @@ void loopClear()
     
     loop.size = 0;
     loop.offset = 0;
-    
-    loop.feeding = 0;
-    loop.dying = 0;
     bzero(loopBufferL,sizeof(float)*LOOPBUFFERMAX);
     bzero(loopBufferR,sizeof(float)*LOOPBUFFERMAX);
+}
+
+void loopClear()
+{
+    loopReset();
+    loop.feeding = 0;
+    loop.dying = 0;
 }
 
 static void initNoise()
@@ -328,83 +332,111 @@ static inline float compress(float f)
 
 
 
+int loopRepeatState()
+{
+    if (loop.idxRequest == 0)
+    {
+        return 1;        
+    }
+    
+    if (loop.idxRequest < loop.idxBuffer && 
+        loop.idxBuffer < loop.idxStartLoop &&
+        loop.idxStartLoop < loop.idxOverflow && 
+        0 < loop.offset &&
+        loop.idxEndLoop==0)
+    {
+        return 2;
+    }
+    
+    if(loop.idxStartLoop < loop.idxEndLoop &&
+       loop.idxEndLoop < loop.idxRelease &&
+       0 < loop.size)
+    {
+        return 3;
+    }
+    
+    return 0;
+}
 
+/**
+   Watch out for unsigned arithmetic!  That's why some of these comparisons look redundant.
+   These numbers can, and will wrap around to create garbage indexes if you are not careful.
+ */
 // loopIndexBufferAt is the sample corresponding to loopBufferL[0]
 //    [requestAt] [bufferAt] [loopIndexStartLoop] [loopIndexEndLoop] [loopIndexReleaseLoop] [loopIndexBufferOverflowAt]
 void loopRepeat()
 {
-    if(loop.idxRequest == 0)
+    if(loopRepeatState()==1)
     {
+        loopReset();
         loop.idxRequest = allFingers.sampleCount;
-        loop.idxBuffer = 0;
-        loop.idxStartLoop = 0;
-        loop.idxEndLoop = 0;
-        loop.idxRelease = 0;
-        loop.idxOverflow = 0;
-        loop.size = 0;
-        loop.offset = 0;
-        //printf("loop.idxRequest = %lu\n",loop.idxRequest);
     }
     else 
     {
-        if(loop.idxRequest < loop.idxBuffer && allFingers.sampleCount < loop.idxOverflow && loop.idxEndLoop==0)
+        if(loopRepeatState()==2 && allFingers.sampleCount < loop.idxOverflow)
         {
             loop.idxEndLoop = allFingers.sampleCount;
             loop.size = (loop.idxEndLoop - loop.idxStartLoop);
-            loop.idxRelease = loop.idxEndLoop + loop.size;
-            //We need to write in the tail of the loop
-            for(int i=0; i < loop.offset; i++)
+            if(0 < loop.size &
+               loop.size < LOOPBUFFERMAX && 
+               loop.size+loop.offset < LOOPBUFFERMAX && 
+               loop.offset < LOOPBUFFERMAX && 
+               loop.size+2*loop.offset < LOOPBUFFERMAX)
             {
-                loopBufferL[loop.size - loop.offset + i ] += loopBufferL[i];
-                loopBufferR[loop.size - loop.offset + i ] += loopBufferR[i];
+                loop.idxRelease = loop.idxEndLoop + loop.size;
+                //Wrap the attack and release parts around
+                for(int i=0; i < loop.offset; i++)
+                {
+                    int tailWrite = loop.offset + i;
+                    int tailRead = loop.offset + loop.size + i;
+                    //Wrap releasing tail
+                    loopBufferL[tailWrite] += loopBufferL[tailRead];
+                    loopBufferR[tailWrite] += loopBufferR[tailRead];                    
+                    int attackWrite = loop.size + i;
+                    int attackRead = i;
+                    //Wrap attack
+                    loopBufferL[attackWrite] += loopBufferL[attackRead];
+                    loopBufferR[attackWrite] += loopBufferR[attackRead];                    
+                }                
             }
-            //printf("loop.idxEndLoop = %lu\n",loop.idxEndLoop);
-            //printf("loop.idxRelease = %lu\n",loop.idxRelease);
-            //printf("loop.size = %d\n",loop.size);
+            else 
+            {
+                loopReset();
+            }
         }
         else 
         {
-            //We overflowed, so record nothing
-            loop.idxRequest = 0;
-            loop.idxBuffer = 0;
-            loop.idxStartLoop = 0;
-            loop.idxEndLoop = 0;
-            loop.idxRelease = 0;
-            loop.idxOverflow = 0;   
-            loop.size = 0;
-            loop.offset = 0;
-            //printf("loop reset\n");
+            loopReset();
         }
     }
 }
 
+int loopCountInState()
+{
+    if ( (0 < loop.idxRequest && loop.idxBuffer==0) )
+    {
+        return 1;
+    }
+    return 0;
+}
+
 void loopCountIn()
 {
-    if(0 < loop.idxRequest && loop.idxBuffer==0)
+    int request = loop.idxRequest;
+    if(loopCountInState()==1)
     {
+        loopReset();
+        loop.idxRequest = request;
+        
         //Recording should start now
         loop.idxBuffer = allFingers.sampleCount;
         loop.offset = (loop.idxBuffer - loop.idxRequest);
         loop.idxStartLoop = loop.idxBuffer + loop.offset;
-        loop.idxEndLoop = 0;
-        loop.idxRelease = 0;
         loop.idxOverflow = loop.idxBuffer + LOOPBUFFERMAX;
-        loop.size = 0;
-        //printf("loop.idxBuffer = %lu  offset %d\n",loop.idxBuffer,loop.offset);
-        //printf("loop.idxStartLoop = %lu\n",loop.idxStartLoop);
-        //printf("loop.idxOverflow = %lu\n",loop.idxOverflow);
     }
     else
     {
-        loop.idxRequest = 0;
-        loop.idxBuffer = 0;
-        loop.idxStartLoop = 0;
-        loop.idxEndLoop = 0;
-        loop.idxRelease = 0;
-        loop.idxOverflow = 0;   
-        loop.size = 0;
-        loop.offset = 0;
-        //printf("loop reset\n");        
+        loopReset();
     }
 }
 
@@ -465,7 +497,7 @@ static inline void renderNoiseToBuffer(long* dataL, long* dataR, unsigned long s
         
         //Read from the looper into our audio
         //loopSize is only non-zero when all other values are checked and set correctly
-        if(loop.size > 0)
+        if(0 < loop.size)
         {
             int loopIdx = loop.offset + (now - loop.idxBuffer - loop.offset)%loop.size;
             loopBufferL[loopIdx] *= (1-loop.dying);

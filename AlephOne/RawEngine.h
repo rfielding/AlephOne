@@ -12,7 +12,10 @@ void rawEngine(int midiChannel,int doNoteAttack,float pitch,float volVal,int mid
 void rawEngineStart();
 void rawEngineStop();
 
+int loopCountInState();
 void loopCountIn();
+
+int loopRepeatState();
 void loopRepeat();
 
 float getLoopFade();

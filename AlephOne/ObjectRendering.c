@@ -579,7 +579,7 @@ void LoopCountIn_set(void* ctx,int val)
 
 int LoopCountIn_get(void* ctx)
 {
-    return 0;
+    return loopCountInState();
 }
 
 void LoopRepeat_set(void* ctx,int val)
@@ -589,7 +589,7 @@ void LoopRepeat_set(void* ctx,int val)
 
 int LoopRepeat_get(void* ctx)
 {
-    return 0;
+    return loopRepeatState();
 }
 
 void LoopFeed_set(void* ctx,float val)
@@ -752,8 +752,8 @@ void WidgetsAssemble()
     pagePrevButton = CreateButton(PIC_PAGE1TEXT,0,panelBottom, farLeft,panelTop, Page_prev_set, Page_get,1);
     pageNextButton = CreateButton(PIC_PAGE2TEXT,farRight,panelBottom, 1.0,panelTop, Page_next_set, Page_get,1);
 
-    loopRepeatButton = CreateButton(PIC_LOOPREPEAT, farLeft, panelBottom, 0.28, panelTop, LoopRepeat_set, LoopRepeat_get, 1);
-    loopCountInButton = CreateButton(PIC_LOOPRECORD, 0.28, panelBottom, 0.48, panelTop, LoopCountIn_set, LoopCountIn_get, 1);
+    loopRepeatButton = CreateButton(PIC_LOOPREPEAT, farLeft, panelBottom, 0.28, panelTop, LoopRepeat_set, LoopRepeat_get, 3);
+    loopCountInButton = CreateButton(PIC_LOOPRECORD, 0.28, panelBottom, 0.48, panelTop, LoopCountIn_set, LoopCountIn_get, 2);
     loopFadeSlider = CreateSlider(PIC_LOOPCLEAR, 0.48, panelBottom, 0.68, panelTop, LoopFade_set, LoopFade_get);
     loopFeedSlider = CreateSlider(PIC_LOOPPLAY, 0.68, panelBottom, farRight, panelTop, LoopFeed_set, LoopFeed_get);
     
