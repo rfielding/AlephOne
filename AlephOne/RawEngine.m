@@ -334,109 +334,69 @@ static inline float compress(float f)
 
 int loopRepeatState()
 {
-    if (loop.idxRequest == 0)
-    {
-        return 1;        
-    }
-    
-    if (loop.idxRequest < loop.idxBuffer && 
-        loop.idxBuffer < loop.idxStartLoop &&
-        loop.idxStartLoop < loop.idxOverflow && 
-        0 < loop.offset &&
-        loop.idxEndLoop==0)
-    {
-        return 2;
-    }
-    
-    if(loop.idxStartLoop < loop.idxEndLoop &&
-       loop.idxEndLoop < loop.idxRelease &&
-       0 < loop.size)
-    {
-        return 3;
-    }
-    
     return 0;
 }
 
-/**
-   Watch out for unsigned arithmetic!  That's why some of these comparisons look redundant.
-   These numbers can, and will wrap around to create garbage indexes if you are not careful.
- */
-// loopIndexBufferAt is the sample corresponding to loopBufferL[0]
-//    [requestAt] [bufferAt] [loopIndexStartLoop] [loopIndexEndLoop] [loopIndexReleaseLoop] [loopIndexBufferOverflowAt]
 void loopRepeat()
 {
-    if(loopRepeatState()==1)
+    if(0 < loop.idxRequest && loop.idxRequest < loop.idxBuffer && 
+       loop.idxBuffer < loop.idxStartLoop &&
+       allFingers.sampleCount < loop.idxOverflow)
     {
-        loopReset();
-        loop.idxRequest = allFingers.sampleCount;
-    }
-    else 
-    {
-        if(loopRepeatState()==2 && allFingers.sampleCount < loop.idxOverflow)
+        unsigned long endLoop  = allFingers.sampleCount;
+        int size     = (endLoop - loop.idxStartLoop);
+        int offset   = (loop.idxBuffer - loop.idxRequest);
+        
+        if(0 < size && size + 2*offset < LOOPBUFFERMAX)
         {
-            loop.idxEndLoop = allFingers.sampleCount;
-            loop.size = (loop.idxEndLoop - loop.idxStartLoop);
-            if(0 < loop.size &
-               loop.size < LOOPBUFFERMAX && 
-               loop.size+loop.offset < LOOPBUFFERMAX && 
-               loop.offset < LOOPBUFFERMAX && 
-               loop.size+2*loop.offset < LOOPBUFFERMAX)
+            loop.size = size;
+            loop.offset = offset;
+            loop.idxEndLoop = endLoop;
+            loop.idxRelease = loop.idxEndLoop + loop.size;
+            loop.idxRequest = 0;
+            //Wrap the attack and release parts around
+            for(int i=0; i < loop.offset; i++)
             {
-                loop.idxRelease = loop.idxEndLoop + loop.size;
-                //Wrap the attack and release parts around
-                for(int i=0; i < loop.offset; i++)
-                {
-                    int tailWrite = loop.offset + i;
-                    int tailRead = loop.offset + loop.size + i;
-                    //Wrap releasing tail
-                    loopBufferL[tailWrite] += loopBufferL[tailRead];
-                    loopBufferR[tailWrite] += loopBufferR[tailRead];                    
-                    int attackWrite = loop.size + i;
-                    int attackRead = i;
-                    //Wrap attack
-                    loopBufferL[attackWrite] += loopBufferL[attackRead];
-                    loopBufferR[attackWrite] += loopBufferR[attackRead];                    
-                }                
-            }
-            else 
-            {
-                loopReset();
-            }
+                int tailWrite = loop.offset + i;
+                int tailRead = loop.offset + loop.size + i;
+                //Wrap releasing tail
+                loopBufferL[tailWrite] += loopBufferL[tailRead];
+                loopBufferR[tailWrite] += loopBufferR[tailRead];                    
+                int attackWrite = loop.size + i;
+                int attackRead = i;
+                //Wrap attack
+                loopBufferL[attackWrite] += loopBufferL[attackRead];
+                loopBufferR[attackWrite] += loopBufferR[attackRead];                    
+            }                      
         }
         else 
         {
-            loopReset();
+            loopClear();
         }
+    }
+    else 
+    {
+        loopClear();
+        loop.idxRequest = allFingers.sampleCount;
     }
 }
 
 int loopCountInState()
 {
-    if ( (0 < loop.idxRequest && loop.idxBuffer==0) )
-    {
-        return 1;
-    }
     return 0;
 }
 
 void loopCountIn()
 {
-    int request = loop.idxRequest;
-    if(loopCountInState()==1)
+    if(0 < loop.idxRequest && loop.idxBuffer < loop.idxRequest)
     {
-        loopReset();
-        loop.idxRequest = request;
-        
-        //Recording should start now
         loop.idxBuffer = allFingers.sampleCount;
-        loop.offset = (loop.idxBuffer - loop.idxRequest);
-        loop.idxStartLoop = loop.idxBuffer + loop.offset;
-        loop.idxOverflow = loop.idxBuffer + LOOPBUFFERMAX;
+        loop.idxStartLoop = loop.idxBuffer + (loop.idxBuffer - loop.idxRequest);
+        loop.idxOverflow = loop.idxBuffer + LOOPBUFFERMAX;        
     }
-    else
+    else 
     {
-        loopReset();
+        loopClear();
     }
 }
 
@@ -495,9 +455,26 @@ static inline void renderNoiseToBuffer(long* dataL, long* dataR, unsigned long s
         float lL = 0;
         float lR = 0;
         
+        int isLooping = 
+            (0 < loop.size)
+        ;
+        
+        int isLoopRecording = 
+            (loop.size==0 && 0 < loop.idxBuffer);
+        ;
+        
+        int isRecording = 
+            (isLoopRecording && loop.idxBuffer <= now) ||
+            (isLooping && loop.idxEndLoop <= now && now < loop.idxRelease)
+        ;
+        
+        int isNotOverflowed = 
+            (now < loop.idxOverflow)
+        ;
+        
         //Read from the looper into our audio
         //loopSize is only non-zero when all other values are checked and set correctly
-        if(0 < loop.size)
+        if(isLooping)
         {
             int loopIdx = loop.offset + (now - loop.idxBuffer - loop.offset)%loop.size;
             loopBufferL[loopIdx] *= (1-loop.dying);
@@ -549,12 +526,9 @@ static inline void renderNoiseToBuffer(long* dataL, long* dataR, unsigned long s
         float aRRaw = atanf(finalScale * (feedRawR + scaledTotal*noReverbAmount));
         
         //We are recording
-        if(
-           (loop.size==0 && 0 < loop.idxBuffer && loop.idxBuffer <= now) ||
-           (loop.size>0 && loop.idxEndLoop <= now && now < loop.idxRelease)
-           )
+        if(isRecording)
         {
-            if(now < loop.idxOverflow)
+            if(isNotOverflowed)
             {
                 int loopIdx = (now - loop.idxBuffer);
                 loopBufferL[loopIdx] = aLRaw;
@@ -563,7 +537,7 @@ static inline void renderNoiseToBuffer(long* dataL, long* dataR, unsigned long s
         }
         else 
         {
-            if(0 < loop.size)
+            if(isLooping)
             {
                 int loopIdx = loop.offset + (now - loop.idxBuffer - loop.offset)%loop.size;
                 loopBufferL[loopIdx] = (1-loop.feeding*0.5)*loopBufferL[loopIdx] + aLRaw*loop.feeding*0.5;
