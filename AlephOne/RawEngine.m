@@ -530,7 +530,7 @@ static inline void renderNoiseToBuffer(long* dataL, long* dataR, unsigned long s
         float totalScale = 0.25;
         float feedScale = 0.099;
         float channelBleed = 0.125;
-        float finalScale = 2.1;
+        float finalScale = 1.5;
         float scaledTotal = rawTotal*totalScale;
         float feedRawL = feedL*feedScale*reverbAmount;
         float feedRawR = feedR*feedScale*reverbAmount;
