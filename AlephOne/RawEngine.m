@@ -92,7 +92,8 @@ struct {
     unsigned long idxOverflow;
     
     int size;
-    int offset;
+    int firstOffset;
+    int secondOffset;
     
     float feeding;
     float dying;
@@ -204,7 +205,8 @@ void loopReset()
     loop.idxOverflow = 0;
     
     loop.size = 0;
-    loop.offset = 0;
+    loop.firstOffset = 0;
+    loop.secondOffset = 0;
     bzero(loopBufferL,sizeof(float)*LOOPBUFFERMAX);
     bzero(loopBufferR,sizeof(float)*LOOPBUFFERMAX);
 }
@@ -380,26 +382,41 @@ void loopRepeat()
        allFingers.sampleCount < loop.idxOverflow)
     {
         unsigned long endLoop  = allFingers.sampleCount;
+        //If size comes out wrong, update our start prediction and then update size
         int size     = (endLoop - loop.idxStartLoop);
-        int offset   = (loop.idxBuffer - loop.idxRequest);
-        
-        if(0 < size && size + 2*offset < LOOPBUFFERMAX)
+        if(size < 0)
+        {
+            loop.idxStartLoop = loop.idxBuffer;
+            size = endLoop - loop.idxStartLoop;
+        }
+        int totalOffset   = (loop.idxBuffer - loop.idxRequest);
+        if(0 < size && size + 2*totalOffset < LOOPBUFFERMAX)
         {
             loop.size = size;
-            loop.offset = offset;
+            if(totalOffset > size)
+            {
+                loop.secondOffset = loop.size;
+                loop.firstOffset = totalOffset - loop.size;
+            }
+            else 
+            {
+                loop.secondOffset = totalOffset;
+                loop.firstOffset = 0;
+            }
             loop.idxEndLoop = endLoop;
             loop.idxRelease = loop.idxEndLoop + loop.size;
             loop.idxRequest = 0;
             //Wrap the attack and release parts around
-            for(int i=0; i < loop.offset; i++)
+            for(int i=0; i < loop.secondOffset; i++)
             {
-                int tailWrite = loop.offset + i;
-                int tailRead = loop.offset + loop.size + i;
+                int tailRead = loop.firstOffset + loop.secondOffset + loop.size + i;
+                int tailWrite = loop.firstOffset + loop.secondOffset + i;
                 //Wrap releasing tail
                 loopBufferL[tailWrite] += loopBufferL[tailRead];
                 loopBufferR[tailWrite] += loopBufferR[tailRead];                    
-                int attackWrite = loop.size + i;
-                int attackRead = i;
+                
+                int attackRead = i + loop.firstOffset;
+                int attackWrite = i + loop.firstOffset + loop.firstOffset + loop.secondOffset;
                 //Wrap attack
                 loopBufferL[attackWrite] += loopBufferL[attackRead];
                 loopBufferR[attackWrite] += loopBufferR[attackRead];                    
@@ -407,12 +424,11 @@ void loopRepeat()
         }
         else 
         {
-            loopClear();
+            loopReset();
         }
     }
     else 
     {
-        loopClear();
         loop.idxRequest = allFingers.sampleCount;
     }
 }
@@ -426,13 +442,17 @@ void loopCountIn()
 {
     if(0 < loop.idxRequest && loop.idxBuffer < loop.idxRequest)
     {
+        unsigned long request = loop.idxRequest;
+        loopReset();
+        loop.idxRequest = request;
         loop.idxBuffer = allFingers.sampleCount;
+        //Start is just a prediction that may get updated to be at the buffer point
         loop.idxStartLoop = loop.idxBuffer + (loop.idxBuffer - loop.idxRequest);
         loop.idxOverflow = loop.idxBuffer + LOOPBUFFERMAX;        
     }
     else 
     {
-        loopClear();
+        loopReset();
     }
 }
 
@@ -512,7 +532,8 @@ static inline void renderNoiseToBuffer(long* dataL, long* dataR, unsigned long s
         //loopSize is only non-zero when all other values are checked and set correctly
         if(isLooping)
         {
-            int loopIdx = loop.offset + (now - loop.idxBuffer - loop.offset)%loop.size;
+            int offset = loop.firstOffset + loop.secondOffset;
+            int loopIdx = offset + (now - loop.idxBuffer - offset)%loop.size;
             loopBufferL[loopIdx] *= (1-loop.dying);
             loopBufferR[loopIdx] *= (1-loop.dying);
             lL = loopBufferL[ loopIdx ];
@@ -575,7 +596,8 @@ static inline void renderNoiseToBuffer(long* dataL, long* dataR, unsigned long s
         {
             if(isLooping)
             {
-                int loopIdx = loop.offset + (now - loop.idxBuffer - loop.offset)%loop.size;
+                int offset = loop.firstOffset + loop.secondOffset;
+                int loopIdx = offset + (now - loop.idxBuffer - offset)%loop.size;
                 loopBufferL[loopIdx] = (1-loop.feeding*0.5)*loopBufferL[loopIdx] + aLRaw*loop.feeding*0.5;
                 loopBufferR[loopIdx] = (1-loop.feeding*0.5)*loopBufferR[loopIdx] + aRRaw*loop.feeding*0.5;
             }
