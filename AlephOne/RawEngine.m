@@ -216,6 +216,30 @@ void loopClear()
     loop.dying = 0;
 }
 
+void reNormalizeToMax(float* buffer)
+{
+    //Pass through wave and make max value 1.0
+    float maxValue = 0.0;
+    
+    //Find max value
+    for(int i=0; i<WAVEMAX; i++)
+    {
+        float val = buffer[i];
+        if(fabs(val) > maxValue)
+        {
+            maxValue = fabs(val);
+        }
+    }
+    //Divide everything by max value
+    if(maxValue > 0)
+    {
+        for(int i=0; i<WAVEMAX; i++)
+        {
+            buffer[i] = buffer[i]/maxValue;
+        }        
+    }
+}
+
 static void initNoise()
 {
     //Tune to D
@@ -292,6 +316,18 @@ static void initNoise()
                 }
             }
         }        
+    }
+    
+    //Make no sample exceed 1.0
+    for(int oct=0; oct<OCTAVES; oct++)
+    {
+        for(int dist=0; dist<DIST; dist++)
+        {
+            for(int expr=0; expr<EXPR; expr++)
+            {
+                reNormalizeToMax(waveMix[oct][expr][dist]);
+            }
+        }
     }
 }
 
@@ -487,14 +523,14 @@ static inline void renderNoiseToBuffer(long* dataL, long* dataR, unsigned long s
         {
             float raw = allFingers.total[phaseIdx][i];
             //Is the atanf bad?
-            float val = dist*compress(raw * innerScale) + 3*noDist*raw;
+            float val = dist*compress(raw * innerScale) + 2*noDist*raw;
             rawTotal += val;
         }        
         //These variables determine whether we get feedback, or creeping silence.
-        float totalScale = 0.3;
+        float totalScale = 0.25;
         float feedScale = 0.099;
         float channelBleed = 0.125;
-        float finalScale = 2;
+        float finalScale = 2.1;
         float scaledTotal = rawTotal*totalScale;
         float feedRawL = feedL*feedScale*reverbAmount;
         float feedRawR = feedR*feedScale*reverbAmount;
