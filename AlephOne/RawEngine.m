@@ -614,8 +614,8 @@ static inline void renderNoiseToBuffer(long* dataL, long* dataR, unsigned long s
             {
                 int offset = loop.firstOffset + loop.secondOffset;
                 int loopIdx = offset + (now - loop.idxBuffer - offset)%loop.size;
-                loopBufferL[loopIdx] = (1-loop.feeding*0.5)*loopBufferL[loopIdx] + aLRaw*loop.feeding*0.5;
-                loopBufferR[loopIdx] = (1-loop.feeding*0.5)*loopBufferR[loopIdx] + aRRaw*loop.feeding*0.5;
+                loopBufferL[loopIdx] = loopBufferL[loopIdx] + aLRaw*loop.feeding;
+                loopBufferR[loopIdx] = loopBufferR[loopIdx] + aRRaw*loop.feeding;
             }
         }
         
