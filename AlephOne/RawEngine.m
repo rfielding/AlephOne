@@ -96,7 +96,7 @@ struct {
     int secondOffset;
     
     float feeding;
-    float dying;
+    float level;
 } loop;
 
 
@@ -215,7 +215,7 @@ void loopClear()
 {
     loopReset();
     loop.feeding = 0;
-    loop.dying = 0;
+    loop.level = 0;
 }
 
 void reNormalizeToMax(float* buffer)
@@ -484,12 +484,12 @@ float getLoopFeed()
 
 void setLoopFade(float val)
 {
-    loop.dying = val;
+    loop.level = val;
 }
 
 float getLoopFade()
 {
-    return loop.dying;
+    return loop.level;
 }
 
 // loopIndexBufferAt is the sample corresponding to loopBufferL[0]
@@ -509,6 +509,8 @@ static inline void renderNoiseToBuffer(long* dataL, long* dataR, unsigned long s
     float noReverbAmount = (1 - reverbAmount);
     reverbAmount = reverbAmount*0.9;
     
+    float dying = (1-loop.feeding)*loop.level;
+    float feeding = loop.feeding*loop.level;
     //Add pre-chorus sound together compressed
     for(int i=0; i<samples; i++)
     {
@@ -535,8 +537,8 @@ static inline void renderNoiseToBuffer(long* dataL, long* dataR, unsigned long s
         {
             int offset = loop.firstOffset + loop.secondOffset;
             int loopIdx = offset + (now - loop.idxBuffer - offset)%loop.size;
-            loopBufferL[loopIdx] *= (1-loop.dying);
-            loopBufferR[loopIdx] *= (1-loop.dying);
+            loopBufferL[loopIdx] *= (1-dying);
+            loopBufferR[loopIdx] *= (1-dying);
             lL = loopBufferL[ loopIdx ];
             lR = loopBufferR[ loopIdx ];
         }
@@ -614,8 +616,8 @@ static inline void renderNoiseToBuffer(long* dataL, long* dataR, unsigned long s
             {
                 int offset = loop.firstOffset + loop.secondOffset;
                 int loopIdx = offset + (now - loop.idxBuffer - offset)%loop.size;
-                loopBufferL[loopIdx] = loopBufferL[loopIdx] + aLRaw*loop.feeding;
-                loopBufferR[loopIdx] = loopBufferR[loopIdx] + aRRaw*loop.feeding;
+                loopBufferL[loopIdx] = (1-dying)*(loopBufferL[loopIdx] + aLRaw*feeding);
+                loopBufferR[loopIdx] = (1-dying)*(loopBufferR[loopIdx] + aRRaw*feeding);
             }
         }
         

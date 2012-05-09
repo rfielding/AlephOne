@@ -715,7 +715,7 @@ void ObjectRendering_loadImages()
     
     renderLabel("On 4", PIC_LOOPRECORD);
     renderLabel("On 3,1", PIC_LOOPREPEAT);
-    renderLabel("Fade", PIC_LOOPCLEAR);
+    renderLabel("Mix", PIC_LOOPCLEAR);
     renderLabel("Feed", PIC_LOOPPLAY);
     
     renderLabel("Sensitivity", PIC_SENSITIVITY);
