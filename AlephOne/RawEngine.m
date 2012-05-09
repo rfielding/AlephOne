@@ -378,49 +378,63 @@ int loopRepeatState()
 void loopRepeat()
 {
     if(0 < loop.idxRequest && loop.idxRequest < loop.idxBuffer && 
-       loop.idxBuffer < loop.idxStartLoop &&
+       loop.idxBuffer < loop.idxOverflow &&
        allFingers.sampleCount < loop.idxOverflow)
     {
+        //Don't change anything unless we are safe
         unsigned long endLoop  = allFingers.sampleCount;
-        //If size comes out wrong, update our start prediction and then update size
-        int size     = (endLoop - loop.idxStartLoop);
-        if(size < 0)
-        {
-            loop.idxStartLoop = loop.idxBuffer;
-            size = endLoop - loop.idxStartLoop;
-        }
         int totalOffset   = (loop.idxBuffer - loop.idxRequest);
+        
+        //Start and size need initial guesses
+        unsigned long startLoop = loop.idxBuffer + totalOffset;
+        int size     = (endLoop - startLoop);
+        
+        //If our guess makes size negative, then just pick the lowest value for startLoop
+        if(size < 1.5*totalOffset)
+        {
+            startLoop = (loop.idxRequest + endLoop)/2;
+            size = endLoop - startLoop;
+        }
+        
+        //We are safe
         if(0 < size && size + 2*totalOffset < LOOPBUFFERMAX)
         {
-            loop.size = size;
-            if(totalOffset > size)
+            //Figure out the offset parts
+            if(size < totalOffset)
             {
-                loop.secondOffset = loop.size;
-                loop.firstOffset = totalOffset - loop.size;
+                loop.secondOffset = size;
+                loop.firstOffset = totalOffset - loop.secondOffset;
             }
             else 
             {
                 loop.secondOffset = totalOffset;
                 loop.firstOffset = 0;
             }
+            loop.size = size;
+            
+            loop.idxStartLoop = startLoop;
+            //Set the actual loop end and release
             loop.idxEndLoop = endLoop;
-            loop.idxRelease = loop.idxEndLoop + loop.size;
+            //Release lets us continue to write out data to prevent impulsing
+            loop.idxRelease = loop.idxEndLoop + totalOffset;
+            //Prevent us from coming back in with requests until we get another
             loop.idxRequest = 0;
+            
             //Wrap the attack and release parts around
             for(int i=0; i < loop.secondOffset; i++)
             {
-                int tailRead = loop.firstOffset + loop.secondOffset + loop.size + i;
-                int tailWrite = loop.firstOffset + loop.secondOffset + i;
+                int tailWrite = totalOffset + i;
+                int tailRead =  tailWrite + loop.size;
                 //Wrap releasing tail
                 loopBufferL[tailWrite] += loopBufferL[tailRead];
                 loopBufferR[tailWrite] += loopBufferR[tailRead];                    
                 
-                int attackRead = i + loop.firstOffset;
-                int attackWrite = i + loop.firstOffset + loop.firstOffset + loop.secondOffset;
+                int attackRead  = i + loop.firstOffset;
+                int attackWrite = attackRead + size;
                 //Wrap attack
                 loopBufferL[attackWrite] += loopBufferL[attackRead];
                 loopBufferR[attackWrite] += loopBufferR[attackRead];                    
-            }                      
+            }
         }
         else 
         {
@@ -442,13 +456,13 @@ void loopCountIn()
 {
     if(0 < loop.idxRequest && loop.idxBuffer < loop.idxRequest)
     {
+        //Clear everything but where we requested from
         unsigned long request = loop.idxRequest;
         loopReset();
+        
         loop.idxRequest = request;
         loop.idxBuffer = allFingers.sampleCount;
-        //Start is just a prediction that may get updated to be at the buffer point
-        loop.idxStartLoop = loop.idxBuffer + (loop.idxBuffer - loop.idxRequest);
-        loop.idxOverflow = loop.idxBuffer + LOOPBUFFERMAX;        
+        loop.idxOverflow = loop.idxBuffer + LOOPBUFFERMAX;   
     }
     else 
     {
@@ -514,20 +528,7 @@ static inline void renderNoiseToBuffer(long* dataL, long* dataR, unsigned long s
         int isLooping = 
             (0 < loop.size)
         ;
-        
-        int isLoopRecording = 
-            (loop.size==0 && 0 < loop.idxBuffer);
-        ;
-        
-        int isRecording = 
-            (isLoopRecording && loop.idxBuffer <= now) ||
-            (isLooping && loop.idxEndLoop <= now && now < loop.idxRelease)
-        ;
-        
-        int isNotOverflowed = 
-            (now < loop.idxOverflow)
-        ;
-        
+                
         //Read from the looper into our audio
         //loopSize is only non-zero when all other values are checked and set correctly
         if(isLooping)
@@ -540,6 +541,7 @@ static inline void renderNoiseToBuffer(long* dataL, long* dataR, unsigned long s
             lR = loopBufferR[ loopIdx ];
         }
         
+        //Sum up all fingers per chorus voice
         for(int phaseIdx=0; phaseIdx<UNISONMAX; phaseIdx++)
         {
             float raw = allFingers.total[phaseIdx][i];
@@ -547,6 +549,7 @@ static inline void renderNoiseToBuffer(long* dataL, long* dataR, unsigned long s
             float val = dist*compress(raw * innerScale) + 2*noDist*raw;
             rawTotal += val;
         }        
+        
         //These variables determine whether we get feedback, or creeping silence.
         float totalScale = 0.25;
         float feedScale = 0.099;
@@ -581,6 +584,19 @@ static inline void renderNoiseToBuffer(long* dataL, long* dataR, unsigned long s
         float aR = atanf(finalScale * (feedRawR + scaledTotal*noReverbAmount + lR));
         float aLRaw = atanf(finalScale * (feedRawL + scaledTotal*noReverbAmount));
         float aRRaw = atanf(finalScale * (feedRawR + scaledTotal*noReverbAmount));
+
+        int isLoopRecording = 
+            (loop.size==0 && 0 < loop.idxBuffer);
+        ;
+        
+        int isRecording = 
+            (isLoopRecording && loop.idxBuffer <= now) ||
+            (isLooping && loop.idxEndLoop <= now && now < loop.idxRelease)
+        ;
+        
+        int isNotOverflowed = 
+            (now < loop.idxOverflow)
+        ;
         
         //We are recording
         if(isRecording)
