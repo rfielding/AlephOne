@@ -57,7 +57,7 @@ struct fingerData {
     struct ramp pitchRamp;
     struct ramp volRamp;
     struct ramp exprRamp;
-    struct ramp pitchLocation;
+    //struct ramp pitchLocation;
     float phases[UNISONMAX];
 };
 
@@ -305,7 +305,7 @@ static void initNoise()
                 for(int sample=0; sample<WAVEMAX; sample++)
                 {
                     waveMix[oct][expr][dist][sample] = 0;                
-                    _waveFundamental[sample] = sinf( 1 * sample * 2.0 * M_PI / WAVEMAX );
+                    _waveFundamental[sample] = sinf( 1 * sample * 2.0 * M_PI / WAVEMAX ) * 0.5;
                 }
                 for(int harmonic=0; harmonic<HARMONICSMAX && harmonic<octaveHarmonicLimit[oct]; harmonic++)
                 {
@@ -344,7 +344,7 @@ static inline void renderNoisePrepare(int f)
         }
         
         allFingers.finger[f].pitchRamp.value = allFingers.finger[f].pitchRamp.finalValue;
-        allFingers.finger[f].pitchLocation.value = allFingers.finger[f].pitchLocation.finalValue;
+        //allFingers.finger[f].pitchLocation.value = allFingers.finger[f].pitchLocation.finalValue;
         allFingers.finger[f].exprRamp.value = allFingers.finger[f].exprRamp.finalValue;
     }
 }
@@ -499,7 +499,7 @@ static inline void renderNoiseToBuffer(long* dataL, long* dataR, unsigned long s
     float dist = (allFingers.distRamp.value);
     float noDist = 1 - dist;
     dist=dist*dist;
-    float innerScale = (0.5+10.5*dist)*0.5;
+    float innerScale = (0.5+10.5*dist);
     
     //Scale to fit range when converting to integer
     float scaleFactor = 0x800000 * 2.0/M_PI;
@@ -628,9 +628,12 @@ static inline void renderNoiseToBuffer(long* dataL, long* dataR, unsigned long s
 
 
 static void renderNoiseInnerLoop(int f,unsigned long samples,float invSamples,
-                                        float currentVolume,float diffVolume, float currentExpr, float diffExpr,float currentPitchLocation, float deltaPitchLocation)
+                                        float currentVolume,float diffVolume, float currentExpr, float diffExpr)
 {
     float notep = allFingers.finger[f].pitchRamp.value;
+    float currentTimbre = allFingers.timbreRamp.value;
+    float targetTimbre = allFingers.timbreRamp.stopValue;
+    float deltaTimbre = (targetTimbre - currentTimbre)/samples;
     //note 33 is our center pitch, and it's 440hz
     //powf exits out of here, but it's not per sample... 
     for(int u=0; u<UNISONMAX; u++)
@@ -644,10 +647,10 @@ static void renderNoiseInnerLoop(int f,unsigned long samples,float invSamples,
         allFingers.finger[f].phases[u] = 
         renderNoiseInnerLoopInParallel(
                                            allFingers.total[u],notep,unisonDetune[u]*allFingers.detuneRamp.value,
-                                           currentPitchLocation,deltaPitchLocation,phase,
+                                           currentTimbre,deltaTimbre,phase,
                                            samples,invSamples,
                                            currentVolume*uVol,diffVolume*invSamples*uVol,
-                                           currentExpr,diffExpr*invSamples, allFingers.timbreRamp.value);
+                                           currentExpr,diffExpr*invSamples);
     }
 }
 
@@ -676,15 +679,11 @@ static void renderNoise(long* dataL, long* dataR, unsigned long samples)
             float currentExpr   = allFingers.finger[f].exprRamp.value;
             float targetExpr    = allFingers.finger[f].exprRamp.stopValue;
             float diffExpr      = (targetExpr - currentExpr);
-            float currentPitchLocation = allFingers.finger[f].pitchLocation.value;
-            float targetPitchLocation = allFingers.finger[f].pitchLocation.stopValue;
-            float deltaPitchLocation = (targetPitchLocation - currentPitchLocation);
             
             activeFingers++;
             renderNoisePrepare(f);
-            renderNoiseInnerLoop(f,samples, invSamples, currentVolume,diffVolume,currentExpr,diffExpr,currentPitchLocation,deltaPitchLocation);                
-            doRamp(&allFingers.finger[f].pitchRamp);    
-            doRamp(&allFingers.finger[f].pitchLocation);    
+            renderNoiseInnerLoop(f,samples, invSamples, currentVolume,diffVolume,currentExpr,diffExpr);                
+            doRamp(&allFingers.finger[f].pitchRamp);        
             doRamp(&allFingers.finger[f].exprRamp);                
             doRamp(&allFingers.finger[f].volRamp);    
         }
@@ -755,7 +754,6 @@ void rawEngine(int midiChannel,int doNoteAttack,float pitch,float volVal,int mid
         if(volVal!=0) //Don't bother with ramping these on release
         {
             setRamp(&allFingers.finger[channel].pitchRamp, 1, pitch);
-            setRamp(&allFingers.finger[channel].pitchLocation, 1, findFilterLevel(pitch/127.0,getTimbre()));
             setRamp(&allFingers.finger[channel].exprRamp, 4, midiExpr/127.0);                                            
         }
     }

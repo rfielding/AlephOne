@@ -28,7 +28,7 @@ float waveMixArray[SAMPLESMAX] __attribute__ ((aligned));
 float waveOct[SAMPLESMAX] __attribute__ ((aligned));
 float waveOct2[SAMPLESMAX] __attribute__ ((aligned));
 
-float pitchLocationArray[SAMPLESMAX] __attribute__((aligned));
+float timbreArray[SAMPLESMAX] __attribute__((aligned));
 
 float wavemax=WAVEMAX;
 
@@ -130,10 +130,10 @@ static inline void renderNoiseSampleMixInternal(float notep,int eL,int dL,int eH
     vDSP_vmul(eScaleArray,1, registerLeft,1, eScaleArray,1, samples);    
 }
 
-static inline void renderNoiseSampleMix(float* output,float notep,float pitchLocation,float pitchLocationDelta,unsigned long samples)
+static inline void renderNoiseSampleMix(float* output,float notep,float currentTimbre,float deltaTimbre,unsigned long samples)
 {
-    float pitchLocationNot=(1-pitchLocation);
-    float pitchLocationNotDelta=-pitchLocationDelta;
+    float currentTimbreNot=(1-currentTimbre);
+    float deltaTimbreNot=-deltaTimbre;
     
     // unSquishedTotal[i] = 
     //  (d[i] * waveMix[0][1][j[i]] + dNot[i] * waveMix[0][0][j[i]]) * eNot[i]  +
@@ -149,36 +149,34 @@ static inline void renderNoiseSampleMix(float* output,float notep,float pitchLoc
     
     // registerLeft = registerLeft * unSquishedTotal
     
-    vDSP_vramp(&pitchLocationNot,&pitchLocationNotDelta,pitchLocationArray,1,samples);
-    vDSP_vmul(registerLeft,1,pitchLocationArray,1,registerLeft,1,samples); 
+    vDSP_vramp(&currentTimbre,&deltaTimbre,timbreArray,1,samples);
+    vDSP_vmul(registerLeft,1,timbreArray,1,registerLeft,1,samples); 
     
-    vDSP_vramp(&pitchLocation,&pitchLocationDelta,pitchLocationArray,1,samples);
+    vDSP_vramp(&currentTimbreNot,&deltaTimbreNot,timbreArray,1,samples);
     vDSP_vindex(_waveFundamental,waveIndexArray,1,waveMixArray,1,samples);
-    vDSP_vmul(waveMixArray,1,pitchLocationArray,1,registerRight,1,samples);  
+    vDSP_vmul(waveMixArray,1,timbreArray,1,registerRight,1,samples);  
     
     // output = v * (registerLeft + registerRight)
-    vDSP_vadd(registerLeft,1, registerRight,1, registerLeft,1, samples);    
-    vDSP_vmul(registerLeft,1, vArray,1, registerLeft,1, samples);    
-    vDSP_vadd(output,1, registerLeft,1, output,1, samples);
+    vDSP_vadd(registerLeft,1, registerRight,1, registerRight,1, samples);    
+    vDSP_vmul(registerRight,1, vArray,1, registerRight,1, samples);    
+    vDSP_vadd(output,1, registerRight,1, output,1, samples);
     
 }
 
 float renderNoiseInnerLoopInParallel(
                                      float* output,
                                      float notep,float detune,
-                                     float pitchLocation,float pitchLocationDelta,float phase,
+                                     float currentTimbre,float deltaTimbre,float phase,
                                      unsigned long samples,float invSamples,
                                      float currentVolume,float deltaVolume,
-                                     float currentExpr,float deltaExpr, float timbreVal)
+                                     float currentExpr,float deltaExpr)
 {
-    float cyclesPerSample = powf(2,(notep-33+(1-currentExpr)*detune*(1-pitchLocation))/12) * (440/(44100.0 * 32));
-    //Scale this value per sample
-    pitchLocationDelta = pitchLocationDelta/samples;
+    float cyclesPerSample = powf(2,(notep-33+(1-currentExpr)*detune*(1-notep/127))/12) * (440/(44100.0 * 32));
     
     renderNoiseComputeWaveIndexJ(phase,cyclesPerSample, samples);
     renderNoiseComputeV(currentVolume, deltaVolume, samples);    
     renderNoiseComputeE(currentExpr, deltaExpr, samples);    
-    renderNoiseSampleMix(output,notep,pitchLocation,pitchLocationDelta,samples);
+    renderNoiseSampleMix(output,notep,currentTimbre,deltaTimbre,samples);
     return (cyclesPerSample*samples) + phase;
 }
 

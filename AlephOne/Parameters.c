@@ -6,10 +6,10 @@
 //  Copyright (c) 2012 Check Point Software. All rights reserved.
 //
 
-static float distortion = 0.9;
+static float distortion = 0.25;
 static float reverb = 0.9;
-static float timbre = 0.9;
-static float detune = 0.75;
+static float timbre = 1;
+static float detune = 1;
 static float sensitivity = 1;
 
 float getDistortion()
