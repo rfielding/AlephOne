@@ -140,7 +140,7 @@ static struct Fret_context* frctx;
     CGContextClearRect(context, CGRectMake(0, 0, width, height));
     
     // Get the font.
-    UIFont *font = [UIFont fontWithName:@"Helvetica" size:24];
+    UIFont *font = [UIFont fontWithName:@"Helvetica" size:20];
     
     /*
     CGContextSaveGState(context);

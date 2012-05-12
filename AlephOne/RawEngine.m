@@ -106,7 +106,7 @@ float echoBufferR[ECHOBUFFERMAX] __attribute__ ((aligned));
 //float convBufferR[ECHOBUFFERMAX] __attribute__ ((aligned));
 
 float octaveHarmonicLimit[OCTAVES] = {
-  32,32,32,32,32,24,16,8,4,2,2,1    
+  32,32,32,32,32,24,16,8,4,2,1,1    
 };
 
 float unisonDetune[UNISONMAX] = {
@@ -505,7 +505,7 @@ static inline void renderNoiseToBuffer(long* dataL, long* dataR, unsigned long s
     float innerScale = (0.5+10.5*dist) * 0.5;
     
     //Scale to fit range when converting to integer
-    float scaleFactor = 0x800000 * 2.0/M_PI;
+    float scaleFactor = 0x800000 * 2.0/M_PI * 2;
     
     long sc = allFingers.sampleCount;
     float reverbAmount = (allFingers.reverbRamp.value * allFingers.reverbRamp.value);
@@ -556,11 +556,11 @@ static inline void renderNoiseToBuffer(long* dataL, long* dataR, unsigned long s
         }        
         
         //These variables determine whether we get feedback, or creeping silence.
-        float reverbBoost = 1.75;
+        float reverbBoost = 2.1;
         float totalScale = 0.25;
         float feedScale = 0.1;
         float channelBleed = 0.125;
-        float finalScale = 1.2;
+        float finalScale = 0.75;
         float scaledTotal = rawTotal*totalScale;
         float feedRawL = feedL*feedScale*reverbAmount;
         float feedRawR = feedR*feedScale*reverbAmount;

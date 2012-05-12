@@ -160,7 +160,7 @@ float renderNoiseInnerLoopInParallel(
                                      float currentVolume,float deltaVolume,
                                      float currentExpr,float deltaExpr)
 {
-    float cyclesPerSample = powf(2,(notep-33+(1-currentExpr)*detune*(1-notep/127))/12) * (440/(44100.0 * 32));
+    float cyclesPerSample = powf(2,(notep-33+(1-currentExpr/2)*detune*(1-notep/127))/12) * (440/(44100.0 * 32));
     renderNoiseComputeWaveIndexJ(phase,cyclesPerSample, samples);
     renderNoiseComputeV(currentVolume, deltaVolume, samples);    
     renderNoiseComputeE(currentExpr, deltaExpr, samples);    

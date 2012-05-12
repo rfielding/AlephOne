@@ -36,8 +36,8 @@
 
 #define PAGEMAX 9
 
-#define PAGE_LOOP 0
-#define PAGE_SCALE 1
+#define PAGE_LOOP 1
+#define PAGE_SCALE 0
 #define PAGE_REVERB 2
 #define PAGE_POLY 3
 #define PAGE_ROUND 4
@@ -121,10 +121,20 @@ struct Button_data* loopRepeatButton;
 struct Slider_data* loopFeedSlider;
 struct Slider_data* loopFadeSlider;
 
+struct WidgetTree_rect* helpOverlay;
+
 static char stringRenderBuffer[1024];
+
+float farLeft = 0.07;
+float farRight = 0.94;
+float panelBottom = 0.9275;
+float panelTop = 1.0;
 
 static float baseNote = 2.0;
 static int currentPage = 0;
+
+static int loopState = 0;
+
 
 void WidgetsAssemble();
 
@@ -225,6 +235,12 @@ void GenericRendering_draw()
         }
     }
     ObjectRendering_drawVO(voCtxDynamic);    
+}
+
+void SetHelp(const char* helpStr)
+{
+    sprintf(stringRenderBuffer,helpStr);
+    reRenderString(stringRenderBuffer, PIC_HELPME);
 }
 
 //Control paging is simply hiding and showing controls
@@ -334,6 +350,7 @@ int Page_get(void* ctx)
 
 void NoteDiff_set(void* ctx, float val)
 {
+    SetHelp("Set Root Note");
     //PitchHandler_setNoteDiff(phctx, 24-1+24*val);
     PitchHandler_setNoteDiff(phctx, val*126);
     SurfaceDraw_drawBackground();
@@ -347,6 +364,7 @@ float NoteDiff_get(void* ctx)
 
 void Cols_set(void* ctx, float val)
 {
+    SetHelp("Frets Per String");
     PitchHandler_setColCount(phctx, 5 + val*7);
     SurfaceDraw_drawBackground();
 }
@@ -358,6 +376,7 @@ float Cols_get(void* ctx)
 
 void Rows_set(void* ctx, float val)
 {
+    SetHelp("Strings Available");
     PitchHandler_setRowCount(phctx, 1 + val*6);
     SurfaceDraw_drawBackground();
 }
@@ -369,6 +388,7 @@ float Rows_get(void* ctx)
 
 void SnapSpeed_set(void* ctx, float val)
 {
+    SetHelp("Pitch Snap Speed");
     PitchHandler_setTuneSpeed(phctx,val);
 }
 
@@ -379,6 +399,7 @@ float SnapSpeed_get(void* ctx)
 
 void Snap_set(void* ctx, int val)
 {
+    SetHelp("Pitch Snap Attack");
     PitchHandler_setSnap(phctx, val);
 }
 
@@ -389,6 +410,7 @@ int Snap_get(void* ctx)
 
 void Distortion_set(void* ctx, float val)
 {
+    SetHelp("Compression");
     setDistortion(val);
 }
 
@@ -399,6 +421,7 @@ float Distortion_get(void* ctx)
 
 void Timbre_set(void* ctx, float val)
 {
+    SetHelp("Harmonic Richness");
     setTimbre(val);
 }
 
@@ -409,6 +432,7 @@ float Timbre_get(void* ctx)
 
 void Reverb_set(void* ctx, float val)
 {
+    SetHelp("Reverb Level");
     setReverb(val);
 }
 
@@ -419,6 +443,7 @@ float Reverb_get(void* ctx)
 
 void Detune_set(void* ctx, float val)
 {
+    SetHelp("Unison Level");
     setDetune(val);
 }
 
@@ -429,6 +454,7 @@ float Detune_get(void* ctx)
 
 void Sensitivity_set(void* ctx, float val)
 {
+    SetHelp("Finger-Area Sense");
     setSensitivity(val);
 }
 
@@ -439,6 +465,7 @@ float Sensitivity_get()
 
 void MidiBase_set(void* ctx, float val)
 {
+    SetHelp("Low MIDI Channel");
     int ival = (int)(val*15.99);
     sprintf(stringRenderBuffer,"Channel: %d",ival+1);
     reRenderString(stringRenderBuffer, PIC_MIDIBASETEXT);
@@ -452,6 +479,7 @@ float MidiBase_get(void* ctx)
 
 void MidiSpan_set(void* ctx, float val)
 {
+    SetHelp("High MIDI Channel");
     int ival = (int)(val*15)+1;
     sprintf(stringRenderBuffer,"Span: %d",ival);
     reRenderString(stringRenderBuffer, PIC_MIDISPANTEXT);
@@ -465,6 +493,7 @@ float MidiSpan_get(void* ctx)
 
 void OctAuto_set(void* ctx, int val)
 {
+    SetHelp("Octave Switch Auto");
     PitchHandler_setOctaveRounding(phctx, val);
 }
 
@@ -475,6 +504,7 @@ int OctAuto_get(void* ctx)
 
 void Legato_set(void* ctx, int val)
 {
+    SetHelp("Attack First Note");
     char cval = "ny"[val];
     sprintf(stringRenderBuffer,"Legato:%c", cval);
     reRenderString(stringRenderBuffer, PIC_LEGATOTEXT);
@@ -488,6 +518,7 @@ int Legato_get(void* ctx)
 
 void Poly_set(void* ctx, int val)
 {
+    SetHelp("Polyphony Rules");
     if(val == 0)
     {
         reRenderString("Mono", PIC_POLYTEXT);        
@@ -518,11 +549,13 @@ float Vel_get(void* ctx)
 
 void Vel_set(void* ctx, float vel)
 {
+    SetHelp("Note Velocity");
     SurfaceTouchHandling_setBaseVolume(vel);
 }
 
 void MidiBend_set(void* ctx, float val)
 {
+    SetHelp("MIDI Bend Size");
     int ival = (int)(val*22)+2;
     sprintf(stringRenderBuffer,"Bend: %d", ival);
     reRenderString(stringRenderBuffer, PIC_MIDIBENDTEXT);
@@ -538,6 +571,7 @@ float MidiBend_get(void* ctx)
 
 void Scale_set(void* ctx,int val)
 {
+    SetHelp("Scale Shape");
     scaleControl->rect->isActive = val;
     scaleClearButton->rect->isActive = val;
     scaleToggleButton->rect->isActive = val;
@@ -552,6 +586,7 @@ int Scale_get(void* ctx)
 
 void ScaleClear_set(void* ctx,int val)
 {
+    SetHelp("Empty This Scale");
     ScaleControl_clear(ctx);
 }
 
@@ -562,6 +597,7 @@ int ScaleClear_get(void* ctx)
 
 void ScaleToggle_set(void* ctx,int val)
 {
+    SetHelp("Toggle Selected Fret");
     ScaleControl_toggle(ctx);
 }
 
@@ -573,15 +609,22 @@ int ScaleToggle_get(void* ctx)
 void LoopCountIn_set(void* ctx,int val)
 {
     loopCountIn();
-    if(loopCountInButton->val == 1)
+    
+    loopRepeatButton->rect->isActive = 1;
+
+    if(loopState == 1)
     {
-        loopCountInButton->val = 0;
-        loopRepeatButton->val  = 1;
+        SetHelp("Play on 1, Loop on 1 later to end");
+        loopRepeatButton->val = 1;
+        loopCountInButton->val = 0;       
+        loopState = 2;
     }
     else 
     {
-        loopCountInButton->val = 0;
-        loopRepeatButton->val  = 1;
+        SetHelp("Loop on 3");
+        loopRepeatButton->val = 1;
+        loopCountInButton->val = 0;       
+        loopState = 0;        
     }
 }
 
@@ -593,14 +636,24 @@ int LoopCountIn_get(void* ctx)
 void LoopRepeat_set(void* ctx,int val)
 {
     loopRepeat();
-    if(loopRepeatButton->val == 1)
+    
+    if(loopState == 0)
     {
+        SetHelp("This is 3,Rec on 4");            
         loopRepeatButton->val  = 0;
-        loopCountInButton->val = 1;
+        loopCountInButton->val = 1;            
+        loopState = 1;
     }
     else 
     {
-        loopRepeatButton->val = 0;
+        if(loopState == 2)
+        {
+            SetHelp("Rec to stop");            
+            loopRepeatButton->val  = 0;
+            loopCountInButton->val = 1;
+            loopRepeatButton->rect->isActive = 0;
+            loopState = 0;            
+        }
     }
 }
 
@@ -611,6 +664,7 @@ int LoopRepeat_get(void* ctx)
 
 void LoopFeed_set(void* ctx,float val)
 {
+    SetHelp("Ratio of Feed to Feedback");
     setLoopFeed(val);
 }
 
@@ -621,6 +675,7 @@ float LoopFeed_get(void* ctx)
 
 void LoopFade_set(void* ctx,float val)
 {
+    SetHelp("Feed/Fade rate");
     setLoopFade(val);
 }
 
@@ -631,6 +686,7 @@ float LoopFade_get(void* ctx)
 
 void ScaleFretDefaults_set(void* ctx,int val)
 {
+    SetHelp("Reset scale");
     //struct Fret_context* fretContext = PitchHandler_frets(phctx);
     ScaleControl_defaults(ctx);
 }
@@ -642,6 +698,7 @@ int ScaleFretDefaults_get(void* ctx)
 
 void Engine_set(void* ctx,int val)
 {
+    SetHelp("Internal Audio");
     if(val)
     {
         rawEngineStart();        
@@ -656,6 +713,7 @@ void Engine_set(void* ctx,int val)
 
 void Intonation_set(void* ctx, float val)
 {
+    SetHelp("Scale Shape set");
     int ival = (int)(7.99*val);
     ScaleControl_setCurrentScale(ival);
     intonationSlider->val = val;
@@ -663,6 +721,7 @@ void Intonation_set(void* ctx, float val)
 
 void RootNote_set(void* ctx, float val)
 {
+    SetHelp("Base Note Set");
     //Circle of fifths base note, which is an input into Intonation_set
     baseNote = (int)(7*((int)(12*val-4+12)) % 12);
     //This state needs to be maintained because we synthesized it
@@ -670,6 +729,17 @@ void RootNote_set(void* ctx, float val)
     
     ScaleControl_setBaseNote(baseNote);
 }
+
+void Help_Render(void* ctx)
+{
+    VertexObjectBuilder_startTexturedObject(voCtxDynamic,trianglestrip,PIC_HELPME);
+    VertexObjectBuilder_addTexturedVertex(voCtxDynamic, farLeft, panelBottom-0.1, 0, 0,0);
+    VertexObjectBuilder_addTexturedVertex(voCtxDynamic, farLeft, panelBottom, 0, 0,1);
+    VertexObjectBuilder_addTexturedVertex(voCtxDynamic, farLeft+0.4, panelBottom-0.1, 0, 1,0);
+    VertexObjectBuilder_addTexturedVertex(voCtxDynamic, farLeft+0.4, panelBottom, 0, 1,1);      
+}
+
+
 
 //This is called when we have set up the OpenGL context already
 void ObjectRendering_loadImages()
@@ -736,6 +806,9 @@ void ObjectRendering_loadImages()
     renderLabel("Fade vs Feed", PIC_LOOPPLAY);
     
     renderLabel("Sensitivity", PIC_SENSITIVITY);
+    
+    renderLabel("http://rfieldin.appspot.com", PIC_HELPME);
+    
     //Render a contiguous group of note pre-rendered images
     //(sharps/flats don't exist for now... a problem I will tackle later)
     for(int n=0; n < 12; n++)
@@ -761,10 +834,6 @@ void WidgetsAssemble()
 {
     SurfaceDraw_create();    
     
-    float farLeft = 0.07;
-    float farRight = 0.94;
-    float panelBottom = 0.9275;
-    float panelTop = 1.0;
     //This button cycles through pages of controls
     pagePrevButton = CreateButton(PIC_PAGE1TEXT,0,panelBottom, farLeft,panelTop, Page_prev_set, Page_get,1);
     pageNextButton = CreateButton(PIC_PAGE2TEXT,farRight,panelBottom, 1.0,panelTop, Page_next_set, Page_get,1);
@@ -815,4 +884,12 @@ void WidgetsAssemble()
     Legato_set(legatoButton,1);
     
     loopRepeatButton->val = 1;
+    loopCountInButton->val = 0;
+    //loopCountInButton->rect->isActive = 0;
+    
+    //Render the help Overlay
+    helpOverlay = WidgetTree_add(farLeft,panelBottom-0.05,farLeft + 0.2,panelBottom);
+    helpOverlay->ctx = NULL;
+    helpOverlay->render = Help_Render;
+    
 }
