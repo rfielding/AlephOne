@@ -114,17 +114,6 @@ static inline void renderNoiseSampleMixInternal(float notep,int eL,int dL,int eH
     vDSP_vadd(waveOct,1,waveOct2,1,waveOct,1,samples);
     vDSP_vmul(waveOct,1,dNotArray,1,registerRight,1,samples);
     
-    /*
-    xDSP_vcp(dArray,registerLeft,samples);        
-    vDSP_vindex(waveHi,waveIndexArray,1,waveMixArray,1,samples);
-    vDSP_vmul(waveMixArray,1,registerLeft,1,registerLeft,1,samples);
-    
-    //registerRight = dNotArray * waveMix[0][0]
-    xDSP_vcp(dNotArray,registerRight,samples);    
-    vDSP_vindex(waveLo,waveIndexArray,1,waveMixArray,1,samples);
-    vDSP_vmul(waveMixArray,1,registerRight,1,registerRight,1,samples);
-     */
-    
     //eNotArray = eNotArray * (dArray * waveMix[0][1] + dNotArray * waveMix[0][0])   --verified
     vDSP_vadd(registerLeft,1, registerRight,1, registerLeft,1, samples);
     vDSP_vmul(eScaleArray,1, registerLeft,1, eScaleArray,1, samples);    
@@ -171,8 +160,7 @@ float renderNoiseInnerLoopInParallel(
                                      float currentVolume,float deltaVolume,
                                      float currentExpr,float deltaExpr)
 {
-    float cyclesPerSample = powf(2,(notep-33+(1-currentExpr)*detune)/12) * (440/(44100.0 * 32));
-    
+    float cyclesPerSample = powf(2,(notep-33+(1-currentExpr)*detune*(1-notep/127))/12) * (440/(44100.0 * 32));
     renderNoiseComputeWaveIndexJ(phase,cyclesPerSample, samples);
     renderNoiseComputeV(currentVolume, deltaVolume, samples);    
     renderNoiseComputeE(currentExpr, deltaExpr, samples);    

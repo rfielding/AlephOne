@@ -573,6 +573,16 @@ int ScaleToggle_get(void* ctx)
 void LoopCountIn_set(void* ctx,int val)
 {
     loopCountIn();
+    if(loopCountInButton->val == 1)
+    {
+        loopCountInButton->val = 0;
+        loopRepeatButton->val  = 1;
+    }
+    else 
+    {
+        loopCountInButton->val = 0;
+        loopRepeatButton->val  = 1;
+    }
 }
 
 int LoopCountIn_get(void* ctx)
@@ -583,6 +593,15 @@ int LoopCountIn_get(void* ctx)
 void LoopRepeat_set(void* ctx,int val)
 {
     loopRepeat();
+    if(loopRepeatButton->val == 1)
+    {
+        loopRepeatButton->val  = 0;
+        loopCountInButton->val = 1;
+    }
+    else 
+    {
+        loopRepeatButton->val = 0;
+    }
 }
 
 int LoopRepeat_get(void* ctx)
@@ -711,10 +730,10 @@ void ObjectRendering_loadImages()
     renderLabel("Speed", PIC_SNAPSPEEDTEXT);
     renderLabel("Audio", PIC_ENGINETEXT);
     
-    renderLabel("On 4", PIC_LOOPRECORD);
-    renderLabel("On 3,1", PIC_LOOPREPEAT);
-    renderLabel("Mix", PIC_LOOPCLEAR);
-    renderLabel("Feed", PIC_LOOPPLAY);
+    renderLabel("Rec", PIC_LOOPRECORD);
+    renderLabel("Loop", PIC_LOOPREPEAT);
+    renderLabel("Rate", PIC_LOOPCLEAR);
+    renderLabel("Fade vs Feed", PIC_LOOPPLAY);
     
     renderLabel("Sensitivity", PIC_SENSITIVITY);
     //Render a contiguous group of note pre-rendered images
@@ -751,9 +770,9 @@ void WidgetsAssemble()
     pageNextButton = CreateButton(PIC_PAGE2TEXT,farRight,panelBottom, 1.0,panelTop, Page_next_set, Page_get,1);
 
     loopRepeatButton = CreateButton(PIC_LOOPREPEAT, farLeft, panelBottom, 0.28, panelTop, LoopRepeat_set, LoopRepeat_get, 1);
-    loopCountInButton = CreateButton(PIC_LOOPRECORD, 0.28, panelBottom, 0.48, panelTop, LoopCountIn_set, LoopCountIn_get, 1);
-    loopFadeSlider = CreateSlider(PIC_LOOPCLEAR, 0.48, panelBottom, 0.68, panelTop, LoopFade_set, LoopFade_get);
-    loopFeedSlider = CreateSlider(PIC_LOOPPLAY, 0.68, panelBottom, farRight, panelTop, LoopFeed_set, LoopFeed_get);
+    loopCountInButton = CreateButton(PIC_LOOPRECORD, 0.28, panelBottom, 0.38, panelTop, LoopCountIn_set, LoopCountIn_get, 1);
+    loopFadeSlider = CreateSlider(PIC_LOOPCLEAR, 0.38, panelBottom, 0.60, panelTop, LoopFade_set, LoopFade_get);
+    loopFeedSlider = CreateSlider(PIC_LOOPPLAY, 0.60, panelBottom, farRight, panelTop, LoopFeed_set, LoopFeed_get);
     
     intonationSlider = CreateSlider(PIC_SCALETEXT,farLeft,panelBottom, 0.5,panelTop, Intonation_set, NULL);
     rootNoteSlider = CreateSlider(PIC_ROOTNOTETEXT,0.5,panelBottom, farRight,panelTop, RootNote_set, NULL);
@@ -795,4 +814,5 @@ void WidgetsAssemble()
     ScaleControl_defaults(NULL);
     Legato_set(legatoButton,1);
     
+    loopRepeatButton->val = 1;
 }

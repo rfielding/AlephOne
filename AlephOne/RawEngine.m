@@ -110,7 +110,7 @@ float octaveHarmonicLimit[OCTAVES] = {
 };
 
 float unisonDetune[UNISONMAX] = {
-    0, -0.25, 0.25    
+    0, -0.3, 0.3    
 };
 float unisonVol[UNISONMAX] = {
   1, 1, 1  
@@ -305,7 +305,6 @@ static void initNoise()
                 for(int sample=0; sample<WAVEMAX; sample++)
                 {
                     waveMix[oct][expr][dist][sample] = 0;                
-                    _waveFundamental[sample] = sinf( 1 * sample * 2.0 * M_PI / WAVEMAX ) * 0.5;
                 }
                 for(int harmonic=0; harmonic<HARMONICSMAX && harmonic<octaveHarmonicLimit[oct]; harmonic++)
                 {
@@ -318,6 +317,10 @@ static void initNoise()
                 }
             }
         }        
+    }
+    for(int sample=0; sample<WAVEMAX; sample++)
+    {
+        _waveFundamental[sample] = sinf( 1 * sample * 2.0 * M_PI / WAVEMAX ) * 0.75;
     }
     
     //Make no sample exceed 1.0
@@ -499,7 +502,7 @@ static inline void renderNoiseToBuffer(long* dataL, long* dataR, unsigned long s
     float dist = (allFingers.distRamp.value);
     float noDist = 1 - dist;
     dist=dist*dist;
-    float innerScale = (0.5+10.5*dist);
+    float innerScale = (0.5+10.5*dist) * 0.5;
     
     //Scale to fit range when converting to integer
     float scaleFactor = 0x800000 * 2.0/M_PI;
@@ -507,7 +510,7 @@ static inline void renderNoiseToBuffer(long* dataL, long* dataR, unsigned long s
     long sc = allFingers.sampleCount;
     float reverbAmount = (allFingers.reverbRamp.value * allFingers.reverbRamp.value);
     float noReverbAmount = (1 - reverbAmount);
-    reverbAmount = reverbAmount*0.9;
+    reverbAmount = reverbAmount*0.95;
     
     float dying = (1-loop.feeding)*loop.level;
     float feeding = loop.feeding*loop.level;
@@ -553,10 +556,11 @@ static inline void renderNoiseToBuffer(long* dataL, long* dataR, unsigned long s
         }        
         
         //These variables determine whether we get feedback, or creeping silence.
+        float reverbBoost = 1.75;
         float totalScale = 0.25;
-        float feedScale = 0.099;
+        float feedScale = 0.1;
         float channelBleed = 0.125;
-        float finalScale = 1.5;
+        float finalScale = 1.2;
         float scaledTotal = rawTotal*totalScale;
         float feedRawL = feedL*feedScale*reverbAmount;
         float feedRawR = feedR*feedScale*reverbAmount;
@@ -564,8 +568,8 @@ static inline void renderNoiseToBuffer(long* dataL, long* dataR, unsigned long s
         totalR = feedRawR + scaledTotal;
         echoBufferL[n2] += echoBufferL[n];
         echoBufferR[n2] += echoBufferR[n];
-        echoBufferL[n2] *= 0.4555;
-        echoBufferR[n2] *= 0.4555;
+        echoBufferL[n2] *= 0.45;
+        echoBufferR[n2] *= 0.45;
         echoBufferL[n] = 0;
         echoBufferR[n] = 0;
         
@@ -582,10 +586,10 @@ static inline void renderNoiseToBuffer(long* dataL, long* dataR, unsigned long s
             echoBufferR[nRX] += vR + channelBleed*vL;
         }
         
-        float aL = atanf(finalScale * (feedRawL + scaledTotal*noReverbAmount + lL));
-        float aR = atanf(finalScale * (feedRawR + scaledTotal*noReverbAmount + lR));
-        float aLRaw = atanf(finalScale * (feedRawL + scaledTotal*noReverbAmount));
-        float aRRaw = atanf(finalScale * (feedRawR + scaledTotal*noReverbAmount));
+        float aL = atanf(finalScale * (reverbBoost*feedRawL + scaledTotal*noReverbAmount + lL));
+        float aR = atanf(finalScale * (reverbBoost*feedRawR + scaledTotal*noReverbAmount + lR));
+        float aLRaw = atanf(finalScale * (reverbBoost*feedRawL + scaledTotal*noReverbAmount));
+        float aRRaw = atanf(finalScale * (reverbBoost*feedRawR + scaledTotal*noReverbAmount));
 
         int isLoopRecording = 
             (loop.size==0 && 0 < loop.idxBuffer);
@@ -661,7 +665,7 @@ static void renderNoise(long* dataL, long* dataR, unsigned long samples)
     float invSamples = 1.0/samples;
     
     setRamp(&allFingers.reverbRamp, 64, getReverb());
-    setRamp(&allFingers.detuneRamp, 16, getDetune());
+    setRamp(&allFingers.detuneRamp, 64, getDetune());
     setRamp(&allFingers.timbreRamp, 16, getTimbre());
     setRamp(&allFingers.distRamp, 16, getDistortion());
     
@@ -754,7 +758,7 @@ void rawEngine(int midiChannel,int doNoteAttack,float pitch,float volVal,int mid
         if(volVal!=0) //Don't bother with ramping these on release
         {
             setRamp(&allFingers.finger[channel].pitchRamp, 1, pitch);
-            setRamp(&allFingers.finger[channel].exprRamp, 4, midiExpr/127.0);                                            
+            setRamp(&allFingers.finger[channel].exprRamp, 3, midiExpr/127.0);                                            
         }
     }
 }
