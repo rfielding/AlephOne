@@ -89,8 +89,8 @@ void SurfaceDraw_drawBackground()
         VertexObjectBuilder_addColoredVertex(voCtxDynamic, 1, f-dyd, 0, 0,  50,  50,  40);
     }
     
-    float dx = 0.05;
-    float iy = 0.05;
+    float dx = 0.03;
+    float iy = 0.03;
     //Start at bottom corner, increment a chromatic until we are off the screen,
     //then move to next string and detune 
     //and repeat until we are out of strings.

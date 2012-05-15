@@ -747,9 +747,9 @@ void RootNote_set(void* ctx, float val)
 void Help_Render(void* ctx)
 {
     VertexObjectBuilder_startTexturedObject(voCtxDynamic,trianglestrip,PIC_HELPME);
-    VertexObjectBuilder_addTexturedVertex(voCtxDynamic, farLeft, panelBottom-0.1, 0, 0,0);
+    VertexObjectBuilder_addTexturedVertex(voCtxDynamic, farLeft, panelBottom-0.075, 0, 0,0);
     VertexObjectBuilder_addTexturedVertex(voCtxDynamic, farLeft, panelBottom, 0, 0,1);
-    VertexObjectBuilder_addTexturedVertex(voCtxDynamic, farLeft+0.4, panelBottom-0.1, 0, 1,0);
+    VertexObjectBuilder_addTexturedVertex(voCtxDynamic, farLeft+0.4, panelBottom-0.075, 0, 1,0);
     VertexObjectBuilder_addTexturedVertex(voCtxDynamic, farLeft+0.4, panelBottom, 0, 1,1);      
 }
 
@@ -904,7 +904,7 @@ void WidgetsAssemble()
     //loopCountInButton->rect->isActive = 0;
     
     //Render the help Overlay
-    helpOverlay = WidgetTree_add(farLeft,panelBottom-0.05,farLeft + 0.2,panelBottom);
+    helpOverlay = WidgetTree_add(farLeft,panelBottom-0.025,farLeft + 0.2,panelBottom);
     helpOverlay->ctx = NULL;
     helpOverlay->render = Help_Render;
     

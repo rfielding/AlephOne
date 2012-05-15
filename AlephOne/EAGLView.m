@@ -14,7 +14,6 @@
 #import "Fret.h"
 
 #import "Fretless.h"
-#import "Transforms.h"
 #import "GenericRendering.h"
 #import "PressureSensor.h"
 #include "CoreMIDIRenderer.h"
@@ -31,7 +30,7 @@ static struct PitchHandler_context* phctx;
 static struct Fretless_context* fctx;
 static struct Fret_context* frctx;
 
-
+static float scaleFactor = 2;
 
 @interface EAGLView (PrivateMethods)
 - (void)createFramebuffer;
@@ -102,7 +101,6 @@ static struct Fret_context* frctx;
     //TODO: may be wrong still
     *w = width;
     *h = height;
-    Transforms_translate(w,h);
     
     CGContextRelease(context);
     
@@ -146,12 +144,6 @@ static struct Fret_context* frctx;
     // Get the font.
     UIFont *font = [UIFont fontWithName:@"Helvetica" size:20];
     
-    /*
-    CGContextSaveGState(context);
-    CGAffineTransform flipVertical = CGAffineTransformMake
-    (1, 0, 0, -1, 0, height); //set the flip
-    CGContextConcatCTM(context, flipVertical); //apply it to context
-    */
     
     CGContextSetGrayFillColor(context, 1.0, 1.0);
 	UIGraphicsPushContext(context);
@@ -167,7 +159,6 @@ static struct Fret_context* frctx;
     
     *w = width;
     *h = height;
-    Transforms_translate(w,h);
 }
 
 - (void)configureSurface
@@ -237,9 +228,10 @@ void stringRender(void* ctx,char* str,unsigned int* textureName,float* width,flo
 - (id)initWithCoder:(NSCoder*)coder
 {
     self = [super initWithCoder:coder];
+    self.contentScaleFactor = scaleFactor;
 	if (self) {
         CAEAGLLayer *eaglLayer = (CAEAGLLayer *)self.layer;
-        
+        eaglLayer.contentsScale = scaleFactor;
         eaglLayer.opaque = TRUE;
         eaglLayer.drawableProperties = [NSDictionary dictionaryWithObjectsAndKeys:
                                         [NSNumber numberWithBool:FALSE], kEAGLDrawablePropertyRetainedBacking,
@@ -397,7 +389,6 @@ void stringRender(void* ctx,char* str,unsigned int* textureName,float* width,flo
     {
         float x = PressureSensor_xNorm;
         float y = PressureSensor_yNorm;
-        Transforms_translate(&x,&y);
         GenericRendering_updateLightOrientation(
             x,
             y,
@@ -418,9 +409,8 @@ void stringRender(void* ctx,char* str,unsigned int* textureName,float* width,flo
         UITouchPhase phase = [touch phase];
         if(phase == expectPhase)
         {            
-            float x = [touch locationInView:self].x/framebufferWidth;
-            float y = 1 - [touch locationInView:self].y/framebufferHeight;
-            Transforms_translate(&x, &y);
+            float x = ([touch locationInView:self].x * scaleFactor)/framebufferWidth;
+            float y = 1 - ([touch locationInView:self].y * scaleFactor)/framebufferHeight;
             
             //Yes, the forbidden finger area touch is back! (For now anyways)
             float area = 1.0;

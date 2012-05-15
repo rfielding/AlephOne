@@ -10,7 +10,7 @@
 #include "PitchHandler.h"
 //#include "Fretless.h"
 #include "VertexObjectBuilder.h"
-#include "Transforms.h"
+//#include "Transforms.h"
 #include <OpenGLES/ES1/gl.h>
 
 //This says that we should construct VertexObjectBuilder at a higher level
@@ -20,13 +20,6 @@
 #include "ObjectRendering.h"
 
 struct Fretless_context;
-
-static float scale[16] = {
-    1.0f, 0.0f, 0.0f, 0.0f,
-    0.0f, 1.0f, 0.0f, 0.0f,
-    0.0f, 0.0f, 1.0f, 0.0f,
-    0.0f, 0.0f, 0.0f, 1.0f
-};
 
 void GenericRendering_drawVO(struct VertexObjectBuilder* vobj);
 
@@ -77,9 +70,9 @@ void GenericRendering_camera()
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
     
-    Transforms_getOrientation(scale);
+    //Transforms_getOrientation(scale);
     
-    glMultMatrixf(scale);
+    //glMultMatrixf(scale);
     glScalef(2,2,1);
     glTranslatef(-0.5,-0.5,0);    
     
