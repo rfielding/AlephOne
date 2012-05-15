@@ -53,28 +53,28 @@ void Button_render(void* ctx)
             if(button->downState)
             {
                 VertexObjectBuilder_startColoredObject(voCtxDynamic,trianglestrip);
-                VertexObjectBuilder_addColoredVertex(voCtxDynamic, w->x1+dx, w->y1+dy, 0, 255,255,255,100);
-                VertexObjectBuilder_addColoredVertex(voCtxDynamic, w->x1+dx, w->y2-dy, 0, 255,255,255,100);
-                VertexObjectBuilder_addColoredVertex(voCtxDynamic, w->x2-dx, w->y1+dy, 0, 255,255,255,100);
-                VertexObjectBuilder_addColoredVertex(voCtxDynamic, w->x2-dx, w->y2-dy, 0, 255,255,255,100);                            
+                VertexObjectBuilder_addColoredVertex(voCtxDynamic, w->x1+dx, w->y1+dy, 0, 255,255,255,150);
+                VertexObjectBuilder_addColoredVertex(voCtxDynamic, w->x1+dx, w->y2-dy, 0, 255,255,255,150);
+                VertexObjectBuilder_addColoredVertex(voCtxDynamic, w->x2-dx, w->y1+dy, 0, 255,255,255,150);
+                VertexObjectBuilder_addColoredVertex(voCtxDynamic, w->x2-dx, w->y2-dy, 0, 255,255,255,150);                            
             }
             VertexObjectBuilder_startColoredObject(voCtxDynamic,trianglestrip);
             VertexObjectBuilder_addColoredVertex(voCtxDynamic, w->x1+dx, w->y1+dy, 0, r,  g,b,200);
-            VertexObjectBuilder_addColoredVertex(voCtxDynamic, w->x1+dx, w->y2-dy, 0, r,  g,b, 80);
-            VertexObjectBuilder_addColoredVertex(voCtxDynamic, w->x2-dx, w->y1+dy, 0, r,  g,b,127);
-            VertexObjectBuilder_addColoredVertex(voCtxDynamic, w->x2-dx, w->y2-dy, 0, r,  g,b, 80);   
+            VertexObjectBuilder_addColoredVertex(voCtxDynamic, w->x1+dx, w->y2-dy, 0, r,  g,b,180);
+            VertexObjectBuilder_addColoredVertex(voCtxDynamic, w->x2-dx, w->y1+dy, 0, r,  g,b,180);
+            VertexObjectBuilder_addColoredVertex(voCtxDynamic, w->x2-dx, w->y2-dy, 0, r,  g,b,180);   
             
             VertexObjectBuilder_startColoredObject(voCtxDynamic, lines);
             
-            VertexObjectBuilder_addColoredVertex(voCtxDynamic, w->x2-dx, w->y2-dy, 0, 255,255,255,150);
-            VertexObjectBuilder_addColoredVertex(voCtxDynamic, w->x1+dx, w->y2-dy, 0, 255,255,255,150);
-            VertexObjectBuilder_addColoredVertex(voCtxDynamic, w->x1+dx, w->y2-dy, 0, 255,255,255,150);
-            VertexObjectBuilder_addColoredVertex(voCtxDynamic, w->x1+dx, w->y1+dy, 0, 255,255,255,150);
+            VertexObjectBuilder_addColoredVertex(voCtxDynamic, w->x2-dx, w->y2-dy, 0, 255,255,255,180);
+            VertexObjectBuilder_addColoredVertex(voCtxDynamic, w->x1+dx, w->y2-dy, 0, 255,255,255,180);
+            VertexObjectBuilder_addColoredVertex(voCtxDynamic, w->x1+dx, w->y2-dy, 0, 255,255,255,180);
+            VertexObjectBuilder_addColoredVertex(voCtxDynamic, w->x1+dx, w->y1+dy, 0, 255,255,255,180);
             
-            VertexObjectBuilder_addColoredVertex(voCtxDynamic, w->x1+dx, w->y1+dy, 0, 255,255,255,100);
-            VertexObjectBuilder_addColoredVertex(voCtxDynamic, w->x2-dx, w->y1+dy, 0, 255,255,255,100);
-            VertexObjectBuilder_addColoredVertex(voCtxDynamic, w->x2-dx, w->y1+dy, 0, 255,255,255,100);
-            VertexObjectBuilder_addColoredVertex(voCtxDynamic, w->x2-dx, w->y2-dy, 0, 255,255,255,100);
+            VertexObjectBuilder_addColoredVertex(voCtxDynamic, w->x1+dx, w->y1+dy, 0, 255,255,255,150);
+            VertexObjectBuilder_addColoredVertex(voCtxDynamic, w->x2-dx, w->y1+dy, 0, 255,255,255,150);
+            VertexObjectBuilder_addColoredVertex(voCtxDynamic, w->x2-dx, w->y1+dy, 0, 255,255,255,150);
+            VertexObjectBuilder_addColoredVertex(voCtxDynamic, w->x2-dx, w->y2-dy, 0, 255,255,255,150);
         }
 
         float s = 0.01;
