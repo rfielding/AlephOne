@@ -19,7 +19,11 @@
 #import "PressureSensor.h"
 #include "CoreMIDIRenderer.h"
 #include "WidgetTree.h"
+#include "RawEngine.h"
 
+
+// 5MB max per item in iPhone OS clipboard
+#define BM_CLIPBOARD_CHUNK_SIZE (5 * 1024 * 1024)
 
 
 static BOOL isInitialized = FALSE;
@@ -214,6 +218,7 @@ static struct Fret_context* frctx;
     Fretless_setMidiHintChannelSpan(fctx, 16);
     Fretless_setMidiHintChannelBendSemis(fctx,2);
 }
+
 
 void imageRender(void* ctx,char* imagePath,unsigned int* textureName,float* width,float* height,int reRender)
 {

@@ -14,6 +14,8 @@
 #import <AudioToolbox/AudioServices.h>
 #import <AVFoundation/AVFoundation.h>
 #import <Accelerate/Accelerate.h>
+#import <MobileCoreServices/UTCoreTypes.h>
+
 #import "RawEngine.h"
 #import "RawEngineGenerated.h"
 #include "FretlessCommon.h"
@@ -32,6 +34,8 @@ AudioStreamBasicDescription audioFormat;
 static const float kSampleRate = 44100.0;
 static const unsigned int kOutputBus = 0;
 static unsigned long lastSamples = 256;
+
+
 
 static void audioSessionInterruptionCallback(void *inUserData, UInt32 interruptionState) {
     if (interruptionState == kAudioSessionEndInterruption) {
@@ -99,6 +103,46 @@ struct {
     float level;
 } loop;
 
+int16_t pasteL[LOOPBUFFERMAX];
+int16_t pasteR[LOOPBUFFERMAX];
+
+static inline long floatToSample(float f)
+{
+    float scaleFactor = 0x800000 * 2.0/M_PI * 2;
+    return scaleFactor * f;
+}
+
+static inline long floatToSample16(float f)
+{
+    float scaleFactor = 0x8000 * 2.0/M_PI * 2;    
+    return scaleFactor * f;
+}
+
+void audioCopy()
+{    
+    UIPasteboard *board = [UIPasteboard generalPasteboard];
+    
+    // Write the straight loop in
+    NSUInteger sz = loop.size;
+    for(int i=0; i<loop.size; i++)
+    {
+        pasteL[i] = floatToSample16(loopBufferL[i + loop.firstOffset + loop.secondOffset]);
+    }
+    NSData *dataFile = [NSData dataWithBytes:pasteL length:sz];
+    
+    // Stick our chunk in the clipboard
+    
+    NSMutableArray *items = [NSMutableArray arrayWithCapacity:1];
+    NSRange curRange;
+    
+    curRange.location = 0;
+    curRange.length = loop.size;
+    NSData *subData = [dataFile subdataWithRange:curRange];
+    NSDictionary *dict = [NSDictionary dictionaryWithObject:subData forKey:(NSString *)kUTTypeAudio];
+    [items addObject:dict];
+    
+    board.items = items;
+}
 
 float echoBufferL[ECHOBUFFERMAX] __attribute__ ((aligned));
 float echoBufferR[ECHOBUFFERMAX] __attribute__ ((aligned));
@@ -495,6 +539,8 @@ float getLoopFade()
     return loop.level;
 }
 
+
+
 // loopIndexBufferAt is the sample corresponding to loopBufferL[0]
 //    [requestAt] [bufferAt] [loopIndexStartLoop] [loopIndexEndLoop] [loopIndexReleaseLoop] [loopIndexBufferOverflowAt]
 static inline void renderNoiseToBuffer(long* dataL, long* dataR, unsigned long samples)
@@ -505,7 +551,6 @@ static inline void renderNoiseToBuffer(long* dataL, long* dataR, unsigned long s
     float innerScale = (0.5+10.5*dist) * 0.5;
     
     //Scale to fit range when converting to integer
-    float scaleFactor = 0x800000 * 2.0/M_PI * 2;
     
     long sc = allFingers.sampleCount;
     float reverbAmount = (allFingers.reverbRamp.value * allFingers.reverbRamp.value);
@@ -625,8 +670,8 @@ static inline void renderNoiseToBuffer(long* dataL, long* dataR, unsigned long s
             }
         }
         
-        dataL[i] = scaleFactor * aL;
-        dataR[i] = scaleFactor * aR;        
+        dataL[i] = floatToSample(aL);
+        dataR[i] = floatToSample(aR);        
     }    
 }
 

@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		4910546B1561F37900FBBC15 /* MobileCoreServices.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4910546A1561F37900FBBC15 /* MobileCoreServices.framework */; };
 		493A9D97148B32E00029F6C9 /* GenericRendering.c in Sources */ = {isa = PBXBuildFile; fileRef = 493A9D95148B32E00029F6C9 /* GenericRendering.c */; };
 		49400BC2149D510800F5B7C0 /* ashmedi.png in Resources */ = {isa = PBXBuildFile; fileRef = 49400BC1149D510800F5B7C0 /* ashmedi.png */; };
 		49400BCD149D7D9200F5B7C0 /* tutorial.png in Resources */ = {isa = PBXBuildFile; fileRef = 49400BCC149D7D9200F5B7C0 /* tutorial.png */; };
@@ -87,6 +88,7 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		4910546A1561F37900FBBC15 /* MobileCoreServices.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = MobileCoreServices.framework; path = System/Library/Frameworks/MobileCoreServices.framework; sourceTree = SDKROOT; };
 		493A9D95148B32E00029F6C9 /* GenericRendering.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = GenericRendering.c; sourceTree = "<group>"; };
 		493A9D96148B32E00029F6C9 /* GenericRendering.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = GenericRendering.h; sourceTree = "<group>"; };
 		49400BC1149D510800F5B7C0 /* ashmedi.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = ashmedi.png; sourceTree = "<group>"; };
@@ -190,6 +192,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				4910546B1561F37900FBBC15 /* MobileCoreServices.framework in Frameworks */,
 				49B39079144914DC008C9F6E /* UIKit.framework in Frameworks */,
 				49B3907B144914DC008C9F6E /* Foundation.framework in Frameworks */,
 				49B3907D144914DC008C9F6E /* CoreGraphics.framework in Frameworks */,
@@ -276,6 +279,7 @@
 		49B39069144914DB008C9F6E = {
 			isa = PBXGroup;
 			children = (
+				4910546A1561F37900FBBC15 /* MobileCoreServices.framework */,
 				49B39082144914DC008C9F6E /* AlephOne */,
 				49B39077144914DC008C9F6E /* Frameworks */,
 				49B39075144914DC008C9F6E /* Products */,

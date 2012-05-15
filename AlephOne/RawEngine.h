@@ -7,7 +7,6 @@
 //
 
 
-
 void rawEngine(int midiChannel,int doNoteAttack,float pitch,float volVal,int midiExprParm,int midiExpr);
 void rawEngineStart();
 void rawEngineStop();
@@ -23,3 +22,5 @@ void setLoopFade(float val);
 
 float getLoopFeed();
 void setLoopFeed(float val);
+
+void audioCopy();

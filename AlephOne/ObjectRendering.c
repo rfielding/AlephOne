@@ -117,6 +117,7 @@ struct Slider_data* sensitivitySlider;
 
 struct Button_data* loopCountInButton;
 struct Button_data* loopRepeatButton;
+struct Button_data* copyButton;
 
 struct Slider_data* loopFeedSlider;
 struct Slider_data* loopFadeSlider;
@@ -201,7 +202,7 @@ void ObjectRendering_init(
     ObjectRendering_imageRender = ObjectRendering_imageRenderArg;
     ObjectRendering_stringRender = ObjectRendering_stringRenderArg;
     ObjectRendering_drawVO       = ObjectRendering_drawVOArg;
-  
+    
     SurfaceDraw_init(voCtxDynamicArg,phctxArg,trianglesArg,trianglestripArg,linesArg);
     SliderControl_init(voCtxDynamicArg,phctxArg,trianglesArg,trianglestripArg,linestripArg);
     ButtonControl_init(voCtxDynamicArg,phctxArg,trianglesArg,trianglestripArg,linesArg);
@@ -276,6 +277,7 @@ void Page_set(void* ctx, int val)
     loopRepeatButton->rect->isActive = FALSE;
     loopFeedSlider->rect->isActive = FALSE;
     loopFadeSlider->rect->isActive = FALSE;
+    copyButton->rect->isActive = FALSE;
     switch(val)
     {
         case PAGE_WIDTH:
@@ -320,6 +322,7 @@ void Page_set(void* ctx, int val)
             loopRepeatButton->rect->isActive = TRUE;
             loopFeedSlider->rect->isActive = TRUE;
             loopFadeSlider->rect->isActive = TRUE;
+            copyButton->rect->isActive = TRUE;
             break;
     }
 }
@@ -696,6 +699,17 @@ int ScaleFretDefaults_get(void* ctx)
     return 0;
 }
 
+void Copy_set(void* ctx,int val)
+{
+    SetHelp("Copy loop to clipboard");
+    audioCopy();
+}
+
+int Copy_get(void* ctx)
+{
+    return 0;
+}
+
 void Engine_set(void* ctx,int val)
 {
     SetHelp("Internal Audio");
@@ -802,8 +816,9 @@ void ObjectRendering_loadImages()
     
     renderLabel("Rec", PIC_LOOPRECORD);
     renderLabel("Loop", PIC_LOOPREPEAT);
+    renderLabel("Copy", PIC_COPY);
     renderLabel("Rate", PIC_LOOPCLEAR);
-    renderLabel("Fade vs Feed", PIC_LOOPPLAY);
+    renderLabel("Fade/Feed", PIC_LOOPPLAY);
     
     renderLabel("Sensitivity", PIC_SENSITIVITY);
     
@@ -840,8 +855,9 @@ void WidgetsAssemble()
 
     loopRepeatButton = CreateButton(PIC_LOOPREPEAT, farLeft, panelBottom, 0.28, panelTop, LoopRepeat_set, LoopRepeat_get, 1);
     loopCountInButton = CreateButton(PIC_LOOPRECORD, 0.28, panelBottom, 0.38, panelTop, LoopCountIn_set, LoopCountIn_get, 1);
-    loopFadeSlider = CreateSlider(PIC_LOOPCLEAR, 0.38, panelBottom, 0.60, panelTop, LoopFade_set, LoopFade_get);
-    loopFeedSlider = CreateSlider(PIC_LOOPPLAY, 0.60, panelBottom, farRight, panelTop, LoopFeed_set, LoopFeed_get);
+    loopFadeSlider = CreateSlider(PIC_LOOPCLEAR, 0.38, panelBottom, 0.50, panelTop, LoopFade_set, LoopFade_get);
+    loopFeedSlider = CreateSlider(PIC_LOOPPLAY, 0.50, panelBottom, 0.80, panelTop, LoopFeed_set, LoopFeed_get);
+    copyButton = CreateButton(PIC_COPY, 0.80, panelBottom, farRight, panelTop, Copy_set, Copy_get, 1);
     
     intonationSlider = CreateSlider(PIC_SCALETEXT,farLeft,panelBottom, 0.5,panelTop, Intonation_set, NULL);
     rootNoteSlider = CreateSlider(PIC_ROOTNOTETEXT,0.5,panelBottom, farRight,panelTop, RootNote_set, NULL);

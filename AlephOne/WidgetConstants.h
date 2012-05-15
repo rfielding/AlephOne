@@ -58,5 +58,6 @@
 #define PIC_LOOPPLAY 45
 #define PIC_LOOPREPEAT 46
 #define PIC_LOOPCLEAR 47
+#define PIC_COPY 48
 
 #define PIC_HELPME 255
