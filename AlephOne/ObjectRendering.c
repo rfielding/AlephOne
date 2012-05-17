@@ -240,7 +240,7 @@ void GenericRendering_draw()
 
 void SetHelp(const char* helpStr)
 {
-    sprintf(stringRenderBuffer,helpStr);
+    sprintf(stringRenderBuffer,"%s",helpStr);
     reRenderString(stringRenderBuffer, PIC_HELPME);
 }
 
