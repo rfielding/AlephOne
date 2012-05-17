@@ -8,6 +8,8 @@
 
 /* Begin PBXBuildFile section */
 		4910546B1561F37900FBBC15 /* MobileCoreServices.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4910546A1561F37900FBBC15 /* MobileCoreServices.framework */; };
+		4910546E1564A90400FBBC15 /* Cantors_cube72x72.png in Resources */ = {isa = PBXBuildFile; fileRef = 4910546D1564A90300FBBC15 /* Cantors_cube72x72.png */; };
+		491054701564A90D00FBBC15 /* Cantors_cube144x144.png in Resources */ = {isa = PBXBuildFile; fileRef = 4910546F1564A90D00FBBC15 /* Cantors_cube144x144.png */; };
 		493A9D97148B32E00029F6C9 /* GenericRendering.c in Sources */ = {isa = PBXBuildFile; fileRef = 493A9D95148B32E00029F6C9 /* GenericRendering.c */; };
 		49400BC2149D510800F5B7C0 /* ashmedi.png in Resources */ = {isa = PBXBuildFile; fileRef = 49400BC1149D510800F5B7C0 /* ashmedi.png */; };
 		49400BCD149D7D9200F5B7C0 /* tutorial.png in Resources */ = {isa = PBXBuildFile; fileRef = 49400BCC149D7D9200F5B7C0 /* tutorial.png */; };
@@ -88,6 +90,8 @@
 
 /* Begin PBXFileReference section */
 		4910546A1561F37900FBBC15 /* MobileCoreServices.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = MobileCoreServices.framework; path = System/Library/Frameworks/MobileCoreServices.framework; sourceTree = SDKROOT; };
+		4910546D1564A90300FBBC15 /* Cantors_cube72x72.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = Cantors_cube72x72.png; sourceTree = "<group>"; };
+		4910546F1564A90D00FBBC15 /* Cantors_cube144x144.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = Cantors_cube144x144.png; sourceTree = "<group>"; };
 		493A9D95148B32E00029F6C9 /* GenericRendering.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = GenericRendering.c; sourceTree = "<group>"; };
 		493A9D96148B32E00029F6C9 /* GenericRendering.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = GenericRendering.h; sourceTree = "<group>"; };
 		49400BC1149D510800F5B7C0 /* ashmedi.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = ashmedi.png; sourceTree = "<group>"; };
@@ -274,6 +278,8 @@
 		49B39069144914DB008C9F6E = {
 			isa = PBXGroup;
 			children = (
+				4910546F1564A90D00FBBC15 /* Cantors_cube144x144.png */,
+				4910546D1564A90300FBBC15 /* Cantors_cube72x72.png */,
 				4910546A1561F37900FBBC15 /* MobileCoreServices.framework */,
 				49B39082144914DC008C9F6E /* AlephOne */,
 				49B39077144914DC008C9F6E /* Frameworks */,
@@ -492,6 +498,8 @@
 				49691AD314B0DD6E009AB83D /* note-8.png in Resources */,
 				49691AD414B0DD6E009AB83D /* note-10.png in Resources */,
 				49EBD74D15035C9700E50DCA /* RawEngine.dsp in Resources */,
+				4910546E1564A90400FBBC15 /* Cantors_cube72x72.png in Resources */,
+				491054701564A90D00FBBC15 /* Cantors_cube144x144.png in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

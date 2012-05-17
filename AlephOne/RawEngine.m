@@ -24,7 +24,7 @@
 #define LOOPBUFFERMAX (1024*1024)
 #define ECHOBUFFERMAX (1024*128)
 #define UNISONMAX 3
-#define HARMONICSMAX 32
+#define HARMONICSMAX 64
 #define REVERBECHOES 10
 #define AUDIOCHANNELS 2
 
@@ -150,11 +150,11 @@ float echoBufferR[ECHOBUFFERMAX] __attribute__ ((aligned));
 //float convBufferR[ECHOBUFFERMAX] __attribute__ ((aligned));
 
 float octaveHarmonicLimit[OCTAVES] = {
-  32,32,32,32,32,24,16,8,4,2,1,1    
+  42,40,38,36,32,24,16,8,4,2,1,1    
 };
 
 float unisonDetune[UNISONMAX] = {
-    0, -0.3, 0.3    
+    0, -0.4, 0.4    
 };
 float unisonVol[UNISONMAX] = {
   1, 1, 1  
@@ -173,7 +173,7 @@ int reverbDataR[REVERBECHOES] __attribute__ ((aligned)) =
 
 float reverbStrength[REVERBECHOES] __attribute__ ((aligned)) =
 {
-    0.99, 0.99, 0.98, 0.99, 0.99, 0.99, 0.99, 0.99,0.9,0.9
+    0.99, 0.99, 0.98, 0.99, 0.99, 0.99, 0.99, 0.99,0.99,0.99
 };
 
 static struct fingersData allFingers;
@@ -318,7 +318,7 @@ static void initNoise()
     clearHarmonics(harmonics[1][0]);
     for(int i=0; i<HARMONICSMAX/2; i++)
     {
-        harmonics[1][0][2*i+1] = 1.0/(i+1);
+        harmonics[1][0][2*i+1] = 1.0/(2*(i+1));
     }
     normalizeHarmonics(harmonics[1][0]);
     //Make squared versions of our waves
@@ -329,10 +329,14 @@ static void initNoise()
         {            
             for(int squareHarmonic=0; squareHarmonic<HARMONICSMAX; squareHarmonic++)
             {
-                int s = squareHarmonic*2+1;
-                if(s<HARMONICSMAX)
+                int s = (squareHarmonic*2+1) * 1.0/(harmonic+1);
+                int h = s*(harmonic+1);
+                //1 3  5  7  9 11 13
+                //2 6 10 14 18 22 26
+                //3 9 15 21 27 33 39
+                if(s<HARMONICSMAX && h+1 < HARMONICSMAX)
                 {
-                    harmonics[expr][1][s-1] += harmonics[expr][0][harmonic] / s;                                                                    
+                    harmonics[expr][1][h-1] += harmonics[expr][0][harmonic] / s;                                                                    
                 }
             }
         }
@@ -613,8 +617,8 @@ static inline void renderNoiseToBuffer(long* dataL, long* dataR, unsigned long s
         totalR = feedRawR + scaledTotal;
         echoBufferL[n2] += echoBufferL[n];
         echoBufferR[n2] += echoBufferR[n];
-        echoBufferL[n2] *= 0.45;
-        echoBufferR[n2] *= 0.45;
+        echoBufferL[n2] *= 0.475;
+        echoBufferR[n2] *= 0.475;
         echoBufferL[n] = 0;
         echoBufferR[n] = 0;
         

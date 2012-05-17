@@ -380,13 +380,13 @@ float Cols_get(void* ctx)
 void Rows_set(void* ctx, float val)
 {
     SetHelp("Strings Available");
-    PitchHandler_setRowCount(phctx, 1 + val*6);
+    PitchHandler_setRowCount(phctx, 1 + val*7);
     SurfaceDraw_drawBackground();
 }
 
 float Rows_get(void* ctx)
 {
-    return (PitchHandler_getRowCount(phctx)-1)/6;
+    return (PitchHandler_getRowCount(phctx)-1)/7;
 }
 
 void SnapSpeed_set(void* ctx, float val)
@@ -908,4 +908,5 @@ void WidgetsAssemble()
     helpOverlay->ctx = NULL;
     helpOverlay->render = Help_Render;
     
+    ChannelOccupancyControl_create(0.7,0.05, 0.95,0.3);    
 }

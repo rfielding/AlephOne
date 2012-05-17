@@ -121,8 +121,8 @@ static float scaleFactor = 2;
     glBindTexture(GL_TEXTURE_2D, textures[0]);
     
     void* imageData = NULL;
-    unsigned int width=256;
-    unsigned int height=32;
+    unsigned int width=256 * scaleFactor;
+    unsigned int height=32 * scaleFactor;
     
  
     // Create the color space.
@@ -142,7 +142,7 @@ static float scaleFactor = 2;
     CGContextClearRect(context, CGRectMake(0, 0, width, height));
     
     // Get the font.
-    UIFont *font = [UIFont fontWithName:@"Helvetica" size:20];
+    UIFont *font = [UIFont fontWithName:@"Helvetica" size:20*scaleFactor];
     
     
     CGContextSetGrayFillColor(context, 1.0, 1.0);
@@ -224,14 +224,31 @@ void stringRender(void* ctx,char* str,unsigned int* textureName,float* width,flo
     [(EAGLView*)ctx loadString:currentStr  wasWidth:width wasHeight:height withReRender:(BOOL)reRender toTexture:textureName];     
 }
 
+float guessScaleFactor()
+{
+    UIScreen* screen = [UIScreen mainScreen]; 
+    int w = screen.currentMode.size.width;
+    int h = screen.currentMode.size.height;
+    NSLog(@"dimensions: %d %d",w,h);
+    if((w==640 && h==960) || (w==2048 && h==1536))
+    {
+        return 2;
+    }
+    else 
+    {
+        return 1;
+    }
+}
+
 //The EAGL view is stored in the nib file. When it's unarchived it's sent -initWithCoder:.
 - (id)initWithCoder:(NSCoder*)coder
 {
     self = [super initWithCoder:coder];
+    scaleFactor = guessScaleFactor();
     self.contentScaleFactor = scaleFactor;
 	if (self) {
         CAEAGLLayer *eaglLayer = (CAEAGLLayer *)self.layer;
-        eaglLayer.contentsScale = scaleFactor;
+        eaglLayer.contentsScale = self.contentScaleFactor;
         eaglLayer.opaque = TRUE;
         eaglLayer.drawableProperties = [NSDictionary dictionaryWithObjectsAndKeys:
                                         [NSNumber numberWithBool:FALSE], kEAGLDrawablePropertyRetainedBacking,

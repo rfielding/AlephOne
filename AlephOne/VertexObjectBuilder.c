@@ -10,7 +10,7 @@
 
 
 #define VOVERTEXMAX (8192*8)
-#define VOOBJMAX (256)
+#define VOOBJMAX (512)
 
 struct VertexObjectBuilder
 {
