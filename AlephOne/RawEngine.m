@@ -171,13 +171,12 @@ void audioCopy()
     NSLog(@"writing CAF format to UIPasteboard");
     NSLog(@"writing type,version,flags");
     //Type,Version,Flags
-    audioCopyWrite32(copyBuffer8,&cursor,'caff');
-    audioCopyWrite16(copyBuffer8,&cursor,1);
-    audioCopyWrite16(copyBuffer8,&cursor,0);
+    audioCopyWrite32(copyBuffer8,&cursor,'caff'); //type of file (magic)
+    audioCopyWrite16(copyBuffer8,&cursor,1);      //version
+    audioCopyWrite16(copyBuffer8,&cursor,0);      //flags
     //Chunk header, type, len
-    NSLog(@"writing description");
-    audioCopyWrite32(copyBuffer8,&cursor,'desc');
-    audioCopyWrite64(copyBuffer8,&cursor,sizeof(CAFAudioDescription));
+    audioCopyWrite32(copyBuffer8,&cursor,'desc'); //description header follows
+    audioCopyWrite64(copyBuffer8,&cursor,32);     //32 to bytes required for it
     //Description
     audioCopyWrite64(copyBuffer8,&cursor,44100);   //rate
     audioCopyWrite32(copyBuffer8,&cursor,'lpcm');  //format
@@ -188,21 +187,22 @@ void audioCopy()
     audioCopyWrite32(copyBuffer8,&cursor,16);      //bits per channel
     
     NSLog(@"writing dataheader");
-    audioCopyWrite32(copyBuffer8,&cursor,'data');
-    audioCopyWrite64(copyBuffer8,&cursor,loop.size*4);
+    audioCopyWrite32(copyBuffer8,&cursor,'data');       //data follows
+    audioCopyWrite64(copyBuffer8,&cursor,loop.size*4);  //4 bytes per stereo sample
     
     NSLog(@"writing data");
     for(int i=0; i<loop.size; i++)
     {
+        //Is left or right first?  It will matter when I get paste to work on GB
         int16_t sampleL = floatToSample16(loopBufferL[i + loop.firstOffset + loop.secondOffset]);
         int16_t sampleR = floatToSample16(loopBufferR[i + loop.firstOffset + loop.secondOffset]);
         audioCopyWrite16(copyBuffer8,&cursor,sampleL);
         audioCopyWrite16(copyBuffer8,&cursor,sampleR);
     }
-    NSLog(@"copy data to pasteboard");
-    NSUInteger sz = cursor;
-    NSData *dataFile = [NSData dataWithBytes:copyBuffer8 length:sz];
     
+    //This actually causes Garage Band to try.. formatting just seems wrong
+    NSLog(@"copy data to pasteboard");
+    NSData *dataFile = [NSData dataWithBytes:copyBuffer8 length:cursor];    
     [board setData:dataFile forPasteboardType:(NSString*)kUTTypeAudio];
 }
 
