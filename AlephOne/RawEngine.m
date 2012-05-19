@@ -122,25 +122,25 @@ static inline long floatToSample16(float f)
 void audioCopyWrite8(char* buffer,int* cursorp,char val)
 {
     buffer[*cursorp] = val;
-    cursorp += 1;
+    *cursorp += 1;
 }
 
 void audioCopyWrite16(char* buffer,int* cursorp,int16_t val)
 {
     *((uint16_t*)(&buffer[*cursorp])) = val;
-    cursorp += 2;
+    *cursorp += 2;
 }
 
 void audioCopyWrite32(char* buffer,int* cursorp,int32_t val)
 {
     *((uint32_t*)(&buffer[*cursorp])) = val;
-    cursorp += 4;
+    *cursorp += 4;
 }
 
 void audioCopyWrite64(char* buffer,int* cursorp,int64_t val)
 {
     *((uint64_t*)(&buffer[*cursorp])) = val;
-    cursorp += 8;
+    *cursorp += 8;
 }
 
 /**
@@ -201,20 +201,6 @@ void audioCopy()
     NSUInteger sz = cursor;
     NSData *dataFile = [NSData dataWithBytes:copyBuffer8 length:sz];
     
-    // Stick our chunk in the clipboard
-    
-    /*
-    NSMutableArray *items = [NSMutableArray arrayWithCapacity:1];
-    NSRange curRange;
-    
-    curRange.location = 0;
-    curRange.length = sz;
-    NSData *subData = [dataFile subdataWithRange:curRange];
-    NSDictionary *dict = [NSDictionary dictionaryWithObject:subData forKey:(NSString *)kUTTypeAudio];
-    [items addObject:dict];
-    
-    board.items = items;
-     */
     [board setData:dataFile forPasteboardType:(NSString*)kUTTypeAudio];
 }
 
