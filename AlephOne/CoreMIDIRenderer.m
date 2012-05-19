@@ -46,10 +46,10 @@ void CoreMIDIRenderer_midiInit(struct Fretless_context* ctxp)
     midiBufferCount = 0;
     OSStatus status = 0;
     
-    status = MIDIClientCreate(CFSTR("AlephOne client"),CoreMIDIRenderer_midiStateChangedHander,NULL,&midiClient);
+    status = MIDIClientCreate(CFSTR("Cantor client"),CoreMIDIRenderer_midiStateChangedHander,NULL,&midiClient);
     if(midiClient != NULL && status == 0)
     {
-        status = MIDIOutputPortCreate(midiClient,CFSTR("AlephOne out port"),&midiOutPort);
+        status = MIDIOutputPortCreate(midiClient,CFSTR("Cantor out port"),&midiOutPort);
         if(midiOutPort == NULL || status != 0)
         {
             NSLog(@"Failed to allocate midi out port");

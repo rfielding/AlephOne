@@ -10,6 +10,8 @@
 		4910546B1561F37900FBBC15 /* MobileCoreServices.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4910546A1561F37900FBBC15 /* MobileCoreServices.framework */; };
 		4910546E1564A90400FBBC15 /* Cantors_cube72x72.png in Resources */ = {isa = PBXBuildFile; fileRef = 4910546D1564A90300FBBC15 /* Cantors_cube72x72.png */; };
 		491054701564A90D00FBBC15 /* Cantors_cube144x144.png in Resources */ = {isa = PBXBuildFile; fileRef = 4910546F1564A90D00FBBC15 /* Cantors_cube144x144.png */; };
+		491054721564C20000FBBC15 /* Cantors_cube57x57.png in Resources */ = {isa = PBXBuildFile; fileRef = 491054711564C20000FBBC15 /* Cantors_cube57x57.png */; };
+		491054741564C29400FBBC15 /* Cantors_cube114x114.png in Resources */ = {isa = PBXBuildFile; fileRef = 491054731564C29400FBBC15 /* Cantors_cube114x114.png */; };
 		493A9D97148B32E00029F6C9 /* GenericRendering.c in Sources */ = {isa = PBXBuildFile; fileRef = 493A9D95148B32E00029F6C9 /* GenericRendering.c */; };
 		49400BC2149D510800F5B7C0 /* ashmedi.png in Resources */ = {isa = PBXBuildFile; fileRef = 49400BC1149D510800F5B7C0 /* ashmedi.png */; };
 		49400BCD149D7D9200F5B7C0 /* tutorial.png in Resources */ = {isa = PBXBuildFile; fileRef = 49400BCC149D7D9200F5B7C0 /* tutorial.png */; };
@@ -92,6 +94,8 @@
 		4910546A1561F37900FBBC15 /* MobileCoreServices.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = MobileCoreServices.framework; path = System/Library/Frameworks/MobileCoreServices.framework; sourceTree = SDKROOT; };
 		4910546D1564A90300FBBC15 /* Cantors_cube72x72.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = Cantors_cube72x72.png; sourceTree = "<group>"; };
 		4910546F1564A90D00FBBC15 /* Cantors_cube144x144.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = Cantors_cube144x144.png; sourceTree = "<group>"; };
+		491054711564C20000FBBC15 /* Cantors_cube57x57.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = Cantors_cube57x57.png; sourceTree = "<group>"; };
+		491054731564C29400FBBC15 /* Cantors_cube114x114.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = Cantors_cube114x114.png; sourceTree = "<group>"; };
 		493A9D95148B32E00029F6C9 /* GenericRendering.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = GenericRendering.c; sourceTree = "<group>"; };
 		493A9D96148B32E00029F6C9 /* GenericRendering.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = GenericRendering.h; sourceTree = "<group>"; };
 		49400BC1149D510800F5B7C0 /* ashmedi.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = ashmedi.png; sourceTree = "<group>"; };
@@ -278,6 +282,8 @@
 		49B39069144914DB008C9F6E = {
 			isa = PBXGroup;
 			children = (
+				491054731564C29400FBBC15 /* Cantors_cube114x114.png */,
+				491054711564C20000FBBC15 /* Cantors_cube57x57.png */,
 				4910546F1564A90D00FBBC15 /* Cantors_cube144x144.png */,
 				4910546D1564A90300FBBC15 /* Cantors_cube72x72.png */,
 				4910546A1561F37900FBBC15 /* MobileCoreServices.framework */,
@@ -500,6 +506,8 @@
 				49EBD74D15035C9700E50DCA /* RawEngine.dsp in Resources */,
 				4910546E1564A90400FBBC15 /* Cantors_cube72x72.png in Resources */,
 				491054701564A90D00FBBC15 /* Cantors_cube144x144.png in Resources */,
+				491054721564C20000FBBC15 /* Cantors_cube57x57.png in Resources */,
+				491054741564C29400FBBC15 /* Cantors_cube114x114.png in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -623,7 +631,7 @@
 			buildSettings = {
 				ARCHS = "$(ARCHS_UNIVERSAL_IPHONE_OS)";
 				CODE_SIGN_IDENTITY = "iPhone Developer: Robert Fielding (7YBYR6MD2J)";
-				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
+				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer: Robert Fielding (7YBYR6MD2J)";
 				GCC_C_LANGUAGE_STANDARD = gnu99;
 				GCC_OPTIMIZATION_LEVEL = s;
 				GCC_PREPROCESSOR_DEFINITIONS = DEBUG;
@@ -632,8 +640,8 @@
 				GCC_WARN_ABOUT_RETURN_TYPE = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 5.0;
-				PROVISIONING_PROFILE = "617504A4-3142-4049-AD95-06B90D346B68";
-				"PROVISIONING_PROFILE[sdk=iphoneos*]" = "";
+				PROVISIONING_PROFILE = "495A8A7B-2A6E-45AF-8C7A-68446FB71BC7";
+				"PROVISIONING_PROFILE[sdk=iphoneos*]" = "495A8A7B-2A6E-45AF-8C7A-68446FB71BC7";
 				SDKROOT = iphoneos;
 				TARGETED_DEVICE_FAMILY = "1,2";
 			};
@@ -644,15 +652,15 @@
 			buildSettings = {
 				ARCHS = "$(ARCHS_UNIVERSAL_IPHONE_OS)";
 				CODE_SIGN_IDENTITY = "iPhone Developer: Robert Fielding (7YBYR6MD2J)";
-				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
+				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer: Robert Fielding (7YBYR6MD2J)";
 				GCC_C_LANGUAGE_STANDARD = gnu99;
 				GCC_VERSION = com.apple.compilers.llvmgcc42;
 				GCC_WARN_ABOUT_RETURN_TYPE = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 5.0;
 				OTHER_CFLAGS = "-DNS_BLOCK_ASSERTIONS=1";
-				PROVISIONING_PROFILE = "617504A4-3142-4049-AD95-06B90D346B68";
-				"PROVISIONING_PROFILE[sdk=iphoneos*]" = "";
+				PROVISIONING_PROFILE = "495A8A7B-2A6E-45AF-8C7A-68446FB71BC7";
+				"PROVISIONING_PROFILE[sdk=iphoneos*]" = "495A8A7B-2A6E-45AF-8C7A-68446FB71BC7";
 				SDKROOT = iphoneos;
 				TARGETED_DEVICE_FAMILY = "1,2";
 			};
@@ -662,6 +670,8 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
+				CODE_SIGN_IDENTITY = "iPhone Developer: Robert Fielding (7YBYR6MD2J)";
+				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer: Robert Fielding (7YBYR6MD2J)";
 				COPY_PHASE_STRIP = NO;
 				FRAMEWORK_SEARCH_PATHS = (
 					"$(inherited)",
@@ -679,6 +689,8 @@
 					"\"$(SRCROOT)\"",
 				);
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				PROVISIONING_PROFILE = "495A8A7B-2A6E-45AF-8C7A-68446FB71BC7";
+				"PROVISIONING_PROFILE[sdk=iphoneos*]" = "495A8A7B-2A6E-45AF-8C7A-68446FB71BC7";
 				TARGETED_DEVICE_FAMILY = "1,2";
 				WRAPPER_EXTENSION = app;
 			};
@@ -688,6 +700,8 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
+				CODE_SIGN_IDENTITY = "iPhone Developer: Robert Fielding (7YBYR6MD2J)";
+				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer: Robert Fielding (7YBYR6MD2J)";
 				COPY_PHASE_STRIP = YES;
 				FRAMEWORK_SEARCH_PATHS = (
 					"$(inherited)",
@@ -705,6 +719,8 @@
 					"\"$(SRCROOT)\"",
 				);
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				PROVISIONING_PROFILE = "495A8A7B-2A6E-45AF-8C7A-68446FB71BC7";
+				"PROVISIONING_PROFILE[sdk=iphoneos*]" = "495A8A7B-2A6E-45AF-8C7A-68446FB71BC7";
 				TARGETED_DEVICE_FAMILY = "1,2";
 				VALIDATE_PRODUCT = YES;
 				WRAPPER_EXTENSION = app;

@@ -855,8 +855,8 @@ void WidgetsAssemble()
 
     loopRepeatButton = CreateButton(PIC_LOOPREPEAT, farLeft, panelBottom, 0.28, panelTop, LoopRepeat_set, LoopRepeat_get, 1);
     loopCountInButton = CreateButton(PIC_LOOPRECORD, 0.28, panelBottom, 0.38, panelTop, LoopCountIn_set, LoopCountIn_get, 1);
-    loopFadeSlider = CreateSlider(PIC_LOOPCLEAR, 0.38, panelBottom, 0.50, panelTop, LoopFade_set, LoopFade_get);
-    loopFeedSlider = CreateSlider(PIC_LOOPPLAY, 0.50, panelBottom, 0.80, panelTop, LoopFeed_set, LoopFeed_get);
+    loopFadeSlider = CreateSlider(PIC_LOOPCLEAR, 0.38, panelBottom, 0.60, panelTop, LoopFade_set, LoopFade_get);
+    loopFeedSlider = CreateSlider(PIC_LOOPPLAY, 0.60, panelBottom, 0.80, panelTop, LoopFeed_set, LoopFeed_get);
     copyButton = CreateButton(PIC_COPY, 0.80, panelBottom, farRight, panelTop, Copy_set, Copy_get, 1);
     
     intonationSlider = CreateSlider(PIC_SCALETEXT,farLeft,panelBottom, 0.5,panelTop, Intonation_set, NULL);

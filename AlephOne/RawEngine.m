@@ -15,6 +15,7 @@
 #import <AVFoundation/AVFoundation.h>
 #import <Accelerate/Accelerate.h>
 #import <MobileCoreServices/UTCoreTypes.h>
+#import <AudioToolbox/CAFFile.h>
 
 #import "RawEngine.h"
 #import "RawEngineGenerated.h"
@@ -103,8 +104,8 @@ struct {
     float level;
 } loop;
 
-int16_t pasteL[LOOPBUFFERMAX];
-int16_t pasteR[LOOPBUFFERMAX];
+//Stereo 16bit 44.1khz stereo goes here, with space for CAFF headers appended
+char copyBuffer8[2*LOOPBUFFERMAX*2+1024];
 
 static inline long floatToSample(float f)
 {
@@ -118,30 +119,103 @@ static inline long floatToSample16(float f)
     return scaleFactor * f;
 }
 
+void audioCopyWrite8(char* buffer,int* cursorp,char val)
+{
+    buffer[*cursorp] = val;
+    cursorp += 1;
+}
+
+void audioCopyWrite16(char* buffer,int* cursorp,int16_t val)
+{
+    *((uint16_t*)(&buffer[*cursorp])) = val;
+    cursorp += 2;
+}
+
+void audioCopyWrite32(char* buffer,int* cursorp,int32_t val)
+{
+    *((uint32_t*)(&buffer[*cursorp])) = val;
+    cursorp += 4;
+}
+
+void audioCopyWrite64(char* buffer,int* cursorp,int64_t val)
+{
+    *((uint64_t*)(&buffer[*cursorp])) = val;
+    cursorp += 8;
+}
+
+/**
+ Write to a CAFF file:
+ 
+   'caff'
+   1:int16
+   0:int16
+   'desc'
+   sizeof(CAFAudioFormat):int64
+   sampleRate:float64        44100
+   formatId:int32 'lpcm'     kAudioFormatLinearPCM
+   bytesPerPacket:int32      4
+   framesPerPacket:int32     1
+   channelsPerFrame:int32    2
+   bitsPerChanne:int32       16
+   'data'
+   bufferSize:int64
+   editCount:int32 0
+   buffer[bufferSize]
+ */
 void audioCopy()
 {    
     UIPasteboard *board = [UIPasteboard generalPasteboard];
     
     // Write the straight loop in
-    NSUInteger sz = loop.size;
+    int cursor=0;
+    NSLog(@"writing CAF format to UIPasteboard");
+    NSLog(@"writing type,version,flags");
+    //Type,Version,Flags
+    audioCopyWrite32(copyBuffer8,&cursor,'caff');
+    audioCopyWrite16(copyBuffer8,&cursor,1);
+    audioCopyWrite16(copyBuffer8,&cursor,0);
+    //Chunk header, type, len
+    NSLog(@"writing description");
+    audioCopyWrite32(copyBuffer8,&cursor,'desc');
+    audioCopyWrite64(copyBuffer8,&cursor,48);
+    //Description
+    audioCopyWrite64(copyBuffer8,&cursor,44100);
+    audioCopyWrite32(copyBuffer8,&cursor,'lpcm');
+    audioCopyWrite32(copyBuffer8,&cursor,1);
+    audioCopyWrite32(copyBuffer8,&cursor,2);
+    audioCopyWrite32(copyBuffer8,&cursor,16);
+    
+    NSLog(@"writing dataheader");
+    audioCopyWrite32(copyBuffer8,&cursor,'data');
+    audioCopyWrite64(copyBuffer8,&cursor,loop.size*2);
+    
+    NSLog(@"writing data");
     for(int i=0; i<loop.size; i++)
     {
-        pasteL[i] = floatToSample16(loopBufferL[i + loop.firstOffset + loop.secondOffset]);
+        int16_t sampleL = floatToSample16(loopBufferL[i + loop.firstOffset + loop.secondOffset]);
+        int16_t sampleR = floatToSample16(loopBufferR[i + loop.firstOffset + loop.secondOffset]);
+        audioCopyWrite16(copyBuffer8,&cursor,sampleL);
+        audioCopyWrite16(copyBuffer8,&cursor,sampleR);
     }
-    NSData *dataFile = [NSData dataWithBytes:pasteL length:sz];
+    NSLog(@"copy data to pasteboard");
+    NSUInteger sz = cursor;
+    NSData *dataFile = [NSData dataWithBytes:copyBuffer8 length:sz];
     
     // Stick our chunk in the clipboard
     
+    /*
     NSMutableArray *items = [NSMutableArray arrayWithCapacity:1];
     NSRange curRange;
     
     curRange.location = 0;
-    curRange.length = loop.size;
+    curRange.length = sz;
     NSData *subData = [dataFile subdataWithRange:curRange];
     NSDictionary *dict = [NSDictionary dictionaryWithObject:subData forKey:(NSString *)kUTTypeAudio];
     [items addObject:dict];
     
     board.items = items;
+     */
+    [board setData:dataFile forPasteboardType:(NSString*)kUTTypeAudio];
 }
 
 float echoBufferL[ECHOBUFFERMAX] __attribute__ ((aligned));
@@ -920,6 +994,8 @@ void SoundEngine_start()
             audioFormat.mChannelsPerFrame = AUDIOCHANNELS;
             audioFormat.mBitsPerChannel = 8 * sizeof(AudioUnitSampleType);
             audioFormat.mReserved = 0;
+            
+            NSLog(@"%fhz %luchannel %lubit",audioFormat.mSampleRate,audioFormat.mChannelsPerFrame,audioFormat.mBitsPerChannel);
             // Apply format
             status = AudioUnitSetProperty(audioUnit,
                                           kAudioUnitProperty_StreamFormat,
