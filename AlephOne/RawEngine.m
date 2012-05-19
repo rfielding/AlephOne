@@ -177,17 +177,19 @@ void audioCopy()
     //Chunk header, type, len
     NSLog(@"writing description");
     audioCopyWrite32(copyBuffer8,&cursor,'desc');
-    audioCopyWrite64(copyBuffer8,&cursor,48);
+    audioCopyWrite64(copyBuffer8,&cursor,sizeof(CAFAudioDescription));
     //Description
-    audioCopyWrite64(copyBuffer8,&cursor,44100);
-    audioCopyWrite32(copyBuffer8,&cursor,'lpcm');
-    audioCopyWrite32(copyBuffer8,&cursor,1);
-    audioCopyWrite32(copyBuffer8,&cursor,2);
-    audioCopyWrite32(copyBuffer8,&cursor,16);
+    audioCopyWrite64(copyBuffer8,&cursor,44100);   //rate
+    audioCopyWrite32(copyBuffer8,&cursor,'lpcm');  //format
+    audioCopyWrite32(copyBuffer8,&cursor,2);       //flags -- little endian
+    audioCopyWrite32(copyBuffer8,&cursor,4);       //bytes per packet
+    audioCopyWrite32(copyBuffer8,&cursor,1);       //frames per packet
+    audioCopyWrite32(copyBuffer8,&cursor,2);       //channels
+    audioCopyWrite32(copyBuffer8,&cursor,16);      //bits per channel
     
     NSLog(@"writing dataheader");
     audioCopyWrite32(copyBuffer8,&cursor,'data');
-    audioCopyWrite64(copyBuffer8,&cursor,loop.size*2);
+    audioCopyWrite64(copyBuffer8,&cursor,loop.size*4);
     
     NSLog(@"writing data");
     for(int i=0; i<loop.size; i++)
