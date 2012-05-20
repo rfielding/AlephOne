@@ -127,19 +127,25 @@ void audioCopyWrite8(char* buffer,int* cursorp,char val)
 
 void audioCopyWrite16(char* buffer,int* cursorp,int16_t val)
 {
-    *((uint16_t*)(&buffer[*cursorp])) = val;
+    *((uint16_t*)(&buffer[*cursorp])) = CFSwapInt16HostToBig(val);
     *cursorp += 2;
 }
 
 void audioCopyWrite32(char* buffer,int* cursorp,int32_t val)
 {
-    *((uint32_t*)(&buffer[*cursorp])) = val;
+    *((uint32_t*)(&buffer[*cursorp])) = CFSwapInt32HostToBig(val);
     *cursorp += 4;
 }
 
 void audioCopyWrite64(char* buffer,int* cursorp,int64_t val)
 {
-    *((uint64_t*)(&buffer[*cursorp])) = val;
+    *((uint64_t*)(&buffer[*cursorp])) = CFSwapInt64HostToBig(val);
+    *cursorp += 8;
+}
+
+void audioCopyWrite64f(char* buffer,int* cursorp,double_t val)
+{
+    *((double_t*)(&buffer[*cursorp])) = CFSwapInt64HostToBig(val);
     *cursorp += 8;
 }
 
@@ -171,16 +177,16 @@ void audioCopy()
     NSLog(@"writing CAF format to UIPasteboard");
     NSLog(@"writing type,version,flags");
     //Type,Version,Flags
-    audioCopyWrite32(copyBuffer8,&cursor,'caff'); //type of file (magic)
+    audioCopyWrite32(copyBuffer8,&cursor,'caff'); //type of file (magic)    
     audioCopyWrite16(copyBuffer8,&cursor,1);      //version
     audioCopyWrite16(copyBuffer8,&cursor,0);      //flags
     //Chunk header, type, len
     audioCopyWrite32(copyBuffer8,&cursor,'desc'); //description header follows
     audioCopyWrite64(copyBuffer8,&cursor,32);     //32 to bytes required for it
     //Description
-    audioCopyWrite64(copyBuffer8,&cursor,44100);   //rate
+    audioCopyWrite64f(copyBuffer8,&cursor,44100);   //rate
     audioCopyWrite32(copyBuffer8,&cursor,'lpcm');  //format
-    audioCopyWrite32(copyBuffer8,&cursor,2);       //flags -- little endian
+    audioCopyWrite32(copyBuffer8,&cursor,0);       //flags -- big endian
     audioCopyWrite32(copyBuffer8,&cursor,4);       //bytes per packet
     audioCopyWrite32(copyBuffer8,&cursor,1);       //frames per packet
     audioCopyWrite32(copyBuffer8,&cursor,2);       //channels
@@ -190,7 +196,7 @@ void audioCopy()
     audioCopyWrite32(copyBuffer8,&cursor,'data');       //data follows
     audioCopyWrite64(copyBuffer8,&cursor,loop.size*4);  //4 bytes per stereo sample
     
-    NSLog(@"writing data");
+    NSLog(@"writing stereo 16bit 44.1hz stereo data of length %d",loop.size);
     for(int i=0; i<loop.size; i++)
     {
         //Is left or right first?  It will matter when I get paste to work on GB
