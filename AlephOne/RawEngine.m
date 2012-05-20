@@ -16,6 +16,7 @@
 #import <Accelerate/Accelerate.h>
 #import <MobileCoreServices/UTCoreTypes.h>
 #import <AudioToolbox/CAFFile.h>
+#import <CoreFoundation/CFByteOrder.h>
 
 #import "RawEngine.h"
 #import "RawEngineGenerated.h"
@@ -119,6 +120,12 @@ static inline long floatToSample16(float f)
     return scaleFactor * f;
 }
 
+void audioCopyWrite(char* buffer,int* cursorp,long val)
+{
+    buffer[*cursorp] = val;
+    *cursorp += 4;
+}
+
 void audioCopyWrite8(char* buffer,int* cursorp,char val)
 {
     buffer[*cursorp] = val;
@@ -145,29 +152,10 @@ void audioCopyWrite64(char* buffer,int* cursorp,int64_t val)
 
 void audioCopyWrite64f(char* buffer,int* cursorp,double_t val)
 {
-    *((double_t*)(&buffer[*cursorp])) = CFSwapInt64HostToBig(val);
+    *((double_t*)(&buffer[*cursorp])) = CFConvertDoubleHostToSwapped(val).v;
     *cursorp += 8;
 }
 
-/**
- Write to a CAFF file:
- 
-   'caff'
-   1:int16
-   0:int16
-   'desc'
-   sizeof(CAFAudioFormat):int64
-   sampleRate:float64        44100
-   formatId:int32 'lpcm'     kAudioFormatLinearPCM
-   bytesPerPacket:int32      4
-   framesPerPacket:int32     1
-   channelsPerFrame:int32    2
-   bitsPerChanne:int32       16
-   'data'
-   bufferSize:int64
-   editCount:int32 0
-   buffer[bufferSize]
- */
 void audioCopy()
 {    
     UIPasteboard *board = [UIPasteboard generalPasteboard];
@@ -183,8 +171,18 @@ void audioCopy()
     //Chunk header, type, len
     audioCopyWrite32(copyBuffer8,&cursor,'desc'); //description header follows
     audioCopyWrite64(copyBuffer8,&cursor,32);     //32 to bytes required for it
-    //Description
-    audioCopyWrite64f(copyBuffer8,&cursor,44100);   //rate
+    
+    //Description 44100 in float bigendian - not sure why the simple thing didn't work,
+    //but this *does* work.
+    audioCopyWrite8(copyBuffer8,&cursor,0x40);
+    audioCopyWrite8(copyBuffer8,&cursor,0xE5);
+    audioCopyWrite8(copyBuffer8,&cursor,0x88);
+    audioCopyWrite8(copyBuffer8,&cursor,0x80);
+    audioCopyWrite8(copyBuffer8,&cursor,0x00);
+    audioCopyWrite8(copyBuffer8,&cursor,0x00);
+    audioCopyWrite8(copyBuffer8,&cursor,0x00);
+    audioCopyWrite8(copyBuffer8,&cursor,0x00);
+    
     audioCopyWrite32(copyBuffer8,&cursor,'lpcm');  //format
     audioCopyWrite32(copyBuffer8,&cursor,0);       //flags -- big endian
     audioCopyWrite32(copyBuffer8,&cursor,4);       //bytes per packet
@@ -195,6 +193,11 @@ void audioCopy()
     NSLog(@"writing dataheader");
     audioCopyWrite32(copyBuffer8,&cursor,'data');       //data follows
     audioCopyWrite64(copyBuffer8,&cursor,loop.size*4);  //4 bytes per stereo sample
+    
+    for(int i=0;i<16*4;i++)
+    {
+        printf("%1.2x ",(unsigned char)copyBuffer8[i]);
+    }
     
     NSLog(@"writing stereo 16bit 44.1hz stereo data of length %d",loop.size);
     for(int i=0; i<loop.size; i++)
