@@ -426,7 +426,7 @@ void ScaleControl_defaults(void*ctx)
     }
     etPicked[0][2][7] = 4;
     
-    ScaleControl_setCurrentScale(3);
+    ScaleControl_setCurrentScale(2);
 }
 
 struct ScaleControl_data* ScaleControl_create(float x1,float y1, float x2,float y2)

@@ -53,11 +53,13 @@ struct WidgetTree_rect* SurfaceDraw_create()
 void SurfaceDraw_drawBackground()
 {    
     //Draw the app logo
+    /*
     VertexObjectBuilder_startTexturedObject(voCtxDynamic,trianglestrip,PIC_ALEPHONE);
     VertexObjectBuilder_addTexturedVertex(voCtxDynamic, 0.1+0.00, 0.05+0.00, 0, 0,0);
     VertexObjectBuilder_addTexturedVertex(voCtxDynamic, 0.1+0.00, 0.05+0.25, 0, 0,1);
     VertexObjectBuilder_addTexturedVertex(voCtxDynamic, 0.1+0.20, 0.05+0.00, 0, 1,0);
     VertexObjectBuilder_addTexturedVertex(voCtxDynamic, 0.1+0.20, 0.05+0.25, 0, 1,1);    
+     */
     VertexObjectBuilder_startColoredObject(voCtxDynamic,trianglestrip);
     VertexObjectBuilder_addColoredVertex(voCtxDynamic, 0, 0, 0, 0,0,0,200);
     VertexObjectBuilder_addColoredVertex(voCtxDynamic, 0, 1, 0, 0,0,0,200);
