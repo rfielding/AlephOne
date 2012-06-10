@@ -240,7 +240,8 @@ void drawMoveableFrets()
 void drawFingerLocation()
 {
     float dx = 0.0125;
-    float dy = 0.3;
+    float rows = PitchHandler_getRowCount(phctx);
+    float dy = 1.0 / rows;
     
     VertexObjectBuilder_startColoredObject(voCtxDynamic, triangles);
     for(int f=0; f<FINGERMAX; f++)
@@ -270,8 +271,10 @@ void drawFingerLocation()
 
 void drawPitchLocation()
 {
+    float cols = PitchHandler_getColCount(phctx);
     float dx = 0.0125;
-    float dy = 0.3;
+    float rows = PitchHandler_getRowCount(phctx);
+    float dy = 1.0 / rows;
     
     VertexObjectBuilder_startColoredObject(voCtxDynamic, triangles);
     for(int f=0; f<FINGERMAX; f++)
@@ -297,8 +300,6 @@ void drawPitchLocation()
             
         }
     }    
-    float cols = PitchHandler_getColCount(phctx);
-    float rows = PitchHandler_getRowCount(phctx);
     VertexObjectBuilder_startColoredObject(voCtxDynamic, lines);
     for(int f=0; f<FINGERMAX; f++)
     {
