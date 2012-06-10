@@ -508,7 +508,7 @@ float MidiSpan_get(void* ctx)
 
 void OctAuto_set(void* ctx, int val)
 {
-    SetHelp("Octave Switch Auto");
+    SetHelp("Picks closest note regardless of current octave");
     PitchHandler_setOctaveRounding(phctx, val);
 }
 
