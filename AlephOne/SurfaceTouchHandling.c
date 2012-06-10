@@ -17,7 +17,7 @@
 
 static float chorusLevelDesired = 0.1;
 static float chorusLevel = 0;
-static float baseVolume = 1.0;
+static float baseVolume = 0.75;
 static int legato = 2;
 static int poly = 1;
 

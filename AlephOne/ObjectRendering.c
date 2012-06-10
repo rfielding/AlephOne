@@ -86,6 +86,10 @@ struct Slider_data* heightSlider;
 
 struct Slider_data* intonationSlider;
 struct Slider_data* rootNoteSlider;
+struct Button_data* rootUpButton;
+struct Button_data* rootDownButton;
+struct Button_data* rootUp12Button;
+struct Button_data* rootDown12Button;
 
 
 struct Slider_data* midiChannelSlider;
@@ -252,6 +256,10 @@ void Page_set(void* ctx, int val)
     widthSlider->rect->isActive = FALSE;
     heightSlider->rect->isActive = FALSE;
     rootNoteSlider->rect->isActive = FALSE;
+    rootDownButton->rect->isActive = FALSE;
+    rootUpButton->rect->isActive = FALSE;
+    rootDown12Button->rect->isActive = FALSE;
+    rootUp12Button->rect->isActive = FALSE;
     midiChannelSlider->rect->isActive = FALSE;
     midiChannelSpanSlider->rect->isActive = FALSE;
     midiBendSlider->rect->isActive = FALSE;
@@ -316,6 +324,10 @@ void Page_set(void* ctx, int val)
         case PAGE_ROUND:
             baseSlider->rect->isActive = TRUE;
             octAutoButton->rect->isActive = TRUE;
+            rootUpButton->rect->isActive = TRUE;
+            rootDownButton->rect->isActive = TRUE;
+            rootUp12Button->rect->isActive = TRUE;
+            rootDown12Button->rect->isActive = TRUE;
             break;
         case PAGE_LOOP:
             loopCountInButton->rect->isActive = TRUE;
@@ -744,6 +756,38 @@ void RootNote_set(void* ctx, float val)
     ScaleControl_setBaseNote(baseNote);
 }
 
+void RootUp_set(void* ctx, int v)
+{
+    SetHelp("Center Up 1");
+    int val = PitchHandler_getNoteDiff(phctx);
+    if(val <=126 )val++;
+    NoteDiff_set(NULL,val*1.0/126);
+}
+
+void RootDown_set(void* ctx, int v)
+{
+    SetHelp("Center Down 1");
+    int val = PitchHandler_getNoteDiff(phctx);
+    if(val >=1 )val--;
+    NoteDiff_set(NULL,val*1.0/126);
+}
+
+void RootUp12_set(void* ctx, int v)
+{
+    SetHelp("Center Up 12");
+    int val = PitchHandler_getNoteDiff(phctx);
+    if(val+12 <=126 )val+=12;
+    NoteDiff_set(NULL,val*1.0/126);
+}
+
+void RootDown12_set(void* ctx, int v)
+{
+    SetHelp("Center Down 12");
+    int val = PitchHandler_getNoteDiff(phctx);
+    if(val-12 >=1 )val-=12;
+    NoteDiff_set(NULL,val*1.0/126);
+}
+
 void Help_Render(void* ctx)
 {
     VertexObjectBuilder_startTexturedObject(voCtxDynamic,trianglestrip,PIC_HELPME);
@@ -777,6 +821,7 @@ void ObjectRendering_loadImages()
     renderLabel("Center",PIC_BASENOTETEXT);
     renderLabel("Scale",PIC_SCALETEXT);
     renderLabel("Width",PIC_WIDTHTEXT);
+
     
     renderLabel("\u219E",PIC_PAGE1TEXT);
     renderLabel("\u21A0",PIC_PAGE2TEXT);
@@ -799,7 +844,11 @@ void ObjectRendering_loadImages()
     renderLabel("Space", PIC_REVERBTEXT);
     
     renderLabel("Oct Auto", PIC_OCTTEXT);
-    
+    renderLabel("-1",PIC_ROOTDOWN);
+    renderLabel("+1",PIC_ROOTUP);
+    renderLabel("-12",PIC_ROOTDOWN12);
+    renderLabel("+12",PIC_ROOTUP12);
+   
     renderLabel("Legato:y", PIC_LEGATOTEXT);
     renderLabel("String", PIC_POLYTEXT);
     renderLabel("Velocity", PIC_BASEVOLTEXT);
@@ -872,7 +921,16 @@ void WidgetsAssemble()
     baseVolumeSlider = CreateSlider(PIC_BASEVOLTEXT, 0.5,panelBottom, farRight,panelTop, Vel_set, Vel_get);
     
     octAutoButton = CreateButton(PIC_OCTTEXT,farLeft,panelBottom,farLeft+0.2,panelTop, OctAuto_set, OctAuto_get, 2);
-    baseSlider = CreateSlider(PIC_BASENOTETEXT,farLeft+0.2,panelBottom, farRight,panelTop, NoteDiff_set, NoteDiff_get);    
+    float edge = farLeft+0.2;
+    rootDown12Button = CreateButton(PIC_ROOTDOWN12, edge, panelBottom, edge+0.1, panelTop, RootDown12_set, NULL, 1);
+    edge += 0.1;
+    rootUp12Button   = CreateButton(PIC_ROOTUP12, edge, panelBottom, edge+0.1, panelTop, RootUp12_set, NULL, 1);
+    edge += 0.1;
+    rootDownButton = CreateButton(PIC_ROOTDOWN, edge, panelBottom, edge+0.1, panelTop, RootDown_set, NULL, 1);
+    edge += 0.1;
+    rootUpButton   = CreateButton(PIC_ROOTUP, edge, panelBottom, edge+0.1, panelTop, RootUp_set, NULL, 1);
+    edge += 0.1;
+    baseSlider = CreateSlider(PIC_BASENOTETEXT,edge,panelBottom, farRight,panelTop, NoteDiff_set, NoteDiff_get);    
     
     initialSnapButton = CreateButton(PIC_INITIALSNAPTEXT, farLeft, panelBottom, 0.25, panelTop, Snap_set, Snap_get, 2);
     snapSpeedSlider = CreateSlider(PIC_SNAPSPEEDTEXT, 0.25, panelBottom, 0.48, panelTop, SnapSpeed_set, SnapSpeed_get);

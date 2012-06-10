@@ -59,5 +59,9 @@
 #define PIC_LOOPREPEAT 46
 #define PIC_LOOPCLEAR 47
 #define PIC_COPY 48
+#define PIC_ROOTUP 49
+#define PIC_ROOTDOWN 50
+#define PIC_ROOTUP12 51
+#define PIC_ROOTDOWN12 52
 
 #define PIC_HELPME 255
