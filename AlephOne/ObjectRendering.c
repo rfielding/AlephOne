@@ -341,6 +341,7 @@ void Page_set(void* ctx, int val)
 
 void Page_jump_set(void* ctx,int val,int jump)
 {
+    SetHelp("http://rfieldin.appspot.com");
     //The two buttons are always in sync
     currentPage = (currentPage + PAGEMAX + jump) % PAGEMAX;
     Page_set(ctx, currentPage);
@@ -469,7 +470,7 @@ float Detune_get(void* ctx)
 
 void Sensitivity_set(void* ctx, float val)
 {
-    SetHelp("Finger-Area Sense");
+    SetHelp("Finger-Area Sense level");
     setSensitivity(val);
 }
 

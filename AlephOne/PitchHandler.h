@@ -90,4 +90,3 @@ void PitchHandler_getFretsBegin(struct PitchHandler_context* ctx);
 int PitchHandler_getFret(struct PitchHandler_context* ctx, float* pitch,float* x,float* y,int* importance,float* usage,int* fretval);
 
 
-

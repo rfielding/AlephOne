@@ -20,7 +20,7 @@ struct PitchHandler_context
     float rowCount;
     float colCount;
     int noteDiff; //(48-1);
-
+    
     int   lastFingerDown;
     float lastNoteDown;
     int   noteDiffOurs;

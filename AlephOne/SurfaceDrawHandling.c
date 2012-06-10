@@ -195,6 +195,20 @@ void drawMoveableFrets()
                 green = 255;  
                 trans = 64+usage*64;
             }            
+            else
+            {
+                if(importance == 4)
+                {
+                    red = 255;
+                    green = 0;
+                    blue = 0;
+                    trans = 200;
+                    rede = 255;
+                    greene = 100;
+                    bluee = 100;
+                    transe = 0;
+                }            
+            }
         }
         
         

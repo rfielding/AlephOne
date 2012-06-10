@@ -871,7 +871,7 @@ void rawEngine(int midiChannel,int doNoteAttack,float pitch,float volVal,int mid
             int rampVal = 1;
             if(volVal == 0)
             {
-                rampVal++;
+                rampVal+=2;
             }
             setRamp(&allFingers.finger[channel].volRamp, rampVal, volVal);            
         }
