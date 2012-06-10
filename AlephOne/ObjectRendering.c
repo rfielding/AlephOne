@@ -36,15 +36,15 @@
 
 #define PAGEMAX 9
 
-#define PAGE_LOOP 1
 #define PAGE_SCALE 0
+#define PAGE_LOOP 1
 #define PAGE_REVERB 2
 #define PAGE_POLY 3
-#define PAGE_ROUND 4
+#define PAGE_MIDI 4
 #define PAGE_SNAP 5
 #define PAGE_WIDTH 6
 #define PAGE_FRETS 7
-#define PAGE_MIDI 8
+#define PAGE_ROUND 8
 
 static void* ObjectRendering_imageContext;
 static void (*ObjectRendering_imageRender)(void*,char*,unsigned int*,float*,float*,int);

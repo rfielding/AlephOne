@@ -164,7 +164,9 @@ static float scaleFactor = 2;
 - (void)configureSurface
 {
     //0.0 is C
-    struct Fret_context* frctx = PitchHandler_frets(phctx);
+    //struct Fret_context* frctx = PitchHandler_frets(phctx);
+    
+    /*
     Fret_clearFrets(frctx);
     
     float baseNote = 2.0; //D
@@ -187,6 +189,7 @@ static float scaleFactor = 2;
     Fret_placeFret(frctx,baseNote + 2.0 + 7,3);
     Fret_placeFret(frctx,baseNote + 3.0 + 7,3);
     Fret_placeFret(frctx,baseNote + 4.0 + 7,2);
+     */
     
     if (UI_USER_INTERFACE_IDIOM() == UIUserInterfaceIdiomPad)
     {
