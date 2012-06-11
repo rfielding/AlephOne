@@ -104,7 +104,7 @@ struct Button_data* octAutoButton;
 
 struct Button_data* scaleControlButton;
 struct ScaleControl_data* scaleControl;
-struct Button_data* scaleClearButton;
+//struct Button_data* scaleClearButton;
 struct Button_data* scaleToggleButton;
 struct Button_data* scaleCommitButton;
 
@@ -270,7 +270,6 @@ void Page_set(void* ctx, int val)
     scaleControlButton->rect->isActive = FALSE;
     scaleControlButton->val = 0;
     scaleControl->rect->isActive = FALSE;
-    scaleClearButton->rect->isActive = FALSE;
     scaleToggleButton->rect->isActive = FALSE;
     scaleCommitButton->rect->isActive = FALSE;
     initialSnapButton->rect->isActive = FALSE;
@@ -366,7 +365,7 @@ int Page_get(void* ctx)
 
 void NoteDiff_set(void* ctx, float val)
 {
-    SetHelp("Set Root Note");
+    SetHelp("Center Move");
     //PitchHandler_setNoteDiff(phctx, 24-1+24*val);
     PitchHandler_setNoteDiff(phctx, val*126);
     SurfaceDraw_drawBackground();
@@ -437,7 +436,7 @@ float Distortion_get(void* ctx)
 
 void Timbre_set(void* ctx, float val)
 {
-    SetHelp("Harmonic Richness");
+    SetHelp("Harmonics/CC#11");
     setTimbre(val);
 }
 
@@ -470,7 +469,7 @@ float Detune_get(void* ctx)
 
 void Sensitivity_set(void* ctx, float val)
 {
-    SetHelp("Finger-Area Sense level");
+    SetHelp("FingerArea/ChannPressure");
     setSensitivity(val);
 }
 
@@ -509,7 +508,7 @@ float MidiSpan_get(void* ctx)
 
 void OctAuto_set(void* ctx, int val)
 {
-    SetHelp("Picks closest note regardless of current octave");
+    SetHelp("Switch octaves automatically");
     PitchHandler_setOctaveRounding(phctx, val);
 }
 
@@ -565,7 +564,7 @@ float Vel_get(void* ctx)
 
 void Vel_set(void* ctx, float vel)
 {
-    SetHelp("Note Velocity");
+    SetHelp("MIDI Velocity Center");
     SurfaceTouchHandling_setBaseVolume(vel);
 }
 
@@ -587,9 +586,8 @@ float MidiBend_get(void* ctx)
 
 void Scale_set(void* ctx,int val)
 {
-    SetHelp("Scale Shape");
+    SetHelp("Scale Shape - Advanced");
     scaleControl->rect->isActive = val;
-    scaleClearButton->rect->isActive = val;
     scaleToggleButton->rect->isActive = val;
     scaleCommitButton->rect->isActive = val;
 }
@@ -759,34 +757,34 @@ void RootNote_set(void* ctx, float val)
 
 void RootUp_set(void* ctx, int v)
 {
-    SetHelp("Center Up 1");
     int val = PitchHandler_getNoteDiff(phctx);
     if(val <=126 )val++;
     NoteDiff_set(NULL,val*1.0/126);
+    SetHelp("Center Up Semitone");
 }
 
 void RootDown_set(void* ctx, int v)
 {
-    SetHelp("Center Down 1");
     int val = PitchHandler_getNoteDiff(phctx);
     if(val >=1 )val--;
     NoteDiff_set(NULL,val*1.0/126);
+    SetHelp("Center Down Semitone");
 }
 
 void RootUp12_set(void* ctx, int v)
 {
-    SetHelp("Center Up 12");
     int val = PitchHandler_getNoteDiff(phctx);
     if(val+12 <=126 )val+=12;
     NoteDiff_set(NULL,val*1.0/126);
+    SetHelp("Center Up Octave");
 }
 
 void RootDown12_set(void* ctx, int v)
 {
-    SetHelp("Center Down 12");
     int val = PitchHandler_getNoteDiff(phctx);
     if(val-12 >=1 )val-=12;
     NoteDiff_set(NULL,val*1.0/126);
+    SetHelp("Center Down Octave");
 }
 
 void Help_Render(void* ctx)
@@ -868,7 +866,7 @@ void ObjectRendering_loadImages()
     renderLabel("Loop", PIC_LOOPREPEAT);
     renderLabel("Copy", PIC_COPY);
     renderLabel("Rate", PIC_LOOPCLEAR);
-    renderLabel("Fade/Feed", PIC_LOOPPLAY);
+    renderLabel("Feed/Fade", PIC_LOOPPLAY);
     
     renderLabel("Sensitivity", PIC_SENSITIVITY);
     
@@ -943,8 +941,7 @@ void WidgetsAssemble()
     
     scaleControlButton = CreateButton(PIC_SCALEBUTTONTEXT, farLeft, panelBottom, 0.28, panelTop, Scale_set, Scale_get, 2);
     scaleControl = ScaleControl_create(0, 0, 1, panelBottom);
-    scaleClearButton = CreateButton(PIC_SCALECLEARTEXT,0.28,panelBottom, 0.48,panelTop, ScaleClear_set,ScaleClear_get,1);
-    scaleToggleButton = CreateButton(PIC_SCALETOGGLETEXT,0.48,panelBottom, 0.68,panelTop, ScaleToggle_set,ScaleToggle_get,1);    
+    scaleToggleButton = CreateButton(PIC_SCALETOGGLETEXT,0.28,panelBottom, 0.68,panelTop, ScaleToggle_set,ScaleToggle_get,1);    
     scaleCommitButton = CreateButton(PIC_SCALEFRETDEFAULTTEXT,0.68,panelBottom, 0.88,panelTop, ScaleFretDefaults_set,ScaleFretDefaults_get,1);
 
     midiChannelSlider = CreateSlider(PIC_MIDIBASETEXT, farLeft,panelBottom, 0.33,panelTop, MidiBase_set, MidiBase_get);    

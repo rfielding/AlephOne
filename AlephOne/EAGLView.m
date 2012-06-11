@@ -121,8 +121,9 @@ static float scaleFactor = 2;
     glBindTexture(GL_TEXTURE_2D, textures[0]);
     
     void* imageData = NULL;
-    unsigned int width=256 * scaleFactor;
-    unsigned int height=32 * scaleFactor;
+    int iPadScale = (UI_USER_INTERFACE_IDIOM() == UIUserInterfaceIdiomPad) ? 2 : 1;
+    unsigned int width=256 * scaleFactor * iPadScale;
+    unsigned int height=32 * scaleFactor * iPadScale;
     
  
     // Create the color space.
@@ -142,7 +143,7 @@ static float scaleFactor = 2;
     CGContextClearRect(context, CGRectMake(0, 0, width, height));
     
     // Get the font.
-    UIFont *font = [UIFont fontWithName:@"Helvetica" size:20*scaleFactor];
+    UIFont *font = [UIFont fontWithName:@"Helvetica" size:iPadScale*20*scaleFactor];
     
     
     CGContextSetGrayFillColor(context, 1.0, 1.0);
@@ -163,50 +164,18 @@ static float scaleFactor = 2;
 
 - (void)configureSurface
 {
-    //0.0 is C
-    //struct Fret_context* frctx = PitchHandler_frets(phctx);
-    
-    /*
-    Fret_clearFrets(frctx);
-    
-    float baseNote = 2.0; //D
-    //First tetrachord
-    Fret_placeFret(frctx,baseNote + 0.0,3);
-    Fret_placeFret(frctx,baseNote + 1.0,2);
-    Fret_placeFret(frctx,baseNote + 1.5,1);
-    Fret_placeFret(frctx,baseNote + 2.0,3);
-    Fret_placeFret(frctx,baseNote + 3.0,3);
-    Fret_placeFret(frctx,baseNote + 4.0,2);
-    //Second tetrachord
-    Fret_placeFret(frctx,baseNote + 0.0 + 5,3);
-    Fret_placeFret(frctx,baseNote + 1.0 + 5,2);
-    Fret_placeFret(frctx,baseNote + 1.5 + 5,1);
-    //Tetrachord from fifth
-    Fret_placeFret(frctx,baseNote + 0.0 + 7,3);
-    Fret_placeFret(frctx,baseNote + 1.0 + 7,2);
-    
-    Fret_placeFret(frctx,baseNote + 1.5 + 7,1);
-    Fret_placeFret(frctx,baseNote + 2.0 + 7,3);
-    Fret_placeFret(frctx,baseNote + 3.0 + 7,3);
-    Fret_placeFret(frctx,baseNote + 4.0 + 7,2);
-     */
     
     if (UI_USER_INTERFACE_IDIOM() == UIUserInterfaceIdiomPad)
     {
         PitchHandler_setColCount(phctx,12);
-        PitchHandler_setRowCount(phctx,6);                
+        PitchHandler_setRowCount(phctx,6.5);                
     }
     else
     {
         PitchHandler_setColCount(phctx,5);
         PitchHandler_setRowCount(phctx,3.5);        
     }
-    for(int s=0; s<16; s++)
-    {
-        //Set to Just fourths
-//        PitchHandler_setTuneInterval(phctx,s,4.9804499913461244);
-//        PitchHandler_setTuneInterval(phctx,s,7);
-    }
+
     PitchHandler_setNoteDiff(phctx,45); //A is bottom corner
     PitchHandler_setTuneSpeed(phctx,0.25);
     Fretless_setMidiHintChannelSpan(fctx, 16);
