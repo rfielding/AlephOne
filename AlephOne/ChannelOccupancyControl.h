@@ -16,9 +16,6 @@ struct ChannelOccupancyControl_data
 };
 
 void ChannelOccupancyControl_init(
-                                         int trianglesArg,
-                                         int trianglestripArg,
-                                         int linestripArg,
                                          struct VertexObjectBuilder* voCtxDynamicArg, 
                                          struct Fretless_context* fctxArg
                                          );

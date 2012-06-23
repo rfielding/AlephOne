@@ -14,6 +14,7 @@
 #include "WidgetConstants.h"
 #include <math.h>
 #include "FretlessCommon.h"
+#include "GraphicsCommon.h"
 
 static int triangles;
 static int trianglestrip;
@@ -24,15 +25,9 @@ static struct PitchHandler_context* phctx;
 
 void SurfaceDraw_init(
                           struct VertexObjectBuilder* voCtxDynamicArg,
-                          struct PitchHandler_context* phctxArg,
-                          int trianglesArg,
-                          int trianglestripArg,
-                          int linesArg
+                          struct PitchHandler_context* phctxArg
                       )
 {
-    triangles = trianglesArg;
-    trianglestrip = trianglestripArg;
-    lines = linesArg;
     phctx = phctxArg;
     voCtxDynamic = voCtxDynamicArg;
 }

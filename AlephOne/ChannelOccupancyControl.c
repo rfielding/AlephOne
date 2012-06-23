@@ -15,26 +15,18 @@
 
 #include "WidgetConstants.h"
 #include <stdlib.h>
+#include "GraphicsCommon.h"
 
-static int triangles;
-static int trianglestrip;
-static int linestrip;
 static struct VertexObjectBuilder* voCtxDynamic;
 static struct Fretless_context* fctx;
 
 void ChannelOccupancyControl_init(
-                                      int trianglesArg,
-                                      int trianglestripArg,
-                                      int linestripArg,
                                       struct VertexObjectBuilder* voCtxDynamicArg, 
                                       struct Fretless_context* fctxArg
                                       )
 {
     fctx = fctxArg;
     voCtxDynamic = voCtxDynamicArg;
-    triangles = trianglesArg;
-    trianglestrip = trianglestripArg;
-    linestrip = linestripArg;
 }
 
 void drawOccupancyHandle(float cx, float cy, float diameter,float z)
@@ -71,7 +63,7 @@ void ChannelOccupancyControl_render(void* ctx)
     float r = (diameter*0.25);
     float r2 = r + diameter*0.05;
     
-    VertexObjectBuilder_startColoredObject(voCtxDynamic,trianglestrip);    
+    VertexObjectBuilder_startColoredObject(voCtxDynamic,GRAPHICS_TRIANGLE_STRIP);    
     for(int channel=bottom; channel<(bottom+span); channel++)
     {
         float a = channel/16.0 * 2*M_PI;
@@ -83,7 +75,7 @@ void ChannelOccupancyControl_render(void* ctx)
     
     float rLo = r/2 - (r/2)/bend;
     float rHi = r/2 + (r/2)/bend;
-    VertexObjectBuilder_startColoredObject(voCtxDynamic,trianglestrip);    
+    VertexObjectBuilder_startColoredObject(voCtxDynamic,GRAPHICS_TRIANGLE_STRIP);    
     for(int channel=bottom; channel<(bottom+span+1); channel++)
     {
         float a = channel/16.0 * 2*M_PI;
@@ -94,7 +86,7 @@ void ChannelOccupancyControl_render(void* ctx)
     }    
     //VertexObjectBuilder_addColoredVertex(voCtxDynamic,cx,cy+r,0,0, 255, 0,127);  
     
-    VertexObjectBuilder_startColoredObject(voCtxDynamic,triangles);
+    VertexObjectBuilder_startColoredObject(voCtxDynamic,GRAPHICS_TRIANGLES);
     drawOccupancyHandle(cx,cy,diameter,bottom);
     drawOccupancyHandle(cx,cy,diameter,top);
     
@@ -131,7 +123,7 @@ void ChannelOccupancyControl_render(void* ctx)
         VertexObjectBuilder_addColoredVertex(voCtxDynamic,cx+rD*sinC,cy+rD*cosC,0,red*0.5, green*0.5, blue*0.5,255);  
         
     }
-    VertexObjectBuilder_startTexturedObject(voCtxDynamic,trianglestrip,PIC_CHANNELCYCLINGTEXT);
+    VertexObjectBuilder_startTexturedObject(voCtxDynamic,GRAPHICS_TRIANGLE_STRIP,PIC_CHANNELCYCLINGTEXT);
     VertexObjectBuilder_addTexturedVertex(voCtxDynamic, cx-diameter/2 + diameter/8, cy+diameter/8 - diameter/5, 0, 0,1);
     VertexObjectBuilder_addTexturedVertex(voCtxDynamic, cx-diameter/2 + diameter/8, cy-diameter/8 - diameter/5, 0, 0,0);
     VertexObjectBuilder_addTexturedVertex(voCtxDynamic, cx+diameter/2 + diameter/8, cy+diameter/8 - diameter/5, 0, 1,1);

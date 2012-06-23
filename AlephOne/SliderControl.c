@@ -10,26 +10,17 @@
 #include "VertexObjectBuilder.h"
 #include "WidgetTree.h"
 #include <stdlib.h>
+#include "GraphicsCommon.h"
 
-
-static int triangles;
-static int trianglestrip;
-static int linestrip;
 static struct VertexObjectBuilder* voCtxDynamic;
 static struct PitchHandler_context* phctx;
 
 
 void SliderControl_init(
                       struct VertexObjectBuilder* voCtxDynamicArg,
-                      struct PitchHandler_context* phctxArg,
-                      int trianglesArg,
-                      int trianglestripArg,
-                      int linestripArg
+                      struct PitchHandler_context* phctxArg
                       )
 {
-    triangles = trianglesArg;
-    trianglestrip = trianglestripArg;
-    linestrip = linestripArg;
     phctx = phctxArg;
     voCtxDynamic = voCtxDynamicArg;
 }
@@ -43,19 +34,19 @@ void Slider_render(void* ctx)
     float dx = 0.002;
     struct WidgetTree_rect* w = slider->rect;
     float xv = w->x1 + slider->getter(slider) * (w->x2 - w->x1);
-    VertexObjectBuilder_startColoredObject(voCtxDynamic,trianglestrip);
+    VertexObjectBuilder_startColoredObject(voCtxDynamic,GRAPHICS_TRIANGLE_STRIP);
     VertexObjectBuilder_addColoredVertex(voCtxDynamic, w->x1+dx, w->y1+dy, 0, 0,255,0,200);
     VertexObjectBuilder_addColoredVertex(voCtxDynamic, w->x1+dx, w->y2-dy, 0, 0,  0,0,180);
     VertexObjectBuilder_addColoredVertex(voCtxDynamic, xv,    w->y1+dy, 0, 0,255,0,180);
     VertexObjectBuilder_addColoredVertex(voCtxDynamic, xv,    w->y2-dy, 0, 0,  0,0,180);    
     
-    VertexObjectBuilder_startColoredObject(voCtxDynamic,trianglestrip);
+    VertexObjectBuilder_startColoredObject(voCtxDynamic,GRAPHICS_TRIANGLE_STRIP);
     VertexObjectBuilder_addColoredVertex(voCtxDynamic, xv,    w->y1+dy, 0, 0, 50,50,150);
     VertexObjectBuilder_addColoredVertex(voCtxDynamic, xv,    w->y2-dy, 0, 0, 50,50,150);
     VertexObjectBuilder_addColoredVertex(voCtxDynamic, w->x2-dx, w->y1+dy, 0, 0, 50,50,150);
     VertexObjectBuilder_addColoredVertex(voCtxDynamic, w->x2-dx, w->y2-dy, 0, 0, 50,50,150); 
     
-    VertexObjectBuilder_startColoredObject(voCtxDynamic,linestrip);
+    VertexObjectBuilder_startColoredObject(voCtxDynamic,GRAPHICS_LINE_STRIP);
     VertexObjectBuilder_addColoredVertex(voCtxDynamic, w->x1+dx,    w->y1+dy, 0, 0, 200, 0,150);
     VertexObjectBuilder_addColoredVertex(voCtxDynamic, w->x1+dx,    w->y2-dy, 0, 0, 100,50, 50);
     VertexObjectBuilder_addColoredVertex(voCtxDynamic, w->x2-dx,    w->y2-dy, 0, 0, 100,50, 80);
@@ -64,7 +55,7 @@ void Slider_render(void* ctx)
     float s = 0.02;
     dx = 0.4;
     dy = 0.06;
-    VertexObjectBuilder_startTexturedObject(voCtxDynamic,trianglestrip,slider->label);
+    VertexObjectBuilder_startTexturedObject(voCtxDynamic,GRAPHICS_TRIANGLE_STRIP,slider->label);
     VertexObjectBuilder_addTexturedVertex(voCtxDynamic, w->x1+s, w->y1, 0, 0,0);
     VertexObjectBuilder_addTexturedVertex(voCtxDynamic, w->x1+s, w->y1+dy, 0, 0,1);
     VertexObjectBuilder_addTexturedVertex(voCtxDynamic, w->x1+dx+s, w->y1, 0, 1,0);

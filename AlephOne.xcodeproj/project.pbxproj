@@ -107,6 +107,7 @@
 		49400BE7149EE7D500F5B7C0 /* ObjectRendering.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ObjectRendering.h; sourceTree = "<group>"; };
 		49400BEA149F06E400F5B7C0 /* stars.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = stars.png; sourceTree = "<group>"; };
 		49400BF4149F128200F5B7C0 /* channelcycling.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = channelcycling.png; sourceTree = "<group>"; };
+		49585E01159583350084055C /* GraphicsCommon.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = GraphicsCommon.h; sourceTree = "<group>"; };
 		4959A8D8149842BB00D4F03B /* PressureSensor.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PressureSensor.h; sourceTree = "<group>"; };
 		4959A8D9149842BC00D4F03B /* PressureSensor.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = PressureSensor.m; sourceTree = "<group>"; };
 		4963A35A14A9297700CE0C5A /* ButtonControl.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = ButtonControl.c; sourceTree = "<group>"; };
@@ -286,7 +287,6 @@
 				491054711564C20000FBBC15 /* Cantors_cube57x57.png */,
 				4910546F1564A90D00FBBC15 /* Cantors_cube144x144.png */,
 				4910546D1564A90300FBBC15 /* Cantors_cube72x72.png */,
-				4910546A1561F37900FBBC15 /* MobileCoreServices.framework */,
 				49B39082144914DC008C9F6E /* AlephOne */,
 				49B39077144914DC008C9F6E /* Frameworks */,
 				49B39075144914DC008C9F6E /* Products */,
@@ -305,6 +305,7 @@
 		49B39077144914DC008C9F6E /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				4910546A1561F37900FBBC15 /* MobileCoreServices.framework */,
 				49EBD7471502F7A400E50DCA /* Accelerate.framework */,
 				49DE52BD14DB7EF400970F58 /* AVFoundation.framework */,
 				49DE52B714DB7AC100970F58 /* AudioToolbox.framework */,
@@ -405,6 +406,7 @@
 				4963A35B14A9297700CE0C5A /* ButtonControl.h */,
 				49691ADC14B57411009AB83D /* ScaleControl.c */,
 				49691ADE14B5742D009AB83D /* ScaleControl.h */,
+				49585E01159583350084055C /* GraphicsCommon.h */,
 			);
 			name = PortableCode;
 			sourceTree = "<group>";

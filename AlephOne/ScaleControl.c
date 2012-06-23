@@ -17,11 +17,8 @@
 #include "WidgetConstants.h"
 #include <stdlib.h>
 #include <stdio.h>
+#include "GraphicsCommon.h"
 
-static int triangles;
-static int trianglestrip;
-static int linestrip;
-static int lines;
 static struct VertexObjectBuilder* voCtxDynamic;
 static struct Fretless_context* fctx;
 static struct Fret_context* fretCtx;
@@ -74,10 +71,6 @@ void ScaleControl_clear(void* ctx)
 
 
 void ScaleControl_init(
-        int trianglesArg,
-        int trianglestripArg,
-        int linestripArg,
-        int linesArg,
         struct VertexObjectBuilder* voCtxDynamicArg, 
         struct Fretless_context* fctxArg,
         struct Fret_context* fretCtxArg,
@@ -87,10 +80,6 @@ void ScaleControl_init(
     fctx = fctxArg;
     voCtxDynamic = voCtxDynamicArg;
     fretCtx = fretCtxArg;
-    triangles = trianglesArg;
-    trianglestrip = trianglestripArg;
-    linestrip = linestripArg;
-    lines = linesArg;
     reRenderStringFn = reRenderStringArg;
     ScaleControl_clear(NULL);
     ScaleControl_defaults(NULL);
@@ -106,7 +95,7 @@ void ScaleControl_render(void* ctx)
     float y1 = panel->y1;
     float x2 = panel->x2;
     float y2 = panel->y2;
-    VertexObjectBuilder_startColoredObject(voCtxDynamic,trianglestrip);
+    VertexObjectBuilder_startColoredObject(voCtxDynamic,GRAPHICS_TRIANGLE_STRIP);
     VertexObjectBuilder_addColoredVertex(voCtxDynamic, x1, y1, 0, 0,0,0,220);
     VertexObjectBuilder_addColoredVertex(voCtxDynamic, x1, y2, 0, 0,0,0,220);
     VertexObjectBuilder_addColoredVertex(voCtxDynamic, x2, y1, 0, 0,0,0,220);
@@ -126,7 +115,7 @@ void ScaleControl_render(void* ctx)
     float r2 = r + diameter*ETRADIUS;
     
     //Diatonic markers hardcoded in
-    VertexObjectBuilder_startColoredObject(voCtxDynamic,lines);
+    VertexObjectBuilder_startColoredObject(voCtxDynamic,GRAPHICS_LINES);
     for(int f=0; f<12; f++)
     {
         float a = f * 2*M_PI/12.0;
@@ -140,7 +129,7 @@ void ScaleControl_render(void* ctx)
         VertexObjectBuilder_addColoredVertex(voCtxDynamic,x2,y2,0,100,100,100,200);                                    
     }
     
-    VertexObjectBuilder_startTexturedObject(voCtxDynamic,trianglestrip,PIC_SCALECONTROLTEXT);
+    VertexObjectBuilder_startTexturedObject(voCtxDynamic,GRAPHICS_TRIANGLE_STRIP,PIC_SCALECONTROLTEXT);
     VertexObjectBuilder_addTexturedVertex(voCtxDynamic, x1, y1, 0, 0,0);
     VertexObjectBuilder_addTexturedVertex(voCtxDynamic, x1, y2, 0, 0,1);
     VertexObjectBuilder_addTexturedVertex(voCtxDynamic, x2, y1, 0, 1,0);
@@ -149,7 +138,7 @@ void ScaleControl_render(void* ctx)
     for(int e=0; e<RINGS; e++)
     {
         int et = ets[e];
-        VertexObjectBuilder_startColoredObject(voCtxDynamic,lines);    
+        VertexObjectBuilder_startColoredObject(voCtxDynamic,GRAPHICS_LINES);    
         for(int note=0; note<=et; note++)
         {
             float a = note/(1.0*et) * 2*M_PI;
@@ -190,7 +179,7 @@ void ScaleControl_render(void* ctx)
     
     //Show harmonics versus the currently cursor-ed note at angle tau
     //Diatonic markers hardcoded in
-    VertexObjectBuilder_startColoredObject(voCtxDynamic,lines);
+    VertexObjectBuilder_startColoredObject(voCtxDynamic,GRAPHICS_LINES);
     for(int i=0; i<SPRATIOS; i++)
     {
         float a = (tau+spRatios[i]) * 2*M_PI;

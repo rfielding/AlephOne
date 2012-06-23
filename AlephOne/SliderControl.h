@@ -22,10 +22,7 @@ struct Slider_data
 
 void SliderControl_init(
                         struct VertexObjectBuilder* voCtxDynamicArg,
-                        struct PitchHandler_context* phctxArg,
-                        int trianglesArg,
-                        int trianglestripArg,
-                        int linestripArg
+                        struct PitchHandler_context* phctxArg
                         );
 
 

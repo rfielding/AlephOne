@@ -34,6 +34,8 @@
 #include "ButtonControl.h"
 #include "RawEngine.h"
 
+#include "GraphicsCommon.h"
+
 #define PAGEMAX 9
 
 #define PAGE_SCALE 0
@@ -50,10 +52,6 @@ static void* ObjectRendering_imageContext;
 static void (*ObjectRendering_imageRender)(void*,char*,unsigned int*,float*,float*,int);
 static void (*ObjectRendering_stringRender)(void*,char*,unsigned int*,float*,float*,int);
 static void (*ObjectRendering_drawVO)();
-
-static int triangles;
-static int trianglestrip;
-static int linestrip;
 
 static struct VertexObjectBuilder* voCtxDynamic;
 //static struct VertexObjectBuilder* voCtxStatic;
@@ -184,10 +182,6 @@ void ObjectRendering_init(
                            //struct VertexObjectBuilder* voCtxStaticArg,
                            struct PitchHandler_context* phctxArg,
                            struct Fretless_context* fctxArg,
-                           int trianglesArg,
-                           int trianglestripArg,
-                           int linestripArg,
-                           int linesArg,
                            void* ObjectRendering_imageContextArg,
                            void (*ObjectRendering_imageRenderArg)(void*,char*,unsigned int*,float*,float*,int),
                            void (*ObjectRendering_stringRenderArg)(void*,char*,unsigned int*,float*,float*,int),
@@ -199,19 +193,16 @@ void ObjectRendering_init(
     phctx = phctxArg;
     fctx = fctxArg;
     fretctx = PitchHandler_frets(phctx);
-    triangles = trianglesArg;
-    trianglestrip = trianglestripArg;
-    linestrip = linestripArg;
     ObjectRendering_imageContext = ObjectRendering_imageContextArg;
     ObjectRendering_imageRender = ObjectRendering_imageRenderArg;
     ObjectRendering_stringRender = ObjectRendering_stringRenderArg;
     ObjectRendering_drawVO       = ObjectRendering_drawVOArg;
     
-    SurfaceDraw_init(voCtxDynamicArg,phctxArg,trianglesArg,trianglestripArg,linesArg);
-    SliderControl_init(voCtxDynamicArg,phctxArg,trianglesArg,trianglestripArg,linestripArg);
-    ButtonControl_init(voCtxDynamicArg,phctxArg,trianglesArg,trianglestripArg,linesArg);
-    ChannelOccupancyControl_init(triangles,trianglestrip,linestrip,voCtxDynamicArg, fctxArg);
-    ScaleControl_init(triangles,trianglestrip,linestrip,linesArg,voCtxDynamicArg, fctxArg,fretctx,reRenderString);
+    SurfaceDraw_init(voCtxDynamicArg,phctxArg);
+    SliderControl_init(voCtxDynamicArg,phctxArg);
+    ButtonControl_init(voCtxDynamicArg,phctxArg);
+    ChannelOccupancyControl_init(voCtxDynamicArg, fctxArg);
+    ScaleControl_init(voCtxDynamicArg, fctxArg,fretctx,reRenderString);
     WidgetsAssemble();
 }
 
@@ -789,7 +780,7 @@ void RootDown12_set(void* ctx, int v)
 
 void Help_Render(void* ctx)
 {
-    VertexObjectBuilder_startTexturedObject(voCtxDynamic,trianglestrip,PIC_HELPME);
+    VertexObjectBuilder_startTexturedObject(voCtxDynamic,GRAPHICS_TRIANGLE_STRIP,PIC_HELPME);
     VertexObjectBuilder_addTexturedVertex(voCtxDynamic, farLeft, panelBottom-0.075, 0, 0,0);
     VertexObjectBuilder_addTexturedVertex(voCtxDynamic, farLeft, panelBottom, 0, 0,1);
     VertexObjectBuilder_addTexturedVertex(voCtxDynamic, farLeft+0.4, panelBottom-0.075, 0, 1,0);

@@ -23,10 +23,7 @@ struct Button_data
 
 void ButtonControl_init(
                         struct VertexObjectBuilder* voCtxDynamicArg,
-                        struct PitchHandler_context* phctxArg,
-                        int trianglesArg,
-                        int trianglestripArg,
-                        int linesArg
+                        struct PitchHandler_context* phctxArg
                         );
 
 

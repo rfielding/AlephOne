@@ -12,24 +12,16 @@
 #include "WidgetTree.h"
 #include <stdlib.h>
 #include "WidgetConstants.h"
+#include "GraphicsCommon.h"
 
-static int triangles;
-static int trianglestrip;
-static int lines;
 static struct VertexObjectBuilder* voCtxDynamic;
 static struct PitchHandler_context* phctx;
 
 void ButtonControl_init(
                         struct VertexObjectBuilder* voCtxDynamicArg,
-                        struct PitchHandler_context* phctxArg,
-                        int trianglesArg,
-                        int trianglestripArg,
-                        int linesArg
+                        struct PitchHandler_context* phctxArg
                         )
 {
-    triangles = trianglesArg;
-    trianglestrip = trianglestripArg;
-    lines = linesArg;
     phctx = phctxArg;
     voCtxDynamic = voCtxDynamicArg;
 }
@@ -52,19 +44,19 @@ void Button_render(void* ctx)
             int b = 205 * ((button->val/4) %8) + 50;
             if(button->downState)
             {
-                VertexObjectBuilder_startColoredObject(voCtxDynamic,trianglestrip);
+                VertexObjectBuilder_startColoredObject(voCtxDynamic,GRAPHICS_TRIANGLE_STRIP);
                 VertexObjectBuilder_addColoredVertex(voCtxDynamic, w->x1+dx, w->y1+dy, 0, 255,255,255,150);
                 VertexObjectBuilder_addColoredVertex(voCtxDynamic, w->x1+dx, w->y2-dy, 0, 255,255,255,150);
                 VertexObjectBuilder_addColoredVertex(voCtxDynamic, w->x2-dx, w->y1+dy, 0, 255,255,255,150);
                 VertexObjectBuilder_addColoredVertex(voCtxDynamic, w->x2-dx, w->y2-dy, 0, 255,255,255,150);                            
             }
-            VertexObjectBuilder_startColoredObject(voCtxDynamic,trianglestrip);
+            VertexObjectBuilder_startColoredObject(voCtxDynamic,GRAPHICS_TRIANGLE_STRIP);
             VertexObjectBuilder_addColoredVertex(voCtxDynamic, w->x1+dx, w->y1+dy, 0, r,  g,b,200);
             VertexObjectBuilder_addColoredVertex(voCtxDynamic, w->x1+dx, w->y2-dy, 0, r,  g,b,180);
             VertexObjectBuilder_addColoredVertex(voCtxDynamic, w->x2-dx, w->y1+dy, 0, r,  g,b,180);
             VertexObjectBuilder_addColoredVertex(voCtxDynamic, w->x2-dx, w->y2-dy, 0, r,  g,b,180);   
             
-            VertexObjectBuilder_startColoredObject(voCtxDynamic, lines);
+            VertexObjectBuilder_startColoredObject(voCtxDynamic, GRAPHICS_LINES);
             
             VertexObjectBuilder_addColoredVertex(voCtxDynamic, w->x2-dx, w->y2-dy, 0, 255,255,255,180);
             VertexObjectBuilder_addColoredVertex(voCtxDynamic, w->x1+dx, w->y2-dy, 0, 255,255,255,180);
@@ -80,7 +72,7 @@ void Button_render(void* ctx)
         float s = 0.01;
         dx = 0.4;
         dy = 0.06;
-        VertexObjectBuilder_startTexturedObject(voCtxDynamic,trianglestrip,button->label);
+        VertexObjectBuilder_startTexturedObject(voCtxDynamic,GRAPHICS_TRIANGLE_STRIP,button->label);
         VertexObjectBuilder_addTexturedVertex(voCtxDynamic, w->x1+s, w->y1, 0, 0,0);
         VertexObjectBuilder_addTexturedVertex(voCtxDynamic, w->x1+s, w->y1+dy, 0, 0,1);
         VertexObjectBuilder_addTexturedVertex(voCtxDynamic, w->x1+dx+s, w->y1, 0, 1,0);

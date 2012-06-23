@@ -17,10 +17,6 @@ struct ScaleControl_data
 };
 
 void ScaleControl_init(
-                              int trianglesArg,
-                              int trianglestripArg,
-                              int linestripArg,
-                              int linesArg,
                               struct VertexObjectBuilder* voCtxDynamicArg, 
                               struct Fretless_context* fctxArg,
                               struct Fret_context* fretCtxArg,
