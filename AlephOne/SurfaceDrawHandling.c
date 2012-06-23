@@ -16,9 +16,6 @@
 #include "FretlessCommon.h"
 #include "GraphicsCommon.h"
 
-static int triangles;
-static int trianglestrip;
-static int lines;
 static struct VertexObjectBuilder* voCtxDynamic;
 static struct PitchHandler_context* phctx;
 
@@ -55,7 +52,7 @@ void SurfaceDraw_drawBackground()
     VertexObjectBuilder_addTexturedVertex(voCtxDynamic, 0.1+0.20, 0.05+0.00, 0, 1,0);
     VertexObjectBuilder_addTexturedVertex(voCtxDynamic, 0.1+0.20, 0.05+0.25, 0, 1,1);    
      */
-    VertexObjectBuilder_startColoredObject(voCtxDynamic,trianglestrip);
+    VertexObjectBuilder_startColoredObject(voCtxDynamic,GRAPHICS_TRIANGLE_STRIP);
     VertexObjectBuilder_addColoredVertex(voCtxDynamic, 0, 0, 0, 0,0,0,200);
     VertexObjectBuilder_addColoredVertex(voCtxDynamic, 0, 1, 0, 0,0,0,200);
     VertexObjectBuilder_addColoredVertex(voCtxDynamic, 1, 0, 0, 0,0,0,200);
@@ -65,7 +62,7 @@ void SurfaceDraw_drawBackground()
     float rows = PitchHandler_getRowCount(phctx);
     float dy = 1.0 / rows;
     float ds = dy/2;
-    VertexObjectBuilder_startColoredObject(voCtxDynamic,triangles);
+    VertexObjectBuilder_startColoredObject(voCtxDynamic,GRAPHICS_TRIANGLES);
     
     //Draw strings
     float dyd = dy*0.5;
@@ -129,7 +126,7 @@ void SurfaceDraw_drawBackground()
                     g=0;
                     b=0;
             }
-            VertexObjectBuilder_startTexturedObject(voCtxDynamic,trianglestrip,(PIC_NOTE0+stdNote));
+            VertexObjectBuilder_startTexturedObject(voCtxDynamic,GRAPHICS_TRIANGLE_STRIP,(PIC_NOTE0+stdNote));
             VertexObjectBuilder_addTexturedVertex(voCtxDynamic, x-dx, y-iy, 0, 0,0);
             VertexObjectBuilder_addTexturedVertex(voCtxDynamic, x-dx, y+iy, 0, 0,1);
             VertexObjectBuilder_addTexturedVertex(voCtxDynamic, x+dx, y-iy, 0, 1,0);
@@ -162,7 +159,7 @@ void drawMoveableFrets()
     float usage;
     int ourFret;
     
-    VertexObjectBuilder_startColoredObject(voCtxDynamic, triangles);
+    VertexObjectBuilder_startColoredObject(voCtxDynamic, GRAPHICS_TRIANGLES);
     
     PitchHandler_getFretsBegin(phctx);
     while(PitchHandler_getFret(phctx,&pitch, &x, &y, &importance, &usage,&ourFret))
@@ -238,7 +235,7 @@ void drawFingerLocation()
     float rows = PitchHandler_getRowCount(phctx);
     float dy = 1.0 / rows;
     
-    VertexObjectBuilder_startColoredObject(voCtxDynamic, triangles);
+    VertexObjectBuilder_startColoredObject(voCtxDynamic, GRAPHICS_TRIANGLES);
     for(int f=0; f<FINGERMAX; f++)
     {
         struct FingerInfo* fInfo = PitchHandler_fingerState(phctx,f);
@@ -271,7 +268,7 @@ void drawPitchLocation()
     float rows = PitchHandler_getRowCount(phctx);
     float dy = 1.0 / rows;
     
-    VertexObjectBuilder_startColoredObject(voCtxDynamic, triangles);
+    VertexObjectBuilder_startColoredObject(voCtxDynamic, GRAPHICS_TRIANGLES);
     for(int f=0; f<FINGERMAX; f++)
     {
         struct FingerInfo* fInfo = PitchHandler_fingerState(phctx,f);
@@ -295,7 +292,7 @@ void drawPitchLocation()
             
         }
     }    
-    VertexObjectBuilder_startColoredObject(voCtxDynamic, lines);
+    VertexObjectBuilder_startColoredObject(voCtxDynamic, GRAPHICS_LINES);
     for(int f=0; f<FINGERMAX; f++)
     {
         struct FingerInfo* fInfo = PitchHandler_fingerState(phctx,f);
