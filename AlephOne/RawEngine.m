@@ -766,9 +766,9 @@ static inline void renderLoopIteration(
     const float reverbAmount,const float noReverbAmount,
     const float feeding)
 {
-    float lL=0;
+    float lL=0; //buzzing noise in left channel if not initialized... whuu?
     float lR=0;
-    float rawTotal=0;
+    float rawTotal;
     renderLoopIterationInitPass(now,i,innerScale,dying,dist,noDist,&lL,&lR,&rawTotal);
     
     float scaledTotal;
