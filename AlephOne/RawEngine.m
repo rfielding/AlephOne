@@ -691,8 +691,8 @@ static inline void renderFinalizeBuffer(
         const int i,
         const float aL,const float aR)
 {
-    dataR[i] = (long) (RF_SCALEFACTOR * atanf(aL * RF_ISCALEFACTOR));
-    dataL[i] = (long) (RF_SCALEFACTOR * atanf(aR * RF_ISCALEFACTOR));                
+    dataL[i] = (long) (RF_SCALEFACTOR * atanf(aL * RF_ISCALEFACTOR));
+    dataR[i] = (long) (RF_SCALEFACTOR * atanf(aR * RF_ISCALEFACTOR));                
 }
 
 static inline void renderUpdateLoopBuffer(
@@ -728,6 +728,15 @@ static inline void renderUpdateLoopBuffer(
     }    
 }
 
+static inline void renderLoopIterationInitPass(const unsigned long now,const int i,const float innerScale,const float dying,const float dist,const float noDist,float* lLp,float* lRp,float* rawTotalp)
+{
+    if(0 < loop.size)
+    {
+        renderGetLoopFeed(now, dying, lLp, lRp);        
+    }
+    *rawTotalp = renderSumChorus(i, innerScale, dist, noDist);    
+}
+
 /**
    Make as much as possible constant, and force loops to unroll.
    After enough refactoring, it may become apparent how to vDSP-ize this code.
@@ -741,18 +750,10 @@ static inline void renderLoopIteration(
     const float reverbAmount,const float noReverbAmount,
     const float feeding)
 {
-    //Read from the looper into our audio
-    //loopSize is only non-zero when all other values are checked and set correctly
-    const int isLooping = (0 < loop.size);
-    
-    //Feed in the loop if we have to
     float lL=0;
-    float lR=0;     
-    if(isLooping)
-    {
-        renderGetLoopFeed(now, dying, &lL, &lR);        
-    }
-    const float rawTotal = renderSumChorus(i, innerScale, dist, noDist);
+    float lR=0;
+    float rawTotal=0;
+    renderLoopIterationInitPass(now,i,innerScale,dying,dist,noDist,&lL,&lR,&rawTotal);
     
     const float feedL = echoBufferL[n];
     const float feedR = echoBufferR[n];
@@ -798,7 +799,7 @@ static inline void renderNoiseToBuffer(long* dataL, long* dataR, unsigned long s
     //Add pre-chorus sound together compressed
     for(int i=0; i<samples; i++)
     {
-        //Generate intermediae indices
+        //Generate intermediate indices
         const int n = (i+sc)%ECHOBUFFERMAX;
         const int n2 = (i+1+sc)%ECHOBUFFERMAX;
         const unsigned long now = allFingers.sampleCount + i;
