@@ -479,10 +479,7 @@ static inline void xDSP_vcp(float* src,float* dst,int count)
     memcpy(dst,src,count*sizeof(float));
 }
 
-static inline float compress(float f)
-{
-    return atanf(f);
-}
+
 
 
 
@@ -640,21 +637,6 @@ static inline void renderConvolution(
     }    
 }
 
-static inline float renderSumChorus(
-    const int i, 
-    const float innerScale,
-    const float dist, const float noDist)
-{
-    float rawTotal = 0;
-    //Sum up all fingers per chorus voice - should unroll because of the constants
-    for(int phaseIdx=0; phaseIdx<UNISONMAX; phaseIdx++)
-    {
-        const float raw = allFingers.total[phaseIdx][i];
-        //Is the atanf bad?
-        rawTotal += dist*compress(raw * innerScale) + 2*noDist*raw;
-    }     
-    return rawTotal;
-}
 
 static inline void renderGetLoopFeed(
     const unsigned long now,
@@ -668,6 +650,23 @@ static inline void renderGetLoopFeed(
     loopBufferR[loopIdx] *= (1-dying);
     *lLp = loopBufferL[ loopIdx ];
     *lRp = loopBufferR[ loopIdx ];
+}
+
+
+static inline float renderSumChorus(
+                                    const int i, 
+                                    const float innerScale,
+                                    const float dist, const float noDist)
+{
+    float rawTotal = 0;
+    //Sum up all fingers per chorus voice - should unroll because of the constants
+    for(int phaseIdx=0; phaseIdx<UNISONMAX; phaseIdx++)
+    {
+        const float raw = allFingers.total[phaseIdx][i];
+        //Is the atanf bad?
+        rawTotal += dist*atanf(raw * innerScale) + 2*noDist*raw;
+    }     
+    return rawTotal;
 }
 
 static inline void renderCompression(
