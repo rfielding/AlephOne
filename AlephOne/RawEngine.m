@@ -229,17 +229,13 @@ float harmonics[EXPR][DIST][HARMONICSMAX];
 
 int reverbDataL[REVERBECHOES] __attribute__ ((aligned)) =
 {
-  3,7,13,19,29,37,43,49,53,59
+  3,7,13,19,29,37,43,49,53,59 //,63,71,203,389,403,553
 };
 int reverbDataR[REVERBECHOES] __attribute__ ((aligned)) =
 {
-  5,11,17,23,31,41,47,51,57,61
+  5,11,17,23,31,41,47,51,57,61 //,67,73,217,391,407,531
 };
 
-float reverbStrength[REVERBECHOES] __attribute__ ((aligned)) =
-{
-    0.99, 0.99, 0.98, 0.99, 0.99, 0.99, 0.99, 0.99,0.99,0.99
-};
 
 static struct fingersData allFingers;
 
@@ -623,13 +619,14 @@ static inline void renderReverb(
     const float totalL, const float totalR)
 {
     const int sci = i+sc;
+    const float reverbStrength = 0.99;
+    const float vL = totalL*reverbStrength;
+    const float vR = totalR*reverbStrength;
     //Should unroll because of the constants
     for(int r=0; r<REVERBECHOES; r++)
     {
         const int nL = sci+reverbDataL[r];
         const int nR = sci+reverbDataR[r];
-        const float vL = totalL*reverbStrength[r];
-        const float vR = totalR*reverbStrength[r];
         const int nLX = nL % ECHOBUFFERMAX;
         const int nRX = nR % ECHOBUFFERMAX;
         echoBufferL[nLX] += vL + channelBleed*vR;
@@ -747,16 +744,16 @@ static inline void renderUpdateLoopBuffer(
     }    
 }
 
-#define RF_SCALEFACTOR (((long)0x2000000) / (M_PI/2))
+#define RF_SCALEFACTOR ((1<<25) / (M_PI/2.0))
 #define RF_ISCALEFACTOR (0.75)
 
 static inline void renderFinalizeBuffer(
-                                        long* dataL,long* dataR,
+                                        SInt32* dataL,SInt32* dataR,
                                         const int i,
                                         const float aL,const float aR)
 {
-    dataL[i] = (long) (RF_SCALEFACTOR * atanf(aL * RF_ISCALEFACTOR));
-    dataR[i] = (long) (RF_SCALEFACTOR * atanf(aR * RF_ISCALEFACTOR));                
+    dataL[i] = (SInt32) (RF_SCALEFACTOR * atanf(aL * RF_ISCALEFACTOR));
+    dataR[i] = (SInt32) (RF_SCALEFACTOR * atanf(aR * RF_ISCALEFACTOR));                
 }
 
 /**
@@ -764,7 +761,7 @@ static inline void renderFinalizeBuffer(
    After enough refactoring, it may become apparent how to vDSP-ize this code.
  */
 static inline void renderLoopIteration(
-    long* dataL,long* dataR,
+    SInt32* dataL,SInt32* dataR,
     const unsigned long now,const int i,const int sc,const int n,const int n2,
     const float dying,
     const float innerScale,
@@ -796,7 +793,7 @@ static inline void renderLoopIteration(
 /**
  This is an intense and serialized effects chain, but it does not vary with the number of voices.
  */
-static inline void renderNoiseEffectsChain(long* dataL, long* dataR, unsigned long samples)
+static inline void renderNoiseEffectsChain(SInt32* dataL, SInt32* dataR, unsigned long samples)
 {
     float dist = (allFingers.distRamp.value);
     float noDist = 1 - dist;
@@ -861,7 +858,7 @@ static void renderNoiseFingerInnerLoop(int f,unsigned long samples,float invSamp
 /**
  Overall audio rendering for this data chunk, including all fingers at all voices, and the finall effects chain
  */
-static void renderNoise(long* dataL, long* dataR, unsigned long samples)
+static void renderNoise(SInt32* dataL, SInt32* dataR, unsigned long samples)
 {
     renderNoiseCleanAll(samples);
     int activeFingers=0;
