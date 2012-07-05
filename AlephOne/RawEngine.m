@@ -217,8 +217,6 @@ void audioCopy()
 
 float echoBufferL[ECHOBUFFERMAX] __attribute__ ((aligned));
 float echoBufferR[ECHOBUFFERMAX] __attribute__ ((aligned));
-//float convBufferL[ECHOBUFFERMAX] __attribute__ ((aligned));
-//float convBufferR[ECHOBUFFERMAX] __attribute__ ((aligned));
 
 float octaveHarmonicLimit[OCTAVES] = {
   42,40,38,36,32,24,16,8,4,2,1,1    
@@ -614,6 +612,16 @@ float getLoopFade()
     return loop.level;
 }
 
+static inline void renderEcho(const int n,const int n2)
+{
+    echoBufferL[n2] += echoBufferL[n];
+    echoBufferR[n2] += echoBufferR[n];
+    echoBufferL[n2] *= 0.475;
+    echoBufferR[n2] *= 0.475;
+    echoBufferL[n] = 0;
+    echoBufferR[n] = 0;    
+}
+
 //This could be part of a convolution over the entire buffer
 static inline void renderConvolution(
     const int i,const int sc,
@@ -730,6 +738,9 @@ static inline void renderUpdateLoopBuffer(
     }    
 }
 
+/**
+   Make as much as possible constant, and force loops to unroll.
+ */
 static inline void renderLoopIteration(
     long* dataL,long* dataR,
     const int i,const int sc,
@@ -743,20 +754,20 @@ static inline void renderLoopIteration(
     //loopSize is only non-zero when all other values are checked and set correctly
     const unsigned long now = allFingers.sampleCount + i;
     const int isLooping = (0 < loop.size);
-    float lL=0;
-    float lR=0;     
     
     //Feed in the loop if we have to
+    float lL=0;
+    float lR=0;     
     if(isLooping)
     {
         renderGetLoopFeed(now, dying, &lL, &lR);        
     }
+    const float rawTotal = renderSumChorus(i, innerScale, dist, noDist);
     
     const int n = (i+sc)%ECHOBUFFERMAX;
     const int n2 = (i+1+sc)%ECHOBUFFERMAX;
     const float feedL = echoBufferL[n];
     const float feedR = echoBufferR[n];
-    const float rawTotal = renderSumChorus(i, innerScale, dist, noDist);
     const float reverbBoost = 2.1;
     const float totalScale = 0.25;
     const float feedScale = 0.1;
@@ -766,14 +777,8 @@ static inline void renderLoopIteration(
     const float feedRawL = feedL*feedScale*reverbAmount;
     const float feedRawR = feedR*feedScale*reverbAmount;
     const float totalL = feedRawL + scaledTotal;
-    const float totalR = feedRawR + scaledTotal;
-    
-    echoBufferL[n2] += echoBufferL[n];
-    echoBufferR[n2] += echoBufferR[n];
-    echoBufferL[n2] *= 0.475;
-    echoBufferR[n2] *= 0.475;
-    echoBufferL[n] = 0;
-    echoBufferR[n] = 0;
+    const float totalR = feedRawR + scaledTotal;    
+    renderEcho(n,n2);
     renderConvolution(i,sc,channelBleed,totalL,totalR);
     
     float aL;
@@ -785,8 +790,6 @@ static inline void renderLoopIteration(
     renderFinalizeBuffer(dataL,dataR,i,aL,aR);
 }
 
-// loopIndexBufferAt is the sample corresponding to loopBufferL[0]
-//    [requestAt] [bufferAt] [loopIndexStartLoop] [loopIndexEndLoop] [loopIndexReleaseLoop] [loopIndexBufferOverflowAt]
 static inline void renderNoiseToBuffer(long* dataL, long* dataR, unsigned long samples)
 {
     float dist = (allFingers.distRamp.value);
