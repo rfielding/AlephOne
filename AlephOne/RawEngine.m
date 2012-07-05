@@ -683,16 +683,16 @@ static inline void renderCompression(
     *aRRawp = atanf(finalScale * (reverbBoost*feedRawR + scaledTotal*noReverbAmount));    
 }
 
+#define RF_SCALEFACTOR (((long)0x2000000) / (M_PI/2))
+#define RF_ISCALEFACTOR (0.75)
 
 static inline void renderFinalizeBuffer(
         long* dataL,long* dataR,
         const int i,
         const float aL,const float aR)
 {
-    const float scaleFactor = ((long)0x2000000) / (M_PI/2);
-    const float innerScaleFactor = 0.75;
-    dataL[i] = (long) (scaleFactor * atanf(aL * innerScaleFactor));
-    dataR[i] = (long) (scaleFactor * atanf(aR * innerScaleFactor));                
+    dataL[i] = (long) (RF_SCALEFACTOR * atanf(aL * RF_ISCALEFACTOR));
+    dataR[i] = (long) (RF_SCALEFACTOR * atanf(aR * RF_ISCALEFACTOR));                
 }
 
 static inline void renderUpdateLoopBuffer(
@@ -730,6 +730,7 @@ static inline void renderUpdateLoopBuffer(
 
 /**
    Make as much as possible constant, and force loops to unroll.
+   After enough refactoring, it may become apparent how to vDSP-ize this code.
  */
 static inline void renderLoopIteration(
     long* dataL,long* dataR,
