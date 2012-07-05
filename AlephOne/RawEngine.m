@@ -31,6 +31,7 @@
 #define AUDIOCHANNELS 2
 
 BOOL audioIsRunning = FALSE;
+BOOL audioIsAudible = FALSE;
 AudioComponentInstance audioUnit;
 AudioStreamBasicDescription audioFormat;
 static const float kSampleRate = 44100.0;
@@ -997,11 +998,13 @@ static OSStatus fixGDLatency()
 
 void SoundEngine_wake()
 {
+    NSLog(@"SoundEngine_wake()");
     NSError *categoryError = nil;
     [[AVAudioSession sharedInstance] setCategory:AVAudioSessionCategoryPlayback error:&categoryError];
     fixGDLatency();
     initNoise();
     audioIsRunning = TRUE;
+    audioIsAudible = TRUE;
 }
 
 
@@ -1013,13 +1016,15 @@ static OSStatus SoundEngine_playCallback(void *inRefCon,
                                          AudioBufferList *ioData)
 {
     assert(inBusNumber == kOutputBus);
-    
-    AudioBuffer* outputBufferL = &ioData->mBuffers[0];
-    SInt32* dataL = (SInt32*)outputBufferL->mData;
-    AudioBuffer* outputBufferR = &ioData->mBuffers[1];
-    SInt32* dataR = (SInt32*)outputBufferR->mData;
-    lastSamples = inNumberFrames;
-    renderNoise(dataL,dataR,inNumberFrames);
+    if(audioIsAudible)
+    {
+        AudioBuffer* outputBufferL = &ioData->mBuffers[0];
+        SInt32* dataL = (SInt32*)outputBufferL->mData;
+        AudioBuffer* outputBufferR = &ioData->mBuffers[1];
+        SInt32* dataR = (SInt32*)outputBufferR->mData;
+        lastSamples = inNumberFrames;
+        renderNoise(dataL,dataR,inNumberFrames);        
+    }
     return 0;
 }
 
@@ -1138,20 +1143,25 @@ void SoundEngine_start()
 
 void rawEngineStart()
 {
-    if(audioIsRunning == FALSE)
+    if(audioIsAudible==FALSE)
     {
-        SoundEngine_start();
+        audioIsAudible = TRUE;
+        if(audioIsRunning == FALSE)
+        {
+            SoundEngine_start();
+        }
+        else 
+        {
+            AudioOutputUnitStart(audioUnit);
+        }
+        NSLog(@"rawEngineStart");        
     }
-    else 
-    {
-        AudioOutputUnitStart(audioUnit);
-    }
-    NSLog(@"rawEngineStart");
 }
 
 void rawEngineStop()
 {
-    AudioOutputUnitStop(audioUnit);    
+    AudioOutputUnitStop(audioUnit);   
+    audioIsAudible = FALSE;
     NSLog(@"rawEngineStop");    
 }
 
