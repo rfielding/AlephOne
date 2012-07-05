@@ -631,6 +631,45 @@ static inline void renderConvolution(int i,int sc,float channelBleed,float total
     }    
 }
 
+static inline float renderSumChorus(int i, float innerScale,float dist, float noDist)
+{
+    float rawTotal = 0;
+    //Sum up all fingers per chorus voice
+    for(int phaseIdx=0; phaseIdx<UNISONMAX; phaseIdx++)
+    {
+        float raw = allFingers.total[phaseIdx][i];
+        //Is the atanf bad?
+        float val = dist*compress(raw * innerScale) + 2*noDist*raw;
+        rawTotal += val;
+    }     
+    return rawTotal;
+}
+
+static inline void renderGetLoopFeed(unsigned long now,float dying,float* lLp,float* lRp)
+{
+    //Read from the looper into our audio
+    int offset = loop.firstOffset + loop.secondOffset;
+    int loopIdx = offset + (now - loop.idxBuffer - offset)%loop.size;
+    loopBufferL[loopIdx] *= (1-dying);
+    loopBufferR[loopIdx] *= (1-dying);
+    *lLp = loopBufferL[ loopIdx ];
+    *lRp = loopBufferR[ loopIdx ];
+}
+
+static inline void renderCompression(float finalScale,float scaledTotal,float reverbBoost,float noReverbAmount,float lL,float lR,float feedRawL,float feedRawR,float* aLp, float* aRp, float* aLRawp,float* aRRawp)
+{
+    *aLp = atanf(finalScale * (reverbBoost*feedRawL + scaledTotal*noReverbAmount + lL));
+    *aRp = atanf(finalScale * (reverbBoost*feedRawR + scaledTotal*noReverbAmount + lR));
+    *aLRawp = atanf(finalScale * (reverbBoost*feedRawL + scaledTotal*noReverbAmount));
+    *aRRawp = atanf(finalScale * (reverbBoost*feedRawR + scaledTotal*noReverbAmount));    
+}
+
+static inline void renderFinalizeBuffer(long* dataL,long* dataR,int i,float aL,float aR)
+{
+    dataL[i] = floatToSample(aL);
+    dataR[i] = floatToSample(aR);                
+}
+
 static inline void renderLoopIteration(long* dataL,long* dataR,int i,int sc,float dying,float innerScale,float dist,float noDist,float reverbAmount,float noReverbAmount,float feeding)
 {
     unsigned long now = allFingers.sampleCount + i;
@@ -650,22 +689,10 @@ static inline void renderLoopIteration(long* dataL,long* dataR,int i,int sc,floa
     //loopSize is only non-zero when all other values are checked and set correctly
     if(0 < loop.size)
     {
-        int offset = loop.firstOffset + loop.secondOffset;
-        int loopIdx = offset + (now - loop.idxBuffer - offset)%loop.size;
-        loopBufferL[loopIdx] *= (1-dying);
-        loopBufferR[loopIdx] *= (1-dying);
-        lL = loopBufferL[ loopIdx ];
-        lR = loopBufferR[ loopIdx ];
+        renderGetLoopFeed(now, dying, &lL, &lR);        
     }
     
-    //Sum up all fingers per chorus voice
-    for(int phaseIdx=0; phaseIdx<UNISONMAX; phaseIdx++)
-    {
-        float raw = allFingers.total[phaseIdx][i];
-        //Is the atanf bad?
-        float val = dist*compress(raw * innerScale) + 2*noDist*raw;
-        rawTotal += val;
-    }        
+    rawTotal += renderSumChorus(i, innerScale, dist, noDist);
     
     //These variables determine whether we get feedback, or creeping silence.
     float reverbBoost = 2.1;
@@ -687,10 +714,11 @@ static inline void renderLoopIteration(long* dataL,long* dataR,int i,int sc,floa
     
     renderConvolution(i,sc,channelBleed,totalL,totalR);
     
-    float aL = atanf(finalScale * (reverbBoost*feedRawL + scaledTotal*noReverbAmount + lL));
-    float aR = atanf(finalScale * (reverbBoost*feedRawR + scaledTotal*noReverbAmount + lR));
-    float aLRaw = atanf(finalScale * (reverbBoost*feedRawL + scaledTotal*noReverbAmount));
-    float aRRaw = atanf(finalScale * (reverbBoost*feedRawR + scaledTotal*noReverbAmount));
+    float aL;
+    float aR;
+    float aLRaw;
+    float aRRaw;
+    renderCompression(finalScale,scaledTotal,reverbBoost,noReverbAmount,lL,lR,feedRawL,feedRawR,&aL,&aR,&aLRaw,&aRRaw);
     
     int isLoopRecording = 
     (loop.size==0 && 0 < loop.idxBuffer);
@@ -726,8 +754,7 @@ static inline void renderLoopIteration(long* dataL,long* dataR,int i,int sc,floa
         }
     }
     
-    dataL[i] = floatToSample(aL);
-    dataR[i] = floatToSample(aR);            
+    renderFinalizeBuffer(dataL,dataR,i,aL,aR);
 }
 
 // loopIndexBufferAt is the sample corresponding to loopBufferL[0]
