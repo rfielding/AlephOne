@@ -677,10 +677,10 @@ static inline void renderCompression(
     const float feedRawL,const float feedRawR,
     float* aLp, float* aRp, float* aLRawp,float* aRRawp)
 {
-    *aLp = atanf(finalScale * (reverbBoost*feedRawL + scaledTotal*noReverbAmount + lL));
-    *aRp = atanf(finalScale * (reverbBoost*feedRawR + scaledTotal*noReverbAmount + lR));
-    *aLRawp = atanf(finalScale * (reverbBoost*feedRawL + scaledTotal*noReverbAmount));
-    *aRRawp = atanf(finalScale * (reverbBoost*feedRawR + scaledTotal*noReverbAmount));    
+    *aLp = (finalScale * (reverbBoost*feedRawL + scaledTotal*noReverbAmount + lL));
+    *aRp = (finalScale * (reverbBoost*feedRawR + scaledTotal*noReverbAmount + lR));
+    *aLRawp = (finalScale * (reverbBoost*feedRawL + scaledTotal*noReverbAmount));
+    *aRRawp = (finalScale * (reverbBoost*feedRawR + scaledTotal*noReverbAmount));    
 }
 
 #define RF_SCALEFACTOR (((long)0x2000000) / (M_PI/2))
@@ -691,8 +691,8 @@ static inline void renderFinalizeBuffer(
         const int i,
         const float aL,const float aR)
 {
-    dataL[i] = (long) (RF_SCALEFACTOR * atanf(aL * RF_ISCALEFACTOR));
-    dataR[i] = (long) (RF_SCALEFACTOR * atanf(aR * RF_ISCALEFACTOR));                
+    dataR[i] = (long) (RF_SCALEFACTOR * atanf(aL * RF_ISCALEFACTOR));
+    dataL[i] = (long) (RF_SCALEFACTOR * atanf(aR * RF_ISCALEFACTOR));                
 }
 
 static inline void renderUpdateLoopBuffer(
