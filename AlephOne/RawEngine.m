@@ -734,7 +734,7 @@ static inline void renderUpdateLoopBuffer(
  */
 static inline void renderLoopIteration(
     long* dataL,long* dataR,
-    const int i,const int sc,
+    const unsigned long now,const int i,const int sc,const int n,const int n2,
     const float dying,
     const float innerScale,
     const float dist,const float noDist,
@@ -743,7 +743,6 @@ static inline void renderLoopIteration(
 {
     //Read from the looper into our audio
     //loopSize is only non-zero when all other values are checked and set correctly
-    const unsigned long now = allFingers.sampleCount + i;
     const int isLooping = (0 < loop.size);
     
     //Feed in the loop if we have to
@@ -755,8 +754,6 @@ static inline void renderLoopIteration(
     }
     const float rawTotal = renderSumChorus(i, innerScale, dist, noDist);
     
-    const int n = (i+sc)%ECHOBUFFERMAX;
-    const int n2 = (i+1+sc)%ECHOBUFFERMAX;
     const float feedL = echoBufferL[n];
     const float feedR = echoBufferR[n];
     const float reverbBoost = 2.1;
@@ -801,7 +798,12 @@ static inline void renderNoiseToBuffer(long* dataL, long* dataR, unsigned long s
     //Add pre-chorus sound together compressed
     for(int i=0; i<samples; i++)
     {
-        renderLoopIteration(dataL,dataR,i,sc,dying,innerScale,dist,noDist,reverbAmount,noReverbAmount,feeding);    
+        //Generate intermediae indices
+        const int n = (i+sc)%ECHOBUFFERMAX;
+        const int n2 = (i+1+sc)%ECHOBUFFERMAX;
+        const unsigned long now = allFingers.sampleCount + i;
+        //Compute the inner loop
+        renderLoopIteration(dataL,dataR,now,i,sc,n,n2,dying,innerScale,dist,noDist,reverbAmount,noReverbAmount,feeding);    
     }    
 }
 
