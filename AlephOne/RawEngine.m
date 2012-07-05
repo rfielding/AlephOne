@@ -737,6 +737,22 @@ static inline void renderLoopIterationInitPass(const unsigned long now,const int
     *rawTotalp = renderSumChorus(i, innerScale, dist, noDist);    
 }
 
+static inline void renderLoopIterationMidPass(const int i,const int sc,const int n,const int n2,const float reverbAmount,const float rawTotal,float* scaledTotalp,float* feedRawLp,float* feedRawRp)
+{
+    const float feedL = echoBufferL[n];
+    const float feedR = echoBufferR[n];
+    const float totalScale = 0.25;
+    const float feedScale = 0.1;
+    const float channelBleed = 0.125;
+    *scaledTotalp = rawTotal*totalScale;
+    *feedRawLp = feedL*feedScale*reverbAmount;
+    *feedRawRp = feedR*feedScale*reverbAmount;
+    const float totalL = *feedRawLp + *scaledTotalp;
+    const float totalR = *feedRawRp + *scaledTotalp;    
+    renderEcho(n,n2);
+    renderConvolution(i,sc,channelBleed,totalL,totalR);    
+}
+
 /**
    Make as much as possible constant, and force loops to unroll.
    After enough refactoring, it may become apparent how to vDSP-ize this code.
@@ -755,21 +771,13 @@ static inline void renderLoopIteration(
     float rawTotal=0;
     renderLoopIterationInitPass(now,i,innerScale,dying,dist,noDist,&lL,&lR,&rawTotal);
     
-    const float feedL = echoBufferL[n];
-    const float feedR = echoBufferR[n];
-    const float reverbBoost = 2.1;
-    const float totalScale = 0.25;
-    const float feedScale = 0.1;
-    const float channelBleed = 0.125;
-    const float finalScale = 0.75;
-    const float scaledTotal = rawTotal*totalScale;
-    const float feedRawL = feedL*feedScale*reverbAmount;
-    const float feedRawR = feedR*feedScale*reverbAmount;
-    const float totalL = feedRawL + scaledTotal;
-    const float totalR = feedRawR + scaledTotal;    
-    renderEcho(n,n2);
-    renderConvolution(i,sc,channelBleed,totalL,totalR);
+    float scaledTotal;
+    float feedRawL;
+    float feedRawR;
+    renderLoopIterationMidPass(i,sc,n,n2,reverbAmount,rawTotal,&scaledTotal,&feedRawL,&feedRawR);
     
+    const float reverbBoost = 2.1;
+    const float finalScale = 0.75;
     float aL;
     float aR;
     float aLRaw;
