@@ -615,48 +615,63 @@ float getLoopFade()
 }
 
 //This could be part of a convolution over the entire buffer
-static inline void renderConvolution(int i,int sc,float channelBleed,float totalL,float totalR)
+static inline void renderConvolution(
+    const int i,const int sc,
+    const float channelBleed,
+    const float totalL, const float totalR)
 {
-    int sci = i+sc;
+    const int sci = i+sc;
+    //Should unroll because of the constants
     for(int r=0; r<REVERBECHOES; r++)
     {
-        int nL = sci+reverbDataL[r];
-        int nR = sci+reverbDataR[r];
-        float vL = totalL*reverbStrength[r];
-        float vR = totalR*reverbStrength[r];
-        int nLX = nL % ECHOBUFFERMAX;
-        int nRX = nR % ECHOBUFFERMAX;
+        const int nL = sci+reverbDataL[r];
+        const int nR = sci+reverbDataR[r];
+        const float vL = totalL*reverbStrength[r];
+        const float vR = totalR*reverbStrength[r];
+        const int nLX = nL % ECHOBUFFERMAX;
+        const int nRX = nR % ECHOBUFFERMAX;
         echoBufferL[nLX] += vL + channelBleed*vR;
         echoBufferR[nRX] += vR + channelBleed*vL;
     }    
 }
 
-static inline float renderSumChorus(int i, float innerScale,float dist, float noDist)
+static inline float renderSumChorus(
+    const int i, 
+    const float innerScale,
+    const float dist, const float noDist)
 {
     float rawTotal = 0;
-    //Sum up all fingers per chorus voice
+    //Sum up all fingers per chorus voice - should unroll because of the constants
     for(int phaseIdx=0; phaseIdx<UNISONMAX; phaseIdx++)
     {
-        float raw = allFingers.total[phaseIdx][i];
+        const float raw = allFingers.total[phaseIdx][i];
         //Is the atanf bad?
-        float val = dist*compress(raw * innerScale) + 2*noDist*raw;
-        rawTotal += val;
+        rawTotal += dist*compress(raw * innerScale) + 2*noDist*raw;
     }     
     return rawTotal;
 }
 
-static inline void renderGetLoopFeed(unsigned long now,float dying,float* lLp,float* lRp)
+static inline void renderGetLoopFeed(
+    const unsigned long now,
+    const float dying,
+    float* lLp,float* lRp)
 {
     //Read from the looper into our audio
-    int offset = loop.firstOffset + loop.secondOffset;
-    int loopIdx = offset + (now - loop.idxBuffer - offset)%loop.size;
+    const int offset = loop.firstOffset + loop.secondOffset;
+    const int loopIdx = offset + (now - loop.idxBuffer - offset)%loop.size;
     loopBufferL[loopIdx] *= (1-dying);
     loopBufferR[loopIdx] *= (1-dying);
     *lLp = loopBufferL[ loopIdx ];
     *lRp = loopBufferR[ loopIdx ];
 }
 
-static inline void renderCompression(float finalScale,float scaledTotal,float reverbBoost,float noReverbAmount,float lL,float lR,float feedRawL,float feedRawR,float* aLp, float* aRp, float* aLRawp,float* aRRawp)
+static inline void renderCompression(
+    const float finalScale,
+    const float scaledTotal,
+    const float reverbBoost,const float noReverbAmount,
+    const float lL,const float lR,
+    const float feedRawL,const float feedRawR,
+    float* aLp, float* aRp, float* aLRawp,float* aRRawp)
 {
     *aLp = atanf(finalScale * (reverbBoost*feedRawL + scaledTotal*noReverbAmount + lL));
     *aRp = atanf(finalScale * (reverbBoost*feedRawR + scaledTotal*noReverbAmount + lR));
@@ -664,72 +679,31 @@ static inline void renderCompression(float finalScale,float scaledTotal,float re
     *aRRawp = atanf(finalScale * (reverbBoost*feedRawR + scaledTotal*noReverbAmount));    
 }
 
-static inline void renderFinalizeBuffer(long* dataL,long* dataR,int i,float aL,float aR)
+static inline void renderFinalizeBuffer(
+        long* dataL,long* dataR,
+        const int i,
+        const float aL,const float aR)
 {
     dataL[i] = floatToSample(aL);
     dataR[i] = floatToSample(aR);                
 }
 
-static inline void renderLoopIteration(long* dataL,long* dataR,int i,int sc,float dying,float innerScale,float dist,float noDist,float reverbAmount,float noReverbAmount,float feeding)
+static inline void renderUpdateLoopBuffer(
+    const unsigned long now,
+    const float feeding,const float dying,
+    const float aLRaw,const float aRRaw)
 {
-    unsigned long now = allFingers.sampleCount + i;
-    int n = (i+sc)%ECHOBUFFERMAX;
-    int n2 = (i+1+sc)%ECHOBUFFERMAX;
-    float feedL = echoBufferL[n];
-    float feedR = echoBufferR[n];
-    float rawTotal=0;
-    float totalL=0;
-    float totalR=0;
-    
-    
-    float lL = 0;
-    float lR = 0;
-        
-    //Read from the looper into our audio
-    //loopSize is only non-zero when all other values are checked and set correctly
-    if(0 < loop.size)
-    {
-        renderGetLoopFeed(now, dying, &lL, &lR);        
-    }
-    
-    rawTotal += renderSumChorus(i, innerScale, dist, noDist);
-    
-    //These variables determine whether we get feedback, or creeping silence.
-    float reverbBoost = 2.1;
-    float totalScale = 0.25;
-    float feedScale = 0.1;
-    float channelBleed = 0.125;
-    float finalScale = 0.75;
-    float scaledTotal = rawTotal*totalScale;
-    float feedRawL = feedL*feedScale*reverbAmount;
-    float feedRawR = feedR*feedScale*reverbAmount;
-    totalL = feedRawL + scaledTotal;
-    totalR = feedRawR + scaledTotal;
-    echoBufferL[n2] += echoBufferL[n];
-    echoBufferR[n2] += echoBufferR[n];
-    echoBufferL[n2] *= 0.475;
-    echoBufferR[n2] *= 0.475;
-    echoBufferL[n] = 0;
-    echoBufferR[n] = 0;
-    
-    renderConvolution(i,sc,channelBleed,totalL,totalR);
-    
-    float aL;
-    float aR;
-    float aLRaw;
-    float aRRaw;
-    renderCompression(finalScale,scaledTotal,reverbBoost,noReverbAmount,lL,lR,feedRawL,feedRawR,&aL,&aR,&aLRaw,&aRRaw);
-    
-    int isLoopRecording = 
+    const int isLooping = (0 < loop.size);
+    const int isLoopRecording = 
     (loop.size==0 && 0 < loop.idxBuffer);
     ;
     
-    int isRecording = 
+    const int isRecording = 
     (isLoopRecording && loop.idxBuffer <= now) ||
-    (0 < loop.size && loop.idxEndLoop <= now && now < loop.idxRelease)
+    (isLooping && loop.idxEndLoop <= now && now < loop.idxRelease)
     ;
     
-    int isNotOverflowed = 
+    const int isNotOverflowed = 
     (now < loop.idxOverflow)
     ;
     
@@ -738,22 +712,76 @@ static inline void renderLoopIteration(long* dataL,long* dataR,int i,int sc,floa
     {
         if(isNotOverflowed)
         {
-            int loopIdx = (now - loop.idxBuffer);
+            const int loopIdx = (now - loop.idxBuffer);
             loopBufferL[loopIdx] = aLRaw;
             loopBufferR[loopIdx] = aRRaw;                
         }
     }
     else 
     {
-        if(0 < loop.size)
+        if(isLooping)
         {
-            int offset = loop.firstOffset + loop.secondOffset;
-            int loopIdx = offset + (now - loop.idxBuffer - offset)%loop.size;
-            loopBufferL[loopIdx] = (1-dying)*(loopBufferL[loopIdx] + aLRaw*feeding);
-            loopBufferR[loopIdx] = (1-dying)*(loopBufferR[loopIdx] + aRRaw*feeding);
+            const int offset = loop.firstOffset + loop.secondOffset;
+            const int loopIdx = offset + (now - loop.idxBuffer - offset)%loop.size;
+            const float notDying = (1-dying);
+            loopBufferL[loopIdx] = notDying*(loopBufferL[loopIdx] + aLRaw*feeding);
+            loopBufferR[loopIdx] = notDying*(loopBufferR[loopIdx] + aRRaw*feeding);
         }
+    }    
+}
+
+static inline void renderLoopIteration(
+    long* dataL,long* dataR,
+    const int i,const int sc,
+    const float dying,
+    const float innerScale,
+    const float dist,const float noDist,
+    const float reverbAmount,const float noReverbAmount,
+    const float feeding)
+{
+    //Read from the looper into our audio
+    //loopSize is only non-zero when all other values are checked and set correctly
+    const unsigned long now = allFingers.sampleCount + i;
+    const int isLooping = (0 < loop.size);
+    float lL=0;
+    float lR=0;     
+    
+    //Feed in the loop if we have to
+    if(isLooping)
+    {
+        renderGetLoopFeed(now, dying, &lL, &lR);        
     }
     
+    const int n = (i+sc)%ECHOBUFFERMAX;
+    const int n2 = (i+1+sc)%ECHOBUFFERMAX;
+    const float feedL = echoBufferL[n];
+    const float feedR = echoBufferR[n];
+    const float rawTotal = renderSumChorus(i, innerScale, dist, noDist);
+    const float reverbBoost = 2.1;
+    const float totalScale = 0.25;
+    const float feedScale = 0.1;
+    const float channelBleed = 0.125;
+    const float finalScale = 0.75;
+    const float scaledTotal = rawTotal*totalScale;
+    const float feedRawL = feedL*feedScale*reverbAmount;
+    const float feedRawR = feedR*feedScale*reverbAmount;
+    const float totalL = feedRawL + scaledTotal;
+    const float totalR = feedRawR + scaledTotal;
+    
+    echoBufferL[n2] += echoBufferL[n];
+    echoBufferR[n2] += echoBufferR[n];
+    echoBufferL[n2] *= 0.475;
+    echoBufferR[n2] *= 0.475;
+    echoBufferL[n] = 0;
+    echoBufferR[n] = 0;
+    renderConvolution(i,sc,channelBleed,totalL,totalR);
+    
+    float aL;
+    float aR;
+    float aLRaw;
+    float aRRaw;
+    renderCompression(finalScale,scaledTotal,reverbBoost,noReverbAmount,lL,lR,feedRawL,feedRawR,&aL,&aR,&aLRaw,&aRRaw);
+    renderUpdateLoopBuffer(now,feeding,dying,aLRaw,aRRaw);  
     renderFinalizeBuffer(dataL,dataR,i,aL,aR);
 }
 
