@@ -685,7 +685,7 @@ static inline void renderLoopIterationEchoAndReverb(const int i,const int sc,con
     
     const float totalScale = 0.25;
     const float feedScale = 0.1;
-    const float channelBleed = 0.125;
+    const float channelBleed = 0.0125;
     *scaledTotalp = rawTotal*totalScale;
     *feedRawLp = feedL*feedScale*reverbAmount;
     *feedRawRp = feedR*feedScale*reverbAmount;
