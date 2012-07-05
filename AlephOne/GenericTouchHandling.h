@@ -24,7 +24,7 @@ void GenericTouchHandling_touchesInit(
     int (*loggerArg)(const char*,...)
 );
 void GenericTouchHandling_touchesUp(void* touch);
-void GenericTouchHandling_touchesDown(void* touch,int isMoving,float x,float y,float velocity,float area);
+void GenericTouchHandling_touchesDown(void* touch,int isMoving,float x,float y,float area);
 void GenericTouchHandling_touchesFlush();
 void GenericTouchHandling_tick();    
 

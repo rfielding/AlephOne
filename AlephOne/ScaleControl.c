@@ -256,7 +256,7 @@ void ScaleControl_render(void* ctx)
     }    
 }
 
-void ScaleControl_down(void* ctx,int finger,void* touch,int isMoving,float x,float y, float velocity, float area)
+void ScaleControl_down(void* ctx,int finger,void* touch,int isMoving,float x,float y, float area)
 {
     struct ScaleControl_data* scaleControl = (struct ScaleControl_data*)ctx;
     if(scaleControl)

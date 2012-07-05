@@ -614,7 +614,121 @@ float getLoopFade()
     return loop.level;
 }
 
+//This could be part of a convolution over the entire buffer
+static inline void renderConvolution(int i,int sc,float channelBleed,float totalL,float totalR)
+{
+    int sci = i+sc;
+    for(int r=0; r<REVERBECHOES; r++)
+    {
+        int nL = sci+reverbDataL[r];
+        int nR = sci+reverbDataR[r];
+        float vL = totalL*reverbStrength[r];
+        float vR = totalR*reverbStrength[r];
+        int nLX = nL % ECHOBUFFERMAX;
+        int nRX = nR % ECHOBUFFERMAX;
+        echoBufferL[nLX] += vL + channelBleed*vR;
+        echoBufferR[nRX] += vR + channelBleed*vL;
+    }    
+}
 
+static inline void renderLoopIteration(long* dataL,long* dataR,int i,int sc,float dying,float innerScale,float dist,float noDist,float reverbAmount,float noReverbAmount,float feeding)
+{
+    unsigned long now = allFingers.sampleCount + i;
+    int n = (i+sc)%ECHOBUFFERMAX;
+    int n2 = (i+1+sc)%ECHOBUFFERMAX;
+    float feedL = echoBufferL[n];
+    float feedR = echoBufferR[n];
+    float rawTotal=0;
+    float totalL=0;
+    float totalR=0;
+    
+    
+    float lL = 0;
+    float lR = 0;
+        
+    //Read from the looper into our audio
+    //loopSize is only non-zero when all other values are checked and set correctly
+    if(0 < loop.size)
+    {
+        int offset = loop.firstOffset + loop.secondOffset;
+        int loopIdx = offset + (now - loop.idxBuffer - offset)%loop.size;
+        loopBufferL[loopIdx] *= (1-dying);
+        loopBufferR[loopIdx] *= (1-dying);
+        lL = loopBufferL[ loopIdx ];
+        lR = loopBufferR[ loopIdx ];
+    }
+    
+    //Sum up all fingers per chorus voice
+    for(int phaseIdx=0; phaseIdx<UNISONMAX; phaseIdx++)
+    {
+        float raw = allFingers.total[phaseIdx][i];
+        //Is the atanf bad?
+        float val = dist*compress(raw * innerScale) + 2*noDist*raw;
+        rawTotal += val;
+    }        
+    
+    //These variables determine whether we get feedback, or creeping silence.
+    float reverbBoost = 2.1;
+    float totalScale = 0.25;
+    float feedScale = 0.1;
+    float channelBleed = 0.125;
+    float finalScale = 0.75;
+    float scaledTotal = rawTotal*totalScale;
+    float feedRawL = feedL*feedScale*reverbAmount;
+    float feedRawR = feedR*feedScale*reverbAmount;
+    totalL = feedRawL + scaledTotal;
+    totalR = feedRawR + scaledTotal;
+    echoBufferL[n2] += echoBufferL[n];
+    echoBufferR[n2] += echoBufferR[n];
+    echoBufferL[n2] *= 0.475;
+    echoBufferR[n2] *= 0.475;
+    echoBufferL[n] = 0;
+    echoBufferR[n] = 0;
+    
+    renderConvolution(i,sc,channelBleed,totalL,totalR);
+    
+    float aL = atanf(finalScale * (reverbBoost*feedRawL + scaledTotal*noReverbAmount + lL));
+    float aR = atanf(finalScale * (reverbBoost*feedRawR + scaledTotal*noReverbAmount + lR));
+    float aLRaw = atanf(finalScale * (reverbBoost*feedRawL + scaledTotal*noReverbAmount));
+    float aRRaw = atanf(finalScale * (reverbBoost*feedRawR + scaledTotal*noReverbAmount));
+    
+    int isLoopRecording = 
+    (loop.size==0 && 0 < loop.idxBuffer);
+    ;
+    
+    int isRecording = 
+    (isLoopRecording && loop.idxBuffer <= now) ||
+    (0 < loop.size && loop.idxEndLoop <= now && now < loop.idxRelease)
+    ;
+    
+    int isNotOverflowed = 
+    (now < loop.idxOverflow)
+    ;
+    
+    //We are recording
+    if(isRecording)
+    {
+        if(isNotOverflowed)
+        {
+            int loopIdx = (now - loop.idxBuffer);
+            loopBufferL[loopIdx] = aLRaw;
+            loopBufferR[loopIdx] = aRRaw;                
+        }
+    }
+    else 
+    {
+        if(0 < loop.size)
+        {
+            int offset = loop.firstOffset + loop.secondOffset;
+            int loopIdx = offset + (now - loop.idxBuffer - offset)%loop.size;
+            loopBufferL[loopIdx] = (1-dying)*(loopBufferL[loopIdx] + aLRaw*feeding);
+            loopBufferR[loopIdx] = (1-dying)*(loopBufferR[loopIdx] + aRRaw*feeding);
+        }
+    }
+    
+    dataL[i] = floatToSample(aL);
+    dataR[i] = floatToSample(aR);            
+}
 
 // loopIndexBufferAt is the sample corresponding to loopBufferL[0]
 //    [requestAt] [bufferAt] [loopIndexStartLoop] [loopIndexEndLoop] [loopIndexReleaseLoop] [loopIndexBufferOverflowAt]
@@ -634,119 +748,11 @@ static inline void renderNoiseToBuffer(long* dataL, long* dataR, unsigned long s
     
     float dying = (1-loop.feeding)*loop.level;
     float feeding = loop.feeding*loop.level;
+    //This whole part of the chain only happens once, not proportional to number of fingers or chorus voices
     //Add pre-chorus sound together compressed
     for(int i=0; i<samples; i++)
     {
-        unsigned long now = allFingers.sampleCount + i;
-        int n = (i+sc)%ECHOBUFFERMAX;
-        int n2 = (i+1+sc)%ECHOBUFFERMAX;
-        float rawTotal=0;
-        float totalL=0;
-        float totalR=0;
-        float feedL = echoBufferL[n];
-        float feedR = echoBufferR[n];
-        
-        
-        float lL = 0;
-        float lR = 0;
-        
-        int isLooping = 
-            (0 < loop.size)
-        ;
-                
-        //Read from the looper into our audio
-        //loopSize is only non-zero when all other values are checked and set correctly
-        if(isLooping)
-        {
-            int offset = loop.firstOffset + loop.secondOffset;
-            int loopIdx = offset + (now - loop.idxBuffer - offset)%loop.size;
-            loopBufferL[loopIdx] *= (1-dying);
-            loopBufferR[loopIdx] *= (1-dying);
-            lL = loopBufferL[ loopIdx ];
-            lR = loopBufferR[ loopIdx ];
-        }
-        
-        //Sum up all fingers per chorus voice
-        for(int phaseIdx=0; phaseIdx<UNISONMAX; phaseIdx++)
-        {
-            float raw = allFingers.total[phaseIdx][i];
-            //Is the atanf bad?
-            float val = dist*compress(raw * innerScale) + 2*noDist*raw;
-            rawTotal += val;
-        }        
-        
-        //These variables determine whether we get feedback, or creeping silence.
-        float reverbBoost = 2.1;
-        float totalScale = 0.25;
-        float feedScale = 0.1;
-        float channelBleed = 0.125;
-        float finalScale = 0.75;
-        float scaledTotal = rawTotal*totalScale;
-        float feedRawL = feedL*feedScale*reverbAmount;
-        float feedRawR = feedR*feedScale*reverbAmount;
-        totalL = feedRawL + scaledTotal;
-        totalR = feedRawR + scaledTotal;
-        echoBufferL[n2] += echoBufferL[n];
-        echoBufferR[n2] += echoBufferR[n];
-        echoBufferL[n2] *= 0.475;
-        echoBufferR[n2] *= 0.475;
-        echoBufferL[n] = 0;
-        echoBufferR[n] = 0;
-        
-        int sci = i+sc;
-        for(int r=0; r<REVERBECHOES; r++)
-        {
-            int nL = sci+reverbDataL[r];
-            int nR = sci+reverbDataR[r];
-            float vL = totalL*reverbStrength[r];
-            float vR = totalR*reverbStrength[r];
-            int nLX = nL % ECHOBUFFERMAX;
-            int nRX = nR % ECHOBUFFERMAX;
-            echoBufferL[nLX] += vL + channelBleed*vR;
-            echoBufferR[nRX] += vR + channelBleed*vL;
-        }
-        
-        float aL = atanf(finalScale * (reverbBoost*feedRawL + scaledTotal*noReverbAmount + lL));
-        float aR = atanf(finalScale * (reverbBoost*feedRawR + scaledTotal*noReverbAmount + lR));
-        float aLRaw = atanf(finalScale * (reverbBoost*feedRawL + scaledTotal*noReverbAmount));
-        float aRRaw = atanf(finalScale * (reverbBoost*feedRawR + scaledTotal*noReverbAmount));
-
-        int isLoopRecording = 
-            (loop.size==0 && 0 < loop.idxBuffer);
-        ;
-        
-        int isRecording = 
-            (isLoopRecording && loop.idxBuffer <= now) ||
-            (isLooping && loop.idxEndLoop <= now && now < loop.idxRelease)
-        ;
-        
-        int isNotOverflowed = 
-            (now < loop.idxOverflow)
-        ;
-        
-        //We are recording
-        if(isRecording)
-        {
-            if(isNotOverflowed)
-            {
-                int loopIdx = (now - loop.idxBuffer);
-                loopBufferL[loopIdx] = aLRaw;
-                loopBufferR[loopIdx] = aRRaw;                
-            }
-        }
-        else 
-        {
-            if(isLooping)
-            {
-                int offset = loop.firstOffset + loop.secondOffset;
-                int loopIdx = offset + (now - loop.idxBuffer - offset)%loop.size;
-                loopBufferL[loopIdx] = (1-dying)*(loopBufferL[loopIdx] + aLRaw*feeding);
-                loopBufferR[loopIdx] = (1-dying)*(loopBufferR[loopIdx] + aRRaw*feeding);
-            }
-        }
-        
-        dataL[i] = floatToSample(aL);
-        dataR[i] = floatToSample(aR);        
+        renderLoopIteration(dataL,dataR,i,sc,dying,innerScale,dist,noDist,reverbAmount,noReverbAmount,feeding);    
     }    
 }
 

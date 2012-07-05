@@ -62,7 +62,7 @@ void GenericTouchHandling_touchesUp(void* touch)
 }
 
 
-void GenericTouchHandling_touchesDown(void* touch,int isMoving,float x,float y, float velocity, float area)
+void GenericTouchHandling_touchesDown(void* touch,int isMoving,float x,float y, float area)
 {
     int finger  = TouchMapping_mapFinger(touch);
     if(finger<0)fail("impossible state: finger is invalid: %d",finger);    
@@ -77,7 +77,7 @@ void GenericTouchHandling_touchesDown(void* touch,int isMoving,float x,float y, 
     if(!itemP)fail("impossible state touchesDown: currentWidget for finger %d is not set.",finger);    
     if(itemP && itemP->down)
     {
-        itemP->down(itemP->ctx,finger,touch,isMoving,x,y,velocity,area);                    
+        itemP->down(itemP->ctx,finger,touch,isMoving,x,y,area);                    
     }        
 }
 

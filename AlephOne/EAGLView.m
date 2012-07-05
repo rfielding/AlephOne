@@ -15,7 +15,6 @@
 
 #import "Fretless.h"
 #import "GenericRendering.h"
-#import "PressureSensor.h"
 #include "CoreMIDIRenderer.h"
 #include "WidgetTree.h"
 #include "RawEngine.h"
@@ -230,7 +229,6 @@ float guessScaleFactor()
     [self setMultipleTouchEnabled:TRUE];
     if(isInitialized==FALSE)
     {        
-        PressureSensor_setup();
         //Transforms_clockwiseOrientation();
         frctx = Fret_init(malloc);
         phctx = PitchHandler_init(frctx,malloc,printf,printf);
@@ -376,13 +374,6 @@ float guessScaleFactor()
     tickClock%=4;
     if(tickClock==0)
     {
-        float x = PressureSensor_xNorm;
-        float y = PressureSensor_yNorm;
-        GenericRendering_updateLightOrientation(
-            x,
-            y,
-            PressureSensor_zNorm
-        );
         GenericTouchHandling_tick();                    
     }
 }
@@ -412,8 +403,7 @@ float guessScaleFactor()
              //*/
             //NSLog(@"p %f",PressureSensor_pressure);
             //NSLog(@"a %f",area);
-            GenericTouchHandling_touchesDown(touch,phase == UITouchPhaseMoved,x,y, 
-                                             10*PressureSensor_pressure, area); 
+            GenericTouchHandling_touchesDown(touch,phase == UITouchPhaseMoved,x,y,area); 
         }
     }
     GenericTouchHandling_touchesFlush();    

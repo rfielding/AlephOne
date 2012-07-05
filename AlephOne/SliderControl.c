@@ -68,7 +68,7 @@ void Slider_up(void* ctx,int finger,void* touch)
     //struct WidgetTree_rect* w = WidgetTree_get(slider->widgetId);
 }
 
-void Slider_down(void* ctx,int finger,void* touch,int isMoving,float x,float y, float velocity, float area)
+void Slider_down(void* ctx,int finger,void* touch,int isMoving,float x,float y, float area)
 {
     struct Slider_data* slider = (struct Slider_data*)ctx;
     if(slider)

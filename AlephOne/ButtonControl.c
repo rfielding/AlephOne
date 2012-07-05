@@ -67,16 +67,17 @@ void Button_render(void* ctx)
             VertexObjectBuilder_addColoredVertex(voCtxDynamic, w->x2-dx, w->y1+dy, 0, 255,255,255,150);
             VertexObjectBuilder_addColoredVertex(voCtxDynamic, w->x2-dx, w->y1+dy, 0, 255,255,255,150);
             VertexObjectBuilder_addColoredVertex(voCtxDynamic, w->x2-dx, w->y2-dy, 0, 255,255,255,150);
+            
+            float s = 0.01;
+            dx = 0.4;
+            dy = 0.06;
+            VertexObjectBuilder_startTexturedObject(voCtxDynamic,GRAPHICS_TRIANGLE_STRIP,button->label);
+            VertexObjectBuilder_addTexturedVertex(voCtxDynamic, w->x1+s, w->y1, 0, 0,0);
+            VertexObjectBuilder_addTexturedVertex(voCtxDynamic, w->x1+s, w->y1+dy, 0, 0,1);
+            VertexObjectBuilder_addTexturedVertex(voCtxDynamic, w->x1+dx+s, w->y1, 0, 1,0);
+            VertexObjectBuilder_addTexturedVertex(voCtxDynamic, w->x1+dx+s, w->y1+dy, 0, 1,1);  
         }
 
-        float s = 0.01;
-        dx = 0.4;
-        dy = 0.06;
-        VertexObjectBuilder_startTexturedObject(voCtxDynamic,GRAPHICS_TRIANGLE_STRIP,button->label);
-        VertexObjectBuilder_addTexturedVertex(voCtxDynamic, w->x1+s, w->y1, 0, 0,0);
-        VertexObjectBuilder_addTexturedVertex(voCtxDynamic, w->x1+s, w->y1+dy, 0, 0,1);
-        VertexObjectBuilder_addTexturedVertex(voCtxDynamic, w->x1+dx+s, w->y1, 0, 1,0);
-        VertexObjectBuilder_addTexturedVertex(voCtxDynamic, w->x1+dx+s, w->y1+dy, 0, 1,1);  
     }
 }
 
@@ -89,7 +90,7 @@ void Button_up(void* ctx,int finger,void* touch)
     }
 }
 
-void Button_down(void* ctx,int finger,void* touch,int isMoving,float x,float y, float velocity, float area)
+void Button_down(void* ctx,int finger,void* touch,int isMoving,float x,float y, float area)
 {
     struct Button_data* button = (struct Button_data*)ctx;
     if(button)

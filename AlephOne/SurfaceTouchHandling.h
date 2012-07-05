@@ -17,7 +17,7 @@ void SurfaceTouchHandling_touchesInit(
                                       );
 void SurfaceTouchHandling_touchesFlush(void* ctx);
 void SurfaceTouchHandling_touchesUp(void* ctx,int finger,void* touch);
-void SurfaceTouchHandling_touchesDown(void* ctx,int finger,void* touch,int isMoving,float x,float y, float velocity, float area);
+void SurfaceTouchHandling_touchesDown(void* ctx,int finger,void* touch,int isMoving,float x,float y, float area);
 void SurfaceTouchHandling_tick(void* ctx);
 float SurfaceTouchHandling_getChorusLevel();
 void SurfaceTouchHandling_setChorusLevel(float chorus);

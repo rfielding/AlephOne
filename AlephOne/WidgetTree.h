@@ -19,7 +19,7 @@ struct WidgetTree_rect
     void* ctx;
     void (*flush)(void* ctx);
     void (*up)(void* ctx,int finger,void* touch);
-    void (*down)(void* ctx,int finger,void* touch,int isMoving,float x,float y, float velocity, float area);
+    void (*down)(void* ctx,int finger,void* touch,int isMoving,float x,float y, float area);
     void (*tick)(void* ctx);
     void (*render)(void* ctx);
     

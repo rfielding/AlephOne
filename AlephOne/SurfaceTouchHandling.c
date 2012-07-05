@@ -59,7 +59,7 @@ void SurfaceTouchHandling_touchesUp(void* ctx,int finger,void* touch)
 }
 
 
-void SurfaceTouchHandling_touchesDown(void* ctx,int finger,void* touch,int isMoving,float x,float y, float velocity, float area)
+void SurfaceTouchHandling_touchesDown(void* ctx,int finger,void* touch,int isMoving,float x,float y, float area)
 {
     int finger1  = finger;
     if(finger1 < 0)
@@ -74,20 +74,12 @@ void SurfaceTouchHandling_touchesDown(void* ctx,int finger,void* touch,int isMov
     
     //Polyphony type is manipulating the polyphony mode
     int polyGroup1;
-    //Solo-mode with chorusing
-    if(poly == 0)
+    switch(poly)
     {
-        polyGroup1 = 0;
-    }
-    //Per-string polyphony
-    if(poly == 1)
-    {
-        polyGroup1 = polygroup;
-    }
-    //Full polyphony
-    if(poly == 2)
-    {
-        polyGroup1 = finger;
+        case 0: polyGroup1 = 0; break;
+        case 1: polyGroup1 = polygroup; break;
+        case 2: polyGroup1 = finger; break;
+        default: polyGroup1 = 0;
     }
     
     //float e = expr;

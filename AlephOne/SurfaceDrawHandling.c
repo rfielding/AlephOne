@@ -103,6 +103,7 @@ void SurfaceDraw_drawBackground()
         {
             stdNote = ((int)(x*cols + bottomLeftNote + cumulativeDetune))%12;
             //Given the standard note name, draw it
+            /*
             int r;
             int g;
             int b;
@@ -126,6 +127,7 @@ void SurfaceDraw_drawBackground()
                     g=0;
                     b=0;
             }
+             */
             VertexObjectBuilder_startTexturedObject(voCtxDynamic,GRAPHICS_TRIANGLE_STRIP,(PIC_NOTE0+stdNote));
             VertexObjectBuilder_addTexturedVertex(voCtxDynamic, x-dx, y-iy, 0, 0,0);
             VertexObjectBuilder_addTexturedVertex(voCtxDynamic, x-dx, y+iy, 0, 0,1);

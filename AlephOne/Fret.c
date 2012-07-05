@@ -90,7 +90,7 @@ float Fret_getTarget(struct Fret_context* ctx, float pitch, int* fretP)
     float pitchVal = pitch;
     float bestDistance=48;
     int fret;
-    int bestFret;
+    int bestFret=0;
     for(fret=octaveEst - ctx->used; fret <= octaveEst + ctx->used; fret++)
     {
         float p = Fret_getPitchFromFret(ctx,fret);
