@@ -449,7 +449,7 @@ static void initNoise()
     }
 }
 
-static inline void renderNoisePrepare(int f)
+static inline void renderNoiseFingerPrepare(int f)
 {
     if(allFingers.finger[f].volRamp.value == 0)
     {
@@ -669,13 +669,41 @@ static inline float renderSumChorus(
     return rawTotal;
 }
 
+
+static inline void renderLoopIterationLoopFeedAndChorus(const unsigned long now,const int i,const float innerScale,const float dying,const float dist,const float noDist,float* lLp,float* lRp,float* rawTotalp)
+{
+    if(0 < loop.size)
+    {
+        renderGetLoopFeed(now, dying, lLp, lRp);        
+    }
+    *rawTotalp = renderSumChorus(i, innerScale, dist, noDist);    
+}
+
+
+static inline void renderLoopIterationEchoAndReverb(const int i,const int sc,const int n,const int n2,const float reverbAmount,const float rawTotal,float* scaledTotalp,float* feedRawLp,float* feedRawRp)
+{
+    const float feedL = echoBufferL[n];
+    const float feedR = echoBufferR[n];
+    const float totalScale = 0.25;
+    const float feedScale = 0.1;
+    const float channelBleed = 0.125;
+    *scaledTotalp = rawTotal*totalScale;
+    *feedRawLp = feedL*feedScale*reverbAmount;
+    *feedRawRp = feedR*feedScale*reverbAmount;
+    const float totalL = *feedRawLp + *scaledTotalp;
+    const float totalR = *feedRawRp + *scaledTotalp;    
+    renderEcho(n,n2);
+    renderConvolution(i,sc,channelBleed,totalL,totalR);    
+}
+
+
 static inline void renderCompression(
-    const float finalScale,
-    const float scaledTotal,
-    const float reverbBoost,const float noReverbAmount,
-    const float lL,const float lR,
-    const float feedRawL,const float feedRawR,
-    float* aLp, float* aRp, float* aLRawp,float* aRRawp)
+                                     const float finalScale,
+                                     const float scaledTotal,
+                                     const float reverbBoost,const float noReverbAmount,
+                                     const float lL,const float lR,
+                                     const float feedRawL,const float feedRawR,
+                                     float* aLp, float* aRp, float* aLRawp,float* aRRawp)
 {
     *aLp = (finalScale * (reverbBoost*feedRawL + scaledTotal*noReverbAmount + lL));
     *aRp = (finalScale * (reverbBoost*feedRawR + scaledTotal*noReverbAmount + lR));
@@ -683,22 +711,12 @@ static inline void renderCompression(
     *aRRawp = (finalScale * (reverbBoost*feedRawR + scaledTotal*noReverbAmount));    
 }
 
-#define RF_SCALEFACTOR (((long)0x2000000) / (M_PI/2))
-#define RF_ISCALEFACTOR (0.75)
 
-static inline void renderFinalizeBuffer(
-        long* dataL,long* dataR,
-        const int i,
-        const float aL,const float aR)
-{
-    dataL[i] = (long) (RF_SCALEFACTOR * atanf(aL * RF_ISCALEFACTOR));
-    dataR[i] = (long) (RF_SCALEFACTOR * atanf(aR * RF_ISCALEFACTOR));                
-}
 
 static inline void renderUpdateLoopBuffer(
-    const unsigned long now,
-    const float feeding,const float dying,
-    const float aLRaw,const float aRRaw)
+                                          const unsigned long now,
+                                          const float feeding,const float dying,
+                                          const float aLRaw,const float aRRaw)
 {
     const int isLooping = (0 < loop.size);
     const int isLoopRecording = (loop.size==0 && 0 < loop.idxBuffer);    
@@ -728,29 +746,16 @@ static inline void renderUpdateLoopBuffer(
     }    
 }
 
-static inline void renderLoopIterationInitPass(const unsigned long now,const int i,const float innerScale,const float dying,const float dist,const float noDist,float* lLp,float* lRp,float* rawTotalp)
-{
-    if(0 < loop.size)
-    {
-        renderGetLoopFeed(now, dying, lLp, lRp);        
-    }
-    *rawTotalp = renderSumChorus(i, innerScale, dist, noDist);    
-}
+#define RF_SCALEFACTOR (((long)0x2000000) / (M_PI/2))
+#define RF_ISCALEFACTOR (0.75)
 
-static inline void renderLoopIterationMidPass(const int i,const int sc,const int n,const int n2,const float reverbAmount,const float rawTotal,float* scaledTotalp,float* feedRawLp,float* feedRawRp)
+static inline void renderFinalizeBuffer(
+                                        long* dataL,long* dataR,
+                                        const int i,
+                                        const float aL,const float aR)
 {
-    const float feedL = echoBufferL[n];
-    const float feedR = echoBufferR[n];
-    const float totalScale = 0.25;
-    const float feedScale = 0.1;
-    const float channelBleed = 0.125;
-    *scaledTotalp = rawTotal*totalScale;
-    *feedRawLp = feedL*feedScale*reverbAmount;
-    *feedRawRp = feedR*feedScale*reverbAmount;
-    const float totalL = *feedRawLp + *scaledTotalp;
-    const float totalR = *feedRawRp + *scaledTotalp;    
-    renderEcho(n,n2);
-    renderConvolution(i,sc,channelBleed,totalL,totalR);    
+    dataL[i] = (long) (RF_SCALEFACTOR * atanf(aL * RF_ISCALEFACTOR));
+    dataR[i] = (long) (RF_SCALEFACTOR * atanf(aR * RF_ISCALEFACTOR));                
 }
 
 /**
@@ -769,12 +774,12 @@ static inline void renderLoopIteration(
     float lL=0; //buzzing noise in left channel if not initialized... whuu?
     float lR=0;
     float rawTotal;
-    renderLoopIterationInitPass(now,i,innerScale,dying,dist,noDist,&lL,&lR,&rawTotal);
+    renderLoopIterationLoopFeedAndChorus(now,i,innerScale,dying,dist,noDist,&lL,&lR,&rawTotal);
     
     float scaledTotal;
     float feedRawL;
     float feedRawR;
-    renderLoopIterationMidPass(i,sc,n,n2,reverbAmount,rawTotal,&scaledTotal,&feedRawL,&feedRawR);
+    renderLoopIterationEchoAndReverb(i,sc,n,n2,reverbAmount,rawTotal,&scaledTotal,&feedRawL,&feedRawR);
     
     const float reverbBoost = 2.1;
     const float finalScale = 0.75;
@@ -787,7 +792,10 @@ static inline void renderLoopIteration(
     renderFinalizeBuffer(dataL,dataR,i,aL,aR);
 }
 
-static inline void renderNoiseToBuffer(long* dataL, long* dataR, unsigned long samples)
+/**
+ This is an intense and serialized effects chain, but it does not vary with the number of voices.
+ */
+static inline void renderNoiseEffectsChain(long* dataL, long* dataR, unsigned long samples)
 {
     float dist = (allFingers.distRamp.value);
     float noDist = 1 - dist;
@@ -805,6 +813,8 @@ static inline void renderNoiseToBuffer(long* dataL, long* dataR, unsigned long s
     float feeding = loop.feeding*loop.level;
     //This whole part of the chain only happens once, not proportional to number of fingers or chorus voices
     //Add pre-chorus sound together compressed
+    //
+    //TODO: trying to vectorize this.  For now, I am refactoring it to try to get some compiler vectorization
     for(int i=0; i<samples; i++)
     {
         //Generate intermediate indices
@@ -816,8 +826,11 @@ static inline void renderNoiseToBuffer(long* dataL, long* dataR, unsigned long s
     }    
 }
 
-
-static void renderNoiseInnerLoop(int f,unsigned long samples,float invSamples,
+/**
+ This is where we have parallelism and use vDSP as much as possible to
+ get the per-voice costs as low as possible
+ */
+static void renderNoiseFingerInnerLoop(int f,unsigned long samples,float invSamples,
                                         float currentVolume,float diffVolume, float currentExpr, float diffExpr)
 {
     float notep = allFingers.finger[f].pitchRamp.value;
@@ -835,7 +848,7 @@ static void renderNoiseInnerLoop(int f,unsigned long samples,float invSamples,
         }
         float phase = allFingers.finger[f].phases[u];
         allFingers.finger[f].phases[u] = 
-        renderNoiseInnerLoopInParallel(
+            renderNoiseInnerLoopInParallel(
                                            allFingers.total[u],notep,unisonDetune[u]*allFingers.detuneRamp.value,
                                            currentTimbre,deltaTimbre,phase,
                                            samples,invSamples,
@@ -844,6 +857,9 @@ static void renderNoiseInnerLoop(int f,unsigned long samples,float invSamples,
     }
 }
 
+/**
+ Overall audio rendering for this data chunk, including all fingers at all voices, and the finall effects chain
+ */
 static void renderNoise(long* dataL, long* dataR, unsigned long samples)
 {
     renderNoiseCleanAll(samples);
@@ -871,14 +887,14 @@ static void renderNoise(long* dataL, long* dataR, unsigned long samples)
             float diffExpr      = (targetExpr - currentExpr);
             
             activeFingers++;
-            renderNoisePrepare(f);
-            renderNoiseInnerLoop(f,samples, invSamples, currentVolume,diffVolume,currentExpr,diffExpr);                
+            renderNoiseFingerPrepare(f);
+            renderNoiseFingerInnerLoop(f,samples, invSamples, currentVolume,diffVolume,currentExpr,diffExpr);                
             doRamp(&allFingers.finger[f].pitchRamp);        
             doRamp(&allFingers.finger[f].exprRamp);                
             doRamp(&allFingers.finger[f].volRamp);    
         }
     }
-    renderNoiseToBuffer(dataL,dataR,samples);
+    renderNoiseEffectsChain(dataL,dataR,samples);
     doRamp(&allFingers.reverbRamp);
     doRamp(&allFingers.detuneRamp);
     doRamp(&allFingers.timbreRamp);
@@ -934,7 +950,7 @@ void rawEngine(int midiChannel,int doNoteAttack,float pitch,float volVal,int mid
         }
         if(doVol) //If we are in legato, then this might need to be stopped
         {
-            int rampVal = 2;
+            int rampVal = 1;
             if(volVal == 0)
             {
                 rampVal+=2;
