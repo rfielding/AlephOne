@@ -691,8 +691,8 @@ static inline void renderFinalizeBuffer(
 {
     const float scaleFactor = ((long)0x2000000) / (M_PI/2);
     const float innerScaleFactor = 0.75;
-    dataL[i] = scaleFactor * atanf(aL * innerScaleFactor);
-    dataR[i] = scaleFactor * atanf(aR * innerScaleFactor);                
+    dataL[i] = (long) (scaleFactor * atanf(aL * innerScaleFactor));
+    dataR[i] = (long) (scaleFactor * atanf(aR * innerScaleFactor));                
 }
 
 static inline void renderUpdateLoopBuffer(
@@ -701,18 +701,9 @@ static inline void renderUpdateLoopBuffer(
     const float aLRaw,const float aRRaw)
 {
     const int isLooping = (0 < loop.size);
-    const int isLoopRecording = 
-    (loop.size==0 && 0 < loop.idxBuffer);
-    ;
-    
-    const int isRecording = 
-    (isLoopRecording && loop.idxBuffer <= now) ||
-    (isLooping && loop.idxEndLoop <= now && now < loop.idxRelease)
-    ;
-    
-    const int isNotOverflowed = 
-    (now < loop.idxOverflow)
-    ;
+    const int isLoopRecording = (loop.size==0 && 0 < loop.idxBuffer);    
+    const int isRecording = (isLoopRecording && loop.idxBuffer <= now) || (isLooping && loop.idxEndLoop <= now && now < loop.idxRelease);
+    const int isNotOverflowed = (now < loop.idxOverflow);
     
     //We are recording
     if(isRecording)
