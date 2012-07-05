@@ -679,8 +679,6 @@ static inline void renderLoopIterationLoopFeedAndChorus(const unsigned long now,
 
 static inline void renderLoopIterationEchoAndReverb(const int i,const int sc,const int n,const int n2,const float reverbAmount,const float rawTotal,float* scaledTotalp,float* feedRawLp,float* feedRawRp)
 {
-    renderEcho(n,n2);
-    
     const float feedL = echoBufferL[n];
     const float feedR = echoBufferR[n];
     renderEcho(n,n2);
