@@ -772,20 +772,20 @@ static inline void renderLoopIteration(
 {
     float lL=0; //buzzing noise in left channel if not initialized... whuu?
     float lR=0;
-    float rawTotal;
+    float rawTotal=0;
     renderLoopIterationLoopFeedAndChorus(now,i,innerScale,dying,dist,noDist,&lL,&lR,&rawTotal);
     
-    float scaledTotal;
-    float feedRawL;
-    float feedRawR;
+    float scaledTotal=0;
+    float feedRawL=0;
+    float feedRawR=0;
     renderLoopIterationEchoAndReverb(i,sc,n,n2,reverbAmount,rawTotal,&scaledTotal,&feedRawL,&feedRawR);
     
     const float reverbBoost = 2.1;
     const float finalScale = 0.75;
-    float aL;
-    float aR;
-    float aLRaw;
-    float aRRaw;
+    float aL=0;
+    float aR=0;
+    float aLRaw=0;
+    float aRRaw=0;
     renderCompression(finalScale,scaledTotal,reverbBoost,noReverbAmount,lL,lR,feedRawL,feedRawR,&aL,&aR,&aLRaw,&aRRaw);
     renderUpdateLoopBuffer(now,feeding,dying,aLRaw,aRRaw);  
     renderFinalizeBuffer(dataL,dataR,i,aL,aR);
