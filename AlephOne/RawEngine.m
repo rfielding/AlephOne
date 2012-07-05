@@ -617,7 +617,7 @@ static inline void renderEcho(const int n,const int n2)
 }
 
 //This is a feed-forward reverb, a convolution hack
-static inline void renderConvolution(
+static inline void renderReverb(
     const int i,const int sc,
     const float channelBleed,
     const float totalL, const float totalR)
@@ -682,6 +682,8 @@ static inline void renderLoopIterationLoopFeedAndChorus(const unsigned long now,
 
 static inline void renderLoopIterationEchoAndReverb(const int i,const int sc,const int n,const int n2,const float reverbAmount,const float rawTotal,float* scaledTotalp,float* feedRawLp,float* feedRawRp)
 {
+    renderEcho(n,n2);
+    
     const float feedL = echoBufferL[n];
     const float feedR = echoBufferR[n];
     const float totalScale = 0.25;
@@ -692,8 +694,7 @@ static inline void renderLoopIterationEchoAndReverb(const int i,const int sc,con
     *feedRawRp = feedR*feedScale*reverbAmount;
     const float totalL = *feedRawLp + *scaledTotalp;
     const float totalR = *feedRawRp + *scaledTotalp;    
-    renderEcho(n,n2);
-    renderConvolution(i,sc,channelBleed,totalL,totalR);    
+    renderReverb(i,sc,channelBleed,totalL,totalR);    
 }
 
 
