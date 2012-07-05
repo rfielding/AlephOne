@@ -653,7 +653,7 @@ static inline void renderGetLoopFeed(
 }
 
 
-static inline float renderSumChorus(
+static inline float renderDistortionAndChorus(
                                     const int i, 
                                     const float innerScale,
                                     const float dist, const float noDist)
@@ -676,7 +676,7 @@ static inline void renderLoopIterationLoopFeedAndChorus(const unsigned long now,
     {
         renderGetLoopFeed(now, dying, lLp, lRp);        
     }
-    *rawTotalp = renderSumChorus(i, innerScale, dist, noDist);    
+    *rawTotalp = renderDistortionAndChorus(i, innerScale, dist, noDist);    
 }
 
 
