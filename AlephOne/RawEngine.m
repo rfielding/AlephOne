@@ -608,6 +608,7 @@ float getLoopFade()
     return loop.level;
 }
 
+//This is a feed-forward echo
 static inline void renderEcho(const int n,const int n2)
 {
     echoBufferL[n2] += echoBufferL[n];
@@ -618,7 +619,7 @@ static inline void renderEcho(const int n,const int n2)
     echoBufferR[n] = 0;    
 }
 
-//This could be part of a convolution over the entire buffer
+//This is a feed-forward reverb, a convolution hack
 static inline void renderConvolution(
     const int i,const int sc,
     const float channelBleed,
