@@ -108,11 +108,7 @@ struct {
 //Stereo 16bit 44.1khz stereo goes here, with space for CAFF headers appended
 char copyBuffer8[2*LOOPBUFFERMAX*2+1024];
 
-static inline long floatToSample(float f)
-{
-    float scaleFactor = 0x800000 * 2.0/M_PI * 2;
-    return scaleFactor * f;
-}
+
 
 static inline long floatToSample16(float f)
 {
@@ -687,13 +683,16 @@ static inline void renderCompression(
     *aRRawp = atanf(finalScale * (reverbBoost*feedRawR + scaledTotal*noReverbAmount));    
 }
 
+
 static inline void renderFinalizeBuffer(
         long* dataL,long* dataR,
         const int i,
         const float aL,const float aR)
 {
-    dataL[i] = floatToSample(aL);
-    dataR[i] = floatToSample(aR);                
+    const float scaleFactor = ((long)0x2000000) / (M_PI/2);
+    const float innerScaleFactor = 0.75;
+    dataL[i] = scaleFactor * atanf(aL * innerScaleFactor);
+    dataR[i] = scaleFactor * atanf(aR * innerScaleFactor);                
 }
 
 static inline void renderUpdateLoopBuffer(
