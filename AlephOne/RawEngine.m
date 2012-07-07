@@ -949,7 +949,7 @@ void rawEngine(int midiChannel,int doNoteAttack,float pitch,float volVal,int mid
         }
         if(doVol) //If we are in legato, then this might need to be stopped
         {
-            int rampVal = 2;
+            int rampVal = 1;
             if(volVal == 0)
             {
                 rampVal+=2;
