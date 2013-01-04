@@ -3,7 +3,7 @@
 //  AlephOne
 //
 //  Created by Robert Fielding on 10/14/11.
-//  Copyright 2011 Check Point Software. All rights reserved.
+//  Copyright 2011 Rob Fielding Software.
 //
 
 #import <UIKit/UIKit.h>

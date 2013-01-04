@@ -3,7 +3,7 @@
 //  AlephOne
 //
 //  Created by Robert Fielding on 3/4/12.
-//  Copyright (c) 2012 Check Point Software. All rights reserved.
+//  Copyright (c) 2012 Rob Fielding Software.
 //
 #import <Accelerate/Accelerate.h>
 #import "RawEngineGenerated.h"

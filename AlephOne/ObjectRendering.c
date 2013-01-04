@@ -3,7 +3,7 @@
 //  AlephOne
 //
 //  Created by Robert Fielding on 12/18/11.
-//  Copyright 2011 Check Point Software. All rights reserved.
+//  Copyright 2011 Rob Fielding Software.
 //
 /**
    This place is a bit of a mosh pit of dependencies, because it wires together a lot of

@@ -3,7 +3,7 @@
 //  AlephOne
 //
 //  Created by Robert Fielding on 12/23/11.
-//  Copyright 2011 Check Point Software. All rights reserved.
+//  Copyright 2011 Rob Fielding Software.
 //
 
 //These are the indices for images, kept here to ensure that they are unique
