@@ -7,6 +7,10 @@ After only a few weeks of effort, it is better than Geo in a lot of ways (almost
 
 http://www.youtube.com/watch?v=ZGSZBsxYMfI
 
+And looks like this now:
+`:
+https://www.youtube.com/watch?v=pnKXLfWgSCk
+
 Conventions
 -----------
 
