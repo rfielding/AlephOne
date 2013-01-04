@@ -1,9 +1,11 @@
-AlephOne
+AlephOne: The iOS App Store app "Cantor"
 ========
 
-This project is lessons learned from Mugician and Geo Synth.  I have no idea if this code will literally be released as an instrument.  But it's a lab rat designed to produce clean code modules that are very isolated and heavily tested.  As such, I will be resisting any attempts to let the modules start to build up unnecesary dependencies and complexity.
+This is the source code for the iOS store app "Cantor".  It is an excellent MIDI controller.  It is totally pointless for the source code for the MIDI portion of this to not be public, because this controller (and all others that act like this) are useless without a lot of synths that can implement MIDI this way.  So, I went ahead and just released the full source (a partial release was in DSPCompiler, but it may not be enough to see how to actually use the MIDI code, and this app has definitely run its course).
 
-After only a few weeks of effort, it is better than Geo in a lot of ways (almost entirely in the Fretless module).
+ It's a lab rat designed to produce clean code modules that are very isolated and heavily tested.  As such, I will be resisting any attempts to let the modules start to build up unnecesary dependencies and complexity.  It is extremely playable, and it's primarily a MIDI controller.  I never wanted to include an audio engine in it, but there is a rudimentary one that let me excercise some ideas about how to make an audio angine parallelizable (3D wavetables, SIMD via vDSP, etc).
+
+After only a few weeks of effort, it came better than Geo in some of ways (almost entirely in the Fretless module).  But there was never any pretense at trying to simplify it to appeal to a wide audience.  This app is a torture test for MIDI pitch handling, and even on the phone is one of the most ergonomically playable things on the iOS platform.
 
 http://www.youtube.com/watch?v=ZGSZBsxYMfI
 
