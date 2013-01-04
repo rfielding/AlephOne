@@ -3,7 +3,7 @@
 //  AlephOne
 //
 //  Created by Robert Fielding on 2/2/12.
-//  Copyright (c) 2012 Check Point Software. All rights reserved.
+//  Copyright (c) 2012 Rob Fielding Software.
 //
 // Only using ObjC internally to use internal classes...trying not to leak this requirement everywhere.
 
@@ -26,7 +26,7 @@
 #define LOOPBUFFERMAX (1024*1024)
 #define ECHOBUFFERMAX (1024*128)
 #define UNISONMAX 3
-#define HARMONICSMAX 64
+#define HARMONICSMAX 128
 #define REVERBECHOES 10
 #define AUDIOCHANNELS 2
 
@@ -220,7 +220,7 @@ float octaveHarmonicLimit[OCTAVES] = {
 };
 
 float unisonDetune[UNISONMAX] = {
-    0, -0.4, 0.4    
+    0, -0.5, 0.5
 };
 float unisonVol[UNISONMAX] = {
   1, 1, 1  
@@ -293,6 +293,7 @@ static void normalizeHarmonics(float* harmonicsArr)
     }
 }
 
+/*
 static void setupSampleIndexArray()
 {
     for(int i=0; i<SAMPLESMAX; i++)
@@ -300,6 +301,7 @@ static void setupSampleIndexArray()
         sampleIndexArray[i] = i;
     }    
 }
+*/
 
 void loopReset()
 {
@@ -333,9 +335,10 @@ void reNormalizeToMax(float* buffer)
     for(int i=0; i<WAVEMAX; i++)
     {
         float val = buffer[i];
-        if(fabs(val) > maxValue)
+        float v = sqrtf(fabs(val));
+        if(v > maxValue)
         {
-            maxValue = fabs(val);
+            maxValue = v;
         }
     }
     //Divide everything by max value
@@ -368,7 +371,7 @@ static void initNoise()
     bzero(echoBufferL,sizeof(float)*ECHOBUFFERMAX);
     bzero(echoBufferR,sizeof(float)*ECHOBUFFERMAX);
     
-    setupSampleIndexArray();
+    //setupSampleIndexArray();
     
     clearHarmonics(harmonics[0][0]);
     for(int i=0; i<HARMONICSMAX; i++)
@@ -607,8 +610,8 @@ static inline void renderEcho(const int n,const int n2)
 {
     echoBufferL[n2] += echoBufferL[n];
     echoBufferR[n2] += echoBufferR[n];
-    echoBufferL[n2] *= 0.475;
-    echoBufferR[n2] *= 0.475;
+    echoBufferL[n2] *= 0.4;
+    echoBufferR[n2] *= 0.4;
     echoBufferL[n] = 0;
     echoBufferR[n] = 0;    
 }
@@ -620,7 +623,7 @@ static inline void renderReverb(
     const float totalL, const float totalR)
 {
     const int sci = i+sc;
-    const float reverbStrength = 0.99;
+    const float reverbStrength = 0.995;
     const float vL = totalL*reverbStrength;
     const float vR = totalR*reverbStrength;
     //Should unroll because of the constants
@@ -662,7 +665,7 @@ static inline float renderDistortionAndChorus(
     {
         const float raw = allFingers.total[phaseIdx][i];
         //Is the atanf bad?
-        rawTotal += dist*atanf(raw * innerScale) + 2*noDist*raw;
+        rawTotal += dist*atanf(raw * innerScale) + noDist*raw;
     }     
     return rawTotal;
 }
@@ -780,8 +783,8 @@ static inline void renderLoopIteration(
     float feedRawR=0;
     renderLoopIterationEchoAndReverb(i,sc,n,n2,reverbAmount,rawTotal,&scaledTotal,&feedRawL,&feedRawR);
     
-    const float reverbBoost = 2.1;
-    const float finalScale = 0.75;
+    const float reverbBoost = 2.2;
+    const float finalScale = 0.9;
     float aL=0;
     float aR=0;
     float aLRaw=0;
@@ -798,7 +801,6 @@ static inline void renderNoiseEffectsChain(SInt32* dataL, SInt32* dataR, unsigne
 {
     float dist = (allFingers.distRamp.value);
     float noDist = 1 - dist;
-    dist=dist*dist;
     float innerScale = (0.5+10.5*dist) * 0.5;
     
     //Scale to fit range when converting to integer
@@ -806,7 +808,6 @@ static inline void renderNoiseEffectsChain(SInt32* dataL, SInt32* dataR, unsigne
     long sc = allFingers.sampleCount;
     float reverbAmount = (allFingers.reverbRamp.value * allFingers.reverbRamp.value);
     float noReverbAmount = (1 - reverbAmount);
-    reverbAmount = reverbAmount*0.95;
     
     float dying = (1-loop.feeding)*loop.level;
     float feeding = loop.feeding*loop.level;
@@ -833,6 +834,7 @@ static void renderNoiseFingerInnerLoop(int f,unsigned long samples,float invSamp
                                         float currentVolume,float diffVolume, float currentExpr, float diffExpr)
 {
     float notep = allFingers.finger[f].pitchRamp.value;
+    float notepTarget = allFingers.finger[f].pitchRamp.stopValue;
     float currentTimbre = allFingers.timbreRamp.value;
     float targetTimbre = allFingers.timbreRamp.stopValue;
     float deltaTimbre = (targetTimbre - currentTimbre)/samples;
@@ -848,7 +850,7 @@ static void renderNoiseFingerInnerLoop(int f,unsigned long samples,float invSamp
         float phase = allFingers.finger[f].phases[u];
         allFingers.finger[f].phases[u] = 
             renderNoiseInnerLoopInParallel(
-                                           allFingers.total[u],notep,unisonDetune[u]*allFingers.detuneRamp.value,
+                                           allFingers.total[u],notep,notepTarget,unisonDetune[u]*allFingers.detuneRamp.value,
                                            currentTimbre,deltaTimbre,phase,
                                            samples,invSamples,
                                            currentVolume*uVol,diffVolume*invSamples*uVol,
@@ -947,19 +949,26 @@ void rawEngine(int midiChannel,int doNoteAttack,float pitch,float volVal,int mid
                 }
             }
         }
+        int logFactor = log2(127 - pitch/12);
         if(doVol) //If we are in legato, then this might need to be stopped
         {
-            int rampVal = 1;
+            int rampVal = 1 + logFactor/2;
+/*
             if(volVal == 0)
             {
                 rampVal+=2;
             }
-            setRamp(&allFingers.finger[channel].volRamp, rampVal, volVal);            
+            if(pitch < 63)
+            {
+                rampVal += 1;
+            }
+ */
+            setRamp(&allFingers.finger[channel].volRamp, rampVal, volVal);
         }
-        if(volVal!=0) //Don't bother with ramping these on release
+        //if(volVal!=0) //Don't bother with ramping these on release
         {
-            setRamp(&allFingers.finger[channel].pitchRamp, 1, pitch);
-            setRamp(&allFingers.finger[channel].exprRamp, 3, midiExpr/127.0);                                            
+            setRamp(&allFingers.finger[channel].pitchRamp, logFactor/4+1, pitch);
+            setRamp(&allFingers.finger[channel].exprRamp, logFactor/4+3, midiExpr/127.0);
         }
     }
 }

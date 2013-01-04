@@ -8,6 +8,7 @@
 #import <Accelerate/Accelerate.h>
 #import "RawEngineGenerated.h"
 
+/*
 static inline void xDSP_vcp(float* src,float* dst,int count)
 {
     memcpy(dst,src,count*sizeof(float));
@@ -151,20 +152,49 @@ static inline void renderNoiseSampleMix(float* output,float notep,float currentT
     vDSP_vadd(output,1, registerRight,1, output,1, samples);
     
 }
+*/
+
+#define WMIX_O(x,y) ((1-oPos) * waveMix[(int)oBase][x][y][j] + oPos * waveMix[((int)oBase)+1][x][y][j])
+#define WMIX_E(x)  ((1-e)*WMIX_O(0,x) + (e)*WMIX_O(1,x))
+#define WMIX_G     ((1-g)*WMIX_E(0) + g*WMIX_E(1))
+#define WMIX_T     (WMIX_G*t + _waveFundamental[j])
 
 float renderNoiseInnerLoopInParallel(
                                      float* output,
-                                     float notep,float detune,
+                                     float notep,float notepTarget,float detune,
                                      float currentTimbre,float deltaTimbre,float phase,
                                      unsigned long samples,float invSamples,
                                      float currentVolume,float deltaVolume,
                                      float currentExpr,float deltaExpr)
 {
-    float cyclesPerSample = powf(2,(notep-33+(1-currentExpr/2)*detune*(1-notep/127))/12) * (440/(44100.0 * 32));
+    float freq    = powf(2,(notep-33+(1-currentExpr/2)*detune*(1-notep/127))/12) * (440/(44100.0 * 32));
+    float freqEnd = powf(2,(notepTarget-33+(1-currentExpr/2)*detune*(1-notep/127))/12) * (440/(44100.0 * 32));
+    float freqDiff = freqEnd - freq;
+    float endPhase = phase + freq*samples + 0.5*freqDiff;
+    
+    float oct = notep/12;
+    float octEnd = notepTarget/12;
+    float octDelta = (octEnd - oct)*invSamples;
+    
+    /*
     renderNoiseComputeWaveIndexJ(phase,cyclesPerSample, samples);
     renderNoiseComputeV(currentVolume, deltaVolume, samples);    
     renderNoiseComputeE(currentExpr, deltaExpr, samples);    
     renderNoiseSampleMix(output,notep,currentTimbre,deltaTimbre,samples);
-    return (cyclesPerSample*samples) + phase;
+     */
+    
+    for(int i=0; i<samples; i++)
+    {
+        float v = currentVolume + i*deltaVolume;
+        float oBase = oct + octDelta*i;
+        float oPos  = oBase - (int)oBase;
+        float e = currentExpr + deltaExpr*i;
+        float g = v*v;
+        float t = currentTimbre + i*deltaTimbre;
+        float rawIndex = phase + freq*i + i*i*0.5*invSamples*invSamples*freqDiff;
+        int j = ((int)(rawIndex*WAVEMAX))%WAVEMAX;
+        output[i] += v * WMIX_T;
+    }
+    return endPhase;
 }
 

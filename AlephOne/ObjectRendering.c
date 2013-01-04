@@ -829,9 +829,9 @@ void ObjectRendering_loadImages()
     MidiBend_set(NULL,MidiBend_get(NULL));
     
     renderLabel("Distortion", PIC_DISTORTIONTEXT);
-    renderLabel("Detune", PIC_DETUNETEXT);
-    renderLabel("Timbre", PIC_TIMBRETEXT);
-    renderLabel("Space", PIC_REVERBTEXT);
+    renderLabel("Chorus", PIC_DETUNETEXT);
+    renderLabel("Filter", PIC_TIMBRETEXT);
+    renderLabel("Reverb", PIC_REVERBTEXT);
     
     renderLabel("Oct Auto", PIC_OCTTEXT);
     renderLabel("-1",PIC_ROOTDOWN);
@@ -849,8 +849,8 @@ void ObjectRendering_loadImages()
     renderLabel("Toggle", PIC_SCALETOGGLETEXT);
     renderLabel("Defaults", PIC_SCALEFRETDEFAULTTEXT);
     
-    renderLabel("Snap", PIC_INITIALSNAPTEXT);
-    renderLabel("Speed", PIC_SNAPSPEEDTEXT);
+    renderLabel("FretDown", PIC_INITIALSNAPTEXT);
+    renderLabel("FretSpeed", PIC_SNAPSPEEDTEXT);
     renderLabel("Audio", PIC_ENGINETEXT);
     
     renderLabel("Rec", PIC_LOOPRECORD);
@@ -859,7 +859,7 @@ void ObjectRendering_loadImages()
     renderLabel("Rate", PIC_LOOPCLEAR);
     renderLabel("Feed/Fade", PIC_LOOPPLAY);
     
-    renderLabel("Sensitivity", PIC_SENSITIVITY);
+    renderLabel("FingerSensing", PIC_SENSITIVITY);
     
     renderLabel("http://rfieldin.appspot.com", PIC_HELPME);
     
