@@ -10,8 +10,12 @@ After only a few weeks of effort, it came better than Geo in some of ways (almos
 http://www.youtube.com/watch?v=ZGSZBsxYMfI
 
 And looks like this now:
-`:
+
 https://www.youtube.com/watch?v=pnKXLfWgSCk
+
+This is what makes Cantor (and Geo) special.  I am dealing with the MIDI pitch handling mess to get a viable fretless instrument, which is highly unusual in the synthesizer world:
+
+http://rrr00bb.blogspot.com/2012/04/ideal-midi-compatible-protocol.html
 
 Conventions
 -----------
@@ -27,7 +31,7 @@ Because the point of this project is to start building up reuseable components, 
 
 * Avoid declaring more than functions in header files.  If you must declare a pointer to a type that you define, try to keep the definition internal and provide functions to keep the structure opaque.
 
-* Avoid having modules have *any* static variables.  Fretless adheres to this, and because of it, we can run multiple instances of it for the cases where different settings on the MIDI generator necessitate that different MIDI streams be generated.  It's not quite like emulating object oriented programming, because even the malloc is a function that's passed in.  A TODO item is to get all major modules to have all state into an allocated structure in which every byte is initially zeroed out.  This will help to ensure that we get completely deterministic behavior, to the point that you should be able to run the same invocations twice against it and be able to do a string comparison on the memory and have them be equal.  This is important in Fretless because its disaster recovery mechanism is to do a soft reboot by re-initializing if it discovers a violated assertion then reaches a safe state to recover from (ie: all fingers up).  The strategy there is to log failures, and restart the module when they happen.  Even correct code can get into a bad state because of buffer overruns from a different buggy module.
+* The Fretless module may have multiple instances at some point, so static and global variables are avoided there.  Fretless adheres to this, and because of it, we can run multiple instances of it for the cases where different settings on the MIDI generator necessitate that different MIDI streams be generated.  It's not quite like emulating object oriented programming, because even the malloc is a function that's passed in.  A TODO item is to get all major modules to have all state into an allocated structure in which every byte is initially zeroed out.  This will help to ensure that we get completely deterministic behavior, to the point that you should be able to run the same invocations twice against it and be able to do a string comparison on the memory and have them be equal.  This is important in Fretless because its disaster recovery mechanism is to do a soft reboot by re-initializing if it discovers a violated assertion then reaches a safe state to recover from (ie: all fingers up).  The strategy there is to log failures, and restart the module when they happen.  Even correct code can get into a bad state because of buffer overruns from a different buggy module.
 
 * The main point is not so much the information hiding or the syntax of object oriented programming, but keeping dependencies to a minimum.  In other words, expect somebody faced with pulling in a bunch of your code to use a little bit of it to simply balk and go write his own code.  Object Oriented code can frequently do the opposite of reuse because of dependency proliferation, from requiring a more baroque language runtime than what may already be in use to having the type system cause transitive dependencies to pull in far too much code.  (This is also why I favor function pointers and avoid structures as much as possible.  It's easier to match up with a pair of compatible functions from a project than it is to impose an interface declaration that it must meet.  Essentially it is duck typing, and when you don't have functions that meet the interface you provide wrapped versions of them.)
 
