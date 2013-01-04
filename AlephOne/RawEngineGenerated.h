@@ -3,7 +3,7 @@
 //  AlephOne
 //
 //  Created by Robert Fielding on 3/4/12.
-//  Copyright (c) 2012 Check Point Software. All rights reserved.
+//  Copyright (c) 2012 Rob Fielding Software.
 //
 //  If we generate RawEngineGenerated.m, then this is the header we need to follow
 
