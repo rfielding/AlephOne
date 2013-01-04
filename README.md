@@ -1,11 +1,21 @@
-AlephOne
+AlephOne: The iOS App Store app "Cantor"
 ========
 
-This project is lessons learned from Mugician and Geo Synth.  I have no idea if this code will literally be released as an instrument.  But it's a lab rat designed to produce clean code modules that are very isolated and heavily tested.  As such, I will be resisting any attempts to let the modules start to build up unnecesary dependencies and complexity.
+This is the source code for the iOS store app "Cantor".  It is an excellent MIDI controller.  It is totally pointless for the source code for the MIDI portion of this to not be public, because this controller (and all others that act like this) are useless without a lot of synths that can implement MIDI this way.  So, I went ahead and just released the full source (a partial release was in DSPCompiler, but it may not be enough to see how to actually use the MIDI code, and this app has definitely run its course).
 
-After only a few weeks of effort, it is better than Geo in a lot of ways (almost entirely in the Fretless module).
+ It's a lab rat designed to produce clean code modules that are very isolated and heavily tested.  As such, I will be resisting any attempts to let the modules start to build up unnecesary dependencies and complexity.  It is extremely playable, and it's primarily a MIDI controller.  I never wanted to include an audio engine in it, but there is a rudimentary one that let me excercise some ideas about how to make an audio angine parallelizable (3D wavetables, SIMD via vDSP, etc).
+
+After only a few weeks of effort, it came better than Geo in some of ways (almost entirely in the Fretless module).  But there was never any pretense at trying to simplify it to appeal to a wide audience.  This app is a torture test for MIDI pitch handling, and even on the phone is one of the most ergonomically playable things on the iOS platform.
 
 http://www.youtube.com/watch?v=ZGSZBsxYMfI
+
+And looks like this now:
+
+https://www.youtube.com/watch?v=pnKXLfWgSCk
+
+This is what makes Cantor (and Geo) special.  I am dealing with the MIDI pitch handling mess to get a viable fretless instrument, which is highly unusual in the synthesizer world:
+
+http://rrr00bb.blogspot.com/2012/04/ideal-midi-compatible-protocol.html
 
 Conventions
 -----------
@@ -21,7 +31,7 @@ Because the point of this project is to start building up reuseable components, 
 
 * Avoid declaring more than functions in header files.  If you must declare a pointer to a type that you define, try to keep the definition internal and provide functions to keep the structure opaque.
 
-* Avoid having modules have *any* static variables.  Fretless adheres to this, and because of it, we can run multiple instances of it for the cases where different settings on the MIDI generator necessitate that different MIDI streams be generated.  It's not quite like emulating object oriented programming, because even the malloc is a function that's passed in.  A TODO item is to get all major modules to have all state into an allocated structure in which every byte is initially zeroed out.  This will help to ensure that we get completely deterministic behavior, to the point that you should be able to run the same invocations twice against it and be able to do a string comparison on the memory and have them be equal.  This is important in Fretless because its disaster recovery mechanism is to do a soft reboot by re-initializing if it discovers a violated assertion then reaches a safe state to recover from (ie: all fingers up).  The strategy there is to log failures, and restart the module when they happen.  Even correct code can get into a bad state because of buffer overruns from a different buggy module.
+* The Fretless module may have multiple instances at some point, so static and global variables are avoided there.  Fretless adheres to this, and because of it, we can run multiple instances of it for the cases where different settings on the MIDI generator necessitate that different MIDI streams be generated.  It's not quite like emulating object oriented programming, because even the malloc is a function that's passed in.  A TODO item is to get all major modules to have all state into an allocated structure in which every byte is initially zeroed out.  This will help to ensure that we get completely deterministic behavior, to the point that you should be able to run the same invocations twice against it and be able to do a string comparison on the memory and have them be equal.  This is important in Fretless because its disaster recovery mechanism is to do a soft reboot by re-initializing if it discovers a violated assertion then reaches a safe state to recover from (ie: all fingers up).  The strategy there is to log failures, and restart the module when they happen.  Even correct code can get into a bad state because of buffer overruns from a different buggy module.
 
 * The main point is not so much the information hiding or the syntax of object oriented programming, but keeping dependencies to a minimum.  In other words, expect somebody faced with pulling in a bunch of your code to use a little bit of it to simply balk and go write his own code.  Object Oriented code can frequently do the opposite of reuse because of dependency proliferation, from requiring a more baroque language runtime than what may already be in use to having the type system cause transitive dependencies to pull in far too much code.  (This is also why I favor function pointers and avoid structures as much as possible.  It's easier to match up with a pair of compatible functions from a project than it is to impose an interface declaration that it must meet.  Essentially it is duck typing, and when you don't have functions that meet the interface you provide wrapped versions of them.)
 
@@ -48,6 +58,6 @@ These are the main components roughly in order from most portable to least porta
 
 * CoreMIDIRenderer -- The Fretless MIDI API invokes function pointers like putchar/flush to generate MIDI packets.  Either a synthesizer, or a proxy for a synthesizer can implement this interface.  CoreMIDIRenderer is just such a proxy, and only depends on Fretless and CoreMIDI.  The interface is C, but the implementation is Objective-C, and is the first thing in this list that won't be useable on Android for sure (though it's a small piece of code that would have an equivalent there.) It is the simplest implementation of an object that looks like a synthesizer to Fretless.  If we embed an internal sound engine, it should have a similar interface.  Doing things this way yields an incredible number of advantages.  The primary advantage is that it becomes easy to both test MIDI synths locally, and allow for synth engines to be per-patch (sampling based versus subtractive versus just sending the messages on to somewhere else).  Most people wanting to quickly build an app will use this along with Fretless to get the app up and running.
 
-![Dependency Graph](dependencies.png)
+![Dependency Graph](blob/master/dependencies.png)
 
  
